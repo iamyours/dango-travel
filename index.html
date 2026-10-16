@@ -18,7 +18,7 @@ button:active{transform:translateY(3px);box-shadow:none}button:disabled{opacity:
 .arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:8;width:38px;height:38px;border-radius:50%;padding:0;font-size:18px;opacity:.85;background:#fffaf0d0}
 .arrow.l{left:8px}.arrow.r{right:8px}.arrow:active{transform:translateY(calc(-50% + 3px))}
 .roomname{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:8;background:#fffaf0e0;border:2px solid var(--ink);border-radius:14px;padding:2px 12px;font-size:14px;font-weight:700}
-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px 14px}
+nav{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 14px}
 nav button{padding:9px 2px;font-size:14px}nav button.on,.chips button.on{background:var(--yel)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.chips button{padding:4px 10px;font-size:13px;box-shadow:0 2px 0 var(--ink)}
 .chips button .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e86a55;margin-left:4px;vertical-align:middle}
@@ -71,163 +71,322 @@ nav button{padding:9px 2px;font-size:14px}nav button.on,.chips button.on{backgro
 .toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:8px 16px;z-index:20;animation:pop 2.6s forwards;white-space:nowrap}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,10px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .modal{position:fixed;inset:0;background:#2a20184d;display:flex;align-items:center;justify-content:center;z-index:30}
-.modal .card{width:92%;max-width:520px;text-align:center}.pc img{width:100%;border:2px solid var(--ink);border-radius:10px;display:block}
+.modal .card{width:92%;max-width:520px;text-align:center}.pc img{width:100%;aspect-ratio:4/3;object-fit:cover;border:2px solid var(--ink);border-radius:10px;display:block}
 .album .card{padding:8px;cursor:pointer}.album small{display:block;margin-top:4px}small{color:#7a6a58}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</head><body><div id="app">
+
+.emo{display:flex;align-items:flex-end;justify-content:center;line-height:1;font-size:calc(var(--w,6)*min(7.6px,1vw)*.9);filter:drop-shadow(0 2px 0 #0003)}
+.vis{position:absolute;z-index:4;pointer-events:none}.vis .bob{animation:bob 4.6s ease-in-out infinite}.vis img,.vis .emo{width:100%;display:block;transform-origin:50% 100%;animation:breath 3.8s ease-in-out infinite}
+.heart{position:absolute;z-index:5;font-size:clamp(10px,2vw,16px);animation:zz 3.5s ease-out infinite;opacity:0}
+.deco{position:absolute;z-index:3;transform-origin:50% 100%}.deco img{width:100%;display:block;filter:drop-shadow(0 3px 0 #0002)}
+.edit .deco{outline:2px dashed #e86a55;outline-offset:2px;cursor:grab;touch-action:none;z-index:9}.edit .deco.sel{outline-color:#4f7f3a}
+.planter{position:absolute;z-index:3;height:5%;background:#9b6a45;border:2px solid var(--ink);border-radius:6px 6px 10px 10px}
+.crop{position:absolute;z-index:4;transform-origin:50% 100%;animation:csw 5s ease-in-out infinite}.crop img{width:100%;display:block}
+.crop.ready::after{content:'✨';position:absolute;right:-20%;top:-10%;font-size:clamp(10px,2vw,16px);animation:tw 2s infinite}
+.book{background:#fffdf5;border:2px solid var(--ink);border-radius:6px 16px 16px 6px;padding:16px 18px 18px 26px;position:relative;min-height:240px;box-shadow:inset 10px 0 0 #efe2c4,3px 4px 0 #0002;background-image:repeating-linear-gradient(#fffdf5 0 27px,#eadfc6 27px 28px)}
+.book h3{margin:0 0 6px;font-size:17px}.book p{margin:0;line-height:28px}.book .doodle{position:absolute;right:12px;bottom:10px;width:70px;opacity:.9}
+.tabs{display:flex;gap:6px;margin:6px 0}.tabs button{padding:4px 12px;font-size:14px;box-shadow:0 2px 0 var(--ink)}.tabs button.on{background:var(--yel)}
+.lock{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:#efe6d2;border:2px dashed #b9a98c;border-radius:10px;font-size:28px;color:#b9a98c}
+.ph{aspect-ratio:4/3;border-radius:10px;border:2px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:clamp(30px,8vw,64px);position:relative;overflow:hidden}
+.ph span{font-size:14px;margin-top:6px;background:#fffaf0cc;border-radius:8px;padding:1px 8px}
+.photo{position:relative;aspect-ratio:16/9;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:#cfe0b8}.photo>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stars{color:#e0a43a;font-size:12px}.tag{display:inline-block;background:#e9f2dc;border:1.5px solid var(--ink);border-radius:8px;padding:0 6px;font-size:12px;margin-left:4px}
+.letter{background:#fffdf5;border:2px solid var(--ink);border-radius:14px;padding:16px;text-align:left;line-height:1.8;background-image:repeating-linear-gradient(#fffdf5 0 29px,#eadfc6 29px 30px)}
+.dbg{position:fixed;right:6px;bottom:6px;z-index:40;background:#fffaf0;border:2px solid var(--ink);border-radius:12px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;max-width:300px;font-size:12px}.dbg button{padding:2px 6px;font-size:12px;box-shadow:none}
+.plot{display:flex;flex-direction:column;align-items:center;gap:4px}.bar{height:6px;width:100%;background:#eadfc6;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#7fae55}
 </style></head><body><div id="app">
 <header><span>🍃 团子去旅行</span><span><span class="pill" id="clock">--:--</span> <span class="pill">🍀 <b id="cl">0</b></span> <button id="snd" class="hb" title="环境音">🔈</button> <button id="spd" class="hb" title="时间倍速">×1</button></span></header>
 <div class="scene" id="scene"><canvas id="fx"></canvas><div class="tint" id="tint"></div></div>
-<nav><button data-t="home">小屋</button><button data-t="garden">庭院</button><button data-t="shop">商店</button><button data-t="bag">行囊</button><button data-t="album">相册</button></nav>
+<nav><button data-t="home">小屋</button><button data-t="garden">庭院</button><button data-t="shop">商店</button><button data-t="bag">行囊</button><button data-t="diary">日记</button><button data-t="album">相册</button></nav>
 <div class="panel" id="panel"></div></div>
-<script>
-const K='cozy-tabi-v2',A='assets/',Q=new URLSearchParams(location.search);
+<script>const HAVE=new Set(["bg_balcony.jpg", "bg_kitchen.jpg", "bg_living_autumn.jpg", "bg_living_spring.jpg", "bg_living_winter.jpg", "bg_pond.jpg", "bg_rain.jpg", "bg_reading.jpg", "blob_home.png", "blob_walk.png", "c_basil.png", "c_basket.png", "c_bento.png", "c_carrot.png", "c_jam.png", "c_seed.png", "c_sprout.png", "c_strawberry.png", "c_tomato.png", "f_cushion.png", "f_hanging.png", "f_lamp.png", "f_monstera.png", "f_painting.png", "f_radio.png", "f_rocker.png", "f_rug.png", "f_shelf.png", "garden.jpg", "home.jpg", "home_empty.jpg", "p_fish.png", "p_lantern.png", "p_read.png", "p_rest.png", "p_sleep.png", "p_stir.png", "p_stretch.png", "p_tea.png", "p_umbrella.png", "p_walkside.png", "p_water.png", "p_wave.png", "pc_camper.jpg", "pc_dome.jpg", "pc_field.jpg", "pc_lighthouse.jpg", "pc_market.jpg", "pc_snow.jpg", "pc_train.jpg", "pc_village.jpg", "v_cat.png", "v_chick.png", "v_fox.png", "v_frog.png", "v_hedgehog.png", "v_rabbit.png"]);
+const K3='cozy-tabi-v3',K2='cozy-tabi-v2',A='assets/',Q=new URLSearchParams(location.search),DEBUG=Q.has('debug');
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FOODS=[{id:'bun',n:'艾草团子',ic:'🍡',p:5,t:.8},{id:'onigiri',n:'海苔饭团',ic:'🍙',p:12,t:1.2},{id:'bento',n:'森林便当',ic:'🍱',p:25,t:1.6}];
+const MIN=6e4,HR=36e5,OFFLINE_CAP=72*HR;
+const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+function hash(n){n=Math.imul(n^0x9e3779b9,0x85ebca6b);n^=n>>>13;n=Math.imul(n,0xc2b2ae35);return (n^n>>>16)>>>0}
+// ---------- time (Asia/Shanghai) ----------
+const FMT=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+function sh(t){const p={};for(const x of FMT.formatToParts(t))p[x.type]=x.value;return{day:`${p.year}-${p.month}-${p.day}`,m:+p.month,d:+p.day,h:+p.hour+ +p.minute/60}}
+let dbgHour=Q.has('hour')?+Q.get('hour'):null,dbgRain=Q.has('rain')?Q.get('rain'):null,dbgSeason=Q.get('season'),dbgAct=Q.get('act');
+const hourAt=t=>dbgHour!=null?dbgHour:sh(t).h;
+const dayNum=day=>{const[y,m,d]=day.split('-').map(Number);return y*400+m*32+d};
+function seasonAt(t){if(dbgSeason)return dbgSeason;const m=sh(t).m;return m>=3&&m<=5?'spring':m<=8&&m>=6?'summer':m>=9&&m<=11?'autumn':'winter'}
+const SEASONS={spring:{n:'春',pal:['#f6c1cc','#fbd9e0','#f3a9b9','#fff0f3'],kind:'petal'},summer:{n:'夏',pal:['#9cc867','#c9d97a','#7fb556','#b5d67a'],kind:'leaf'},autumn:{n:'秋',pal:['#e59156','#f0c766','#d0643f','#c98a3a'],kind:'leaf'},winter:{n:'冬',pal:['#fff'],kind:'snow'}};
+function weatherAt(t){const s=seasonAt(t),dn=dayNum(sh(t).day);if(dbgRain!=null)return dbgRain=='1'?(s=='winter'?'snow':'rain'):'sun';const r=hash(dn*7)%100;if(s=='winter')return r<30?'snow':'sun';return r<25?'rain':'sun'}
+const WN={sun:'晴',rain:'雨',snow:'雪'};
+// ---------- data ----------
+const FOODS=[{id:'bun',n:'艾草团子',ic:'🍡',p:5,dur:[1,2],tags:[]},{id:'onigiri',n:'海苔饭团',ic:'🍙',p:12,dur:[1.5,3],tags:[]},{id:'bento',n:'森林便当',ic:'🍱',p:25,dur:[3,6],tags:['far']},
+ {id:'vbento',n:'番茄罗勒便当',ic:'🍱',img:'c_bento',cook:{basil:1,tomato:1},dur:[2,4],tags:['town'],d:'想去热闹的地方'},{id:'cbento',n:'胡萝卜饭团盒',ic:'🥕',img:'c_basket',cook:{carrot:2},dur:[2,4],tags:['forest'],d:'想去森林深处'},{id:'jam',n:'草莓果酱面包',ic:'🍓',img:'c_jam',cook:{strawberry:2},dur:[3,6],tags:['rare'],d:'说不定会去很特别的地方'}];
 const CHARMS=[{id:'acorn',n:'橡果护符',ic:'🌰',p:15,d:'更容易去森林'},{id:'bell',n:'小铃铛',ic:'🔔',p:20,d:'带回更多三叶草'},{id:'shell',n:'蓝贝壳',ic:'🐚',p:30,d:'更容易去远方'}];
-const PLACES=[{id:'train',n:'被藤蔓覆盖的旧车厢',txt:'车厢里长满了蕨类，我在红色座椅上晒了一下午太阳。'},{id:'camper',n:'森林里的露营车',txt:'在露营车里弹了吉他，听了一整夜虫鸣。'},{id:'dome',n:'丛林玻璃温室',txt:'玻璃穹顶下有好多从没见过的大叶子！'},{id:'village',n:'树荫下的小镇',txt:'小镇的房顶都长着青苔，面包店老板送了我一块面包。'}];
-const SOUV=['🍄 小蘑菇','🪶 羽毛','🌸 干花','🪨 圆石头','🎐 风铃','🍯 蜂蜜罐','🌰 橡果帽'];
-const SPOTS=[[13,66],[21,72],[29,64],[37,70],[45,63],[17,80],[33,79],[49,76]],REGROW=20000;
-const ROOMS=[{id:'living',n:'客厅',bg:'home_empty.jpg'},{id:'reading',n:'读书角',bg:'bg_reading.jpg'},{id:'kitchen',n:'厨房',bg:'bg_kitchen.jpg'},{id:'balcony',n:'阳台',bg:'bg_balcony.jpg'},{id:'pond',n:'池塘',bg:'bg_pond.jpg'},{id:'porch',n:'门廊',bg:'bg_rain.jpg'}];
-// activities: room, sprite, position (left%, bottom%, width%)
+const CROPS=[{id:'basil',n:'罗勒',ic:'🌿',p:4,h:1},{id:'tomato',n:'番茄',ic:'🍅',p:8,h:3},{id:'carrot',n:'胡萝卜',ic:'🥕',p:6,h:2},{id:'strawberry',n:'草莓',ic:'🍓',p:10,h:4}];
+const FURN=[{id:'rug',n:'圆地毯',ic:'🧶',p:20,w:14},{id:'shelf',n:'小书架',ic:'📚',p:35,w:8},{id:'monstera',n:'龟背竹',ic:'🪴',p:25,w:7},{id:'painting',n:'森林挂画',ic:'🖼️',p:30,sv:1,w:6},{id:'lamp',n:'灯笼落地灯',ic:'🏮',p:28,w:5},{id:'rocker',n:'摇椅',ic:'🪑',p:45,w:8},{id:'radio',n:'老收音机',ic:'📻',p:30,sv:1,w:5},{id:'hanging',n:'吊兰',ic:'🌿',p:18,w:5},{id:'cushion',n:'软坐垫',ic:'🛋️',p:15,w:5.5}];
+const VIS=[{id:'cat',n:'小白猫',ic:'🐈',gift:'🧶 毛线球'},{id:'chick',n:'小黄鸡',ic:'🐤',gift:'🌼 小黄花'},{id:'hedgehog',n:'小刺猬',ic:'🦔',gift:'🍎 小苹果'},{id:'rabbit',n:'灰兔子',ic:'🐇',gift:'🍀 四叶草书签'},{id:'frog',n:'戴帽子的青蛙',ic:'🐸',gift:'🍃 荷叶伞'},{id:'fox',n:'小狐狸',ic:'🦊',gift:'🍂 红叶'}];
+const PHOTO_AT=3;
+const PLACES=[
+ {id:'train',n:'被藤蔓覆盖的旧车厢',r:1,tags:['forest'],ic:'🚃',c:'#f2d6a6',notes:['车厢里长满了蕨类，我在红色座椅上晒了一下午太阳。','又来到了旧车厢，座椅上多了一只打盹的小鸟。','站长爷爷说，这列车很久以前会开到海边。下次想去看看海。']},
+ {id:'camper',n:'森林里的露营车',r:1,tags:['forest'],ic:'🚐',c:'#cfe6d8',notes:['在露营车里弹了吉他，听了一整夜虫鸣。','露营车的主人回来了，请我喝了热可可。','我们约好了，下次一起在车顶看流星。']},
+ {id:'village',n:'树荫下的小镇',r:1,tags:['town'],ic:'🏘️',c:'#f3dcc8',notes:['小镇的房顶都长着青苔，面包店老板送了我一块面包。','面包店老板记得我啦，多给了我一个牛角包。','我帮面包店贴了新海报，上面画着我。']},
+ {id:'market',n:'清晨的早市',r:1,tags:['town'],ic:'🧺',c:'#f6e2b3',notes:['早市好热闹，买了一小袋种子。','卖花的奶奶教我怎么给番茄搭架子。','奶奶说我的番茄种得真好，送了我一束花。']},
+ {id:'field',n:'风吹过的花田',r:1,tags:['town'],ic:'🌻',c:'#f4e7a1',notes:['在花田里躺了很久，云走得好慢。','花田里有一架旧风车，吱呀吱呀地转。','风车小屋的门开着，里面有一封写给旅人的信。']},
+ {id:'dome',n:'丛林玻璃温室',r:2,tags:['far'],ic:'🌴',c:'#bfe0c9',notes:['玻璃穹顶下有好多从没见过的大叶子！','温室里的大花终于开了，香香的。','园丁说这朵花十年才开一次，我好幸运。']},
+ {id:'lighthouse',n:'海边的灯塔',r:2,tags:['far'],ic:'🗼',c:'#bcdcec',notes:['第一次看到大海！灯塔在傍晚亮了起来。','守塔人请我帮忙擦灯罩，亮晶晶的。','在灯塔顶上看到了整片星空和海。']},
+ {id:'mushroom',n:'蘑菇森林',r:2,tags:['forest'],ic:'🍄',c:'#e8d3b5',notes:['这里的蘑菇比我还高，像撑开的小伞。','夜里蘑菇会发出淡淡的光。','蘑菇森林的小精灵送了我一颗会发光的孢子。']},
+ {id:'waterfall',n:'山谷瀑布',r:2,tags:['forest','far'],ic:'💧',c:'#cde7e6',notes:['瀑布的水雾里出现了小彩虹。','在瀑布边的石头上发现了青蛙的帽子。','原来那顶帽子是青蛙小哥落下的，我们成了朋友。']},
+ {id:'starfield',n:'山顶星空观测台',r:3,tags:['far','rare'],ic:'🌌',c:'#3d4a78',notes:['夜空好近，好像伸手就能摸到星星。','观测台的老爷爷让我看了土星的光环。','我找到了一颗没有名字的小星星，叫它“团子星”。']},
+ {id:'sakura',n:'樱花小路',r:3,season:'spring',tags:['rare'],ic:'🌸',c:'#f8d5dc',notes:['樱花像雪一样落下来，春天限定的风景。','又是樱花季，小路尽头多了一个茶摊。','在樱花树下喝了一杯樱花茶。']},
+ {id:'snow',n:'雪山小木屋',r:3,season:'winter',tags:['far','rare'],ic:'🏔️',c:'#e3edf5',notes:['到处都是雪，小木屋的烟囱冒着烟，冬天限定的风景。','和小木屋的主人一起堆了雪人。','雪人还在，戴上了我送的围巾。']}];
+const SOUV=['🍄 小蘑菇','🪶 羽毛','🌸 干花','🪨 圆石头','🎐 风铃','🍯 蜂蜜罐','🌰 橡果帽','🐚 小贝壳','⭐ 星星糖'];
+const SPOTS=[[13,66],[21,72],[29,64],[37,70],[45,63],[17,80],[33,79],[49,76]],REGROW=10*MIN;
+const ROOMS=[{id:'living',n:'客厅'},{id:'reading',n:'读书角',bg:'bg_reading'},{id:'kitchen',n:'厨房',bg:'bg_kitchen'},{id:'balcony',n:'阳台',bg:'bg_balcony'},{id:'pond',n:'池塘',bg:'bg_pond'},{id:'porch',n:'门廊',bg:'bg_rain'}];
 const ACTS={
- sleep:{room:'living',img:'p_sleep',x:33.5,b:20,w:10.5,cls:'sleep',t:'在被窝里呼呼大睡 💤'},
- stretch:{room:'living',img:'p_stretch',x:40,b:11,w:9,t:'起床伸了个大大的懒腰'},
- tea:{room:'living',img:'blob_home',x:57,b:17.25,w:6.125,t:'坐在桌边慢慢喝茶 🍵'},
- stir:{room:'kitchen',img:'p_stir',x:33,b:6,w:15,t:'在厨房煮早饭，咕嘟咕嘟'},
- water:{room:'balcony',img:'p_water',x:42,b:34,w:10,t:'在阳台给小花浇水 🌱'},
- rest:{room:'balcony',img:'p_rest',x:30,b:47,w:8,t:'坐在长椅上发呆，吹吹风'},
- lantern:{room:'balcony',img:'p_lantern',x:50,b:34,w:9,t:'提着小灯笼看星星 ✨'},
- fish:{room:'pond',img:'p_fish',x:55,b:21,w:10,t:'在池塘边钓鱼，静静地等'},
- read:{room:'reading',img:'p_read',x:59,b:29,w:11,cls:'read',t:'窝在扶手椅里看书 📖'},
- doze:{room:'reading',img:'p_rest',x:59,b:29,w:11,cls:'sleep',t:'看着看着就打起了瞌睡'},
- umbrella:{room:'porch',img:'p_umbrella',x:58,b:9,w:13,t:'撑着伞在门廊外听雨 ☔'},
+ sleep:{room:'living',img:'p_sleep',x:33.5,b:20,w:10.5,cls:'sleep',t:'在被窝里呼呼大睡 💤',d:'睡了一个香香的觉'},
+ stretch:{room:'living',img:'p_stretch',x:40,b:11,w:9,t:'起床伸了个大大的懒腰',d:'早上伸了个大懒腰'},
+ tea:{room:'living',img:'blob_home',x:57,b:17.25,w:6.125,t:'坐在桌边慢慢喝茶 🍵',d:'下午慢慢喝了一壶茶'},
+ stir:{room:'kitchen',img:'p_stir',x:33,b:6,w:15,t:'在厨房煮早饭，咕嘟咕嘟',d:'早饭煮了一锅粥'},
+ water:{room:'balcony',img:'p_water',x:42,b:34,w:10,t:'在阳台给小花浇水 🌱',d:'给阳台的花浇了水'},
+ rest:{room:'balcony',img:'p_rest',x:30,b:47,w:8,t:'坐在长椅上发呆，吹吹风',d:'在长椅上发了好久的呆'},
+ lantern:{room:'balcony',img:'p_lantern',x:50,b:34,w:9,t:'提着小灯笼看星星 ✨',d:'晚上提着灯笼看星星'},
+ fish:{room:'pond',img:'p_fish',x:55,b:21,w:10,t:'在池塘边钓鱼，静静地等',d:'在池塘边钓了一会儿鱼'},
+ read:{room:'reading',img:'p_read',x:59,b:29,w:11,cls:'read',t:'窝在扶手椅里看书 📖',d:'窝在扶手椅里看完了半本书'},
+ doze:{room:'reading',img:'p_rest',x:59,b:29,w:11,cls:'sleep',t:'看着看着就打起了瞌睡',d:'看书看到打瞌睡'},
+ umbrella:{room:'porch',img:'p_umbrella',x:58,b:9,w:13,t:'撑着伞在门廊外听雨 ☔',d:'撑着伞听了好久的雨'},
 };
 const SCHED=[[0,6,['sleep']],[6,8,['stretch']],[8,10,['stir','stir','stretch']],[10,12,['water','fish']],[12,14,['fish','rest']],[14,16,['tea','tea','rest']],[16,18,['water','fish','tea']],[18,20,['read','lantern']],[20,22,['read','lantern','doze']],[22,24,['doze','sleep']]];
-const def={clover:20,inv:{bun:1},bag:{food:null,charm:null},away:null,album:[],souv:[],grow:Array(8).fill(0),speed:1,mail:[]};
-let S;try{S=Object.assign({},def,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){S={...def}}
-const save=()=>localStorage.setItem(K,JSON.stringify(S));
-let tab=Q.get('tab')||'home',room=Q.get('room')||null,waveUntil=0,walker=null,dbgHour=Q.has('hour')?+Q.get('hour'):null,dbgRain=Q.has('rain')?Q.get('rain')=='1':null;
+// seasonal living room layouts (filled for each background); default = summer home_empty
+const LIVING={summer:{bg:'home_empty',blanket:true,steam:[52.4,62.5]},
+ spring:{bg:'bg_living_spring',steam:[52.5,66],sleep:{x:25,b:22,w:10},tea:{img:'p_tea',x:60,b:14,w:8},stretch:{x:40,b:14,w:7.5},bag:{x:70,b:14}},
+ autumn:{bg:'bg_living_autumn',steam:[51,63],sleep:{x:26,b:25,w:10},tea:{img:'p_tea',x:57,b:16,w:7.5},stretch:{x:37,b:16,w:7},bag:{x:62,b:16}},
+ winter:{bg:'bg_living_winter',steam:[52.5,67],sleep:{x:63,b:24,w:10},tea:{img:'p_tea',x:42,b:16,w:7},stretch:{x:50,b:17.5,w:6.5},bag:{x:28,b:16}}};
+function livingCfg(t){const s=seasonAt(t),k='bg_living_'+s;if(s!='summer'&&HAVE.has(k+'.jpg'))return LIVING[s];return LIVING.summer}
+// ---------- state & migration ----------
+const def=()=>({v:3,clover:20,inv:{bun:1},seeds:{basil:1},produce:{},furn:{},deco:[],bag:{food:null,charm:null},trip:null,album:[],souv:[],grow:Array(8).fill(0),speed:1,mail:[],visits:{},
+ plots:[null,null,null,null],vis:{cur:null,next:2*HR,meets:{},photos:[]},diary:{},lastDay:null,lastSeen:Date.now(),letterSeen:true});
+function load(){let s=null;try{s=JSON.parse(localStorage.getItem(K3)||'null')}catch(e){}
+ if(!s){let o=null;try{o=JSON.parse(localStorage.getItem(K2)||'null')}catch(e){}s=def();
+  if(o){s.clover=o.clover??20;s.inv=o.inv||s.inv;s.album=o.album||[];s.souv=o.souv||[];s.mail=(o.mail||[]).map(m=>({...m,n:1}));s.grow=(o.grow||[]).map(x=>Math.min(x,REGROW));while(s.grow.length<8)s.grow.push(0);
+   for(const a of s.album)s.visits[a.id]=(s.visits[a.id]||0)+1;
+   if(o.away)s.trip={phase:'away',remain:Math.max(MIN,o.away.remain||HR),food:o.away.food,charm:o.away.charm,total:o.away.remain||HR};s.migrated=true}}
+ const d=def();for(const k in d)if(s[k]===undefined)s[k]=d[k];if(!s.vis.photos)s.vis.photos=[];return s}
+let S=load();
+const save=()=>{S.lastSeen=Date.now();localStorage.setItem(K3,JSON.stringify(S))};
+// ---------- activity ----------
+function curAct(t=Date.now()){if(dbgAct&&ACTS[dbgAct])return dbgAct;const h=hourAt(t),d=dayNum(sh(t).day),half=Math.floor(h*2);
+ if(weatherAt(t)=='rain'&&h>=9&&h<18&&half%2==0)return 'umbrella';const s=SCHED.find(s=>h>=s[0]&&h<s[1]);return s[2][hash(d*100+half)%s[2].length]}
+const home=()=>!S.trip||S.trip.phase!='away';
+// ---------- diary & letter ----------
+let LOG=null;
+function diary(t,text,prio=1){const day=sh(t).day;const L=S.diary[day]=S.diary[day]||[];if(L.some(e=>e.t==text))return;L.push({t:text,p:prio,h:Math.floor(hourAt(t))});
+ if(L.length>3){let mi=0;L.forEach((e,i)=>{if(e.p<L[mi].p)mi=i});L.splice(mi,1)}}
+function log(text){if(LOG)LOG.push(text)}
+function fillerFor(day){const dn=dayNum(day),t0=Date.parse(day+'T00:00:00+08:00');const w=weatherAt(t0+12*HR),s=SEASONS[seasonAt(t0+12*HR)].n;
+ const acts=[...new Set([9.5,14.5,19.5].map(h=>{const sv=dbgHour;dbgHour=h;const a=curAct(t0+h*HR);dbgHour=sv;return a}))].map(a=>ACTS[a].d);
+ const wtxt={sun:`${s}天的晴天，阳光暖暖的。`,rain:'今天下雨了，雨声沙沙的。',snow:'今天下雪了，外面白白的。'}[w];return wtxt+'我'+acts.slice(0,2).join('，又')+'。很安静的一天。'}
+function finalizeDay(day){if(!day)return;const L=S.diary[day]=S.diary[day]||[];if(L.length<3&&!L.some(e=>e.p===0))L.unshift({t:fillerFor(day),p:0,h:21})}
+// ---------- simulation ----------
+function step(dt,t){ // dt game-ms, t = simulated wall time
+ const day=sh(t).day;if(S.lastDay&&S.lastDay!=day)finalizeDay(S.lastDay);S.lastDay=day;
+ S.grow=S.grow.map(x=>x>0?Math.max(0,x-dt):0);
+ S.plots.forEach((p,i)=>{if(p&&p.left>0){p.left-=dt;if(p.left<=0){p.left=0;const c=CROPS.find(c=>c.id==p.crop);diary(t,`阳台的${c.n}成熟了，红红绿绿的，好开心。`,2);log(`阳台的${c.n}成熟了，等你来收`)}}});
+ const tr=S.trip;
+ if(tr&&tr.phase=='packed'){tr.leaveIn-=dt;const h=hourAt(t);if(tr.leaveIn<=0&&h>=6&&h<21&&!S.vis.cur)departNow(t)}
+ else if(tr&&tr.phase=='away'){tr.remain-=dt;if(tr.remain<=0)comeHome(t)}
+ const V=S.vis;
+ if(V.cur){V.cur.left-=dt;if(V.cur.left<=0)visitorLeaves(t)}
+ else if(home()){V.next-=dt;const h=hourAt(t);if(V.next<=0&&h>=7&&h<21)visitorComes(t)}}
+function visitorComes(t,id){const v=id?VIS.find(x=>x.id==id):pick(VIS);S.vis.cur={id:v.id,left:rnd(30,90)*MIN,room:ACTS[curAct(t)].room};diary(t,`${v.n}来家里玩了，我们一起${ACTS[curAct(t)].d.replace(/^在/,'')}。`,3);log(`${v.n}来串门了`)}
+function visitorLeaves(t){const c=S.vis.cur,v=VIS.find(x=>x.id==c.id);S.vis.cur=null;S.vis.next=rnd(2,5)*HR;const m=S.vis.meets[v.id]=(S.vis.meets[v.id]||0)+1;
+ const r=Math.random();let g;if(r<.5){const n=Math.floor(rnd(3,9));S.clover+=n;g=`${n} 片三叶草`}else if(r<.75){const c2=pick(CROPS);S.seeds[c2.id]=(S.seeds[c2.id]||0)+1;g=`一包${c2.n}种子`}else{S.souv.push(v.gift);g=v.gift.split(' ')[1]}
+ diary(t,`${v.n}回家前留下了${g}。`,2);log(`${v.n}留下了${g}`);
+ if(m==PHOTO_AT&&!S.vis.photos.includes(v.id)){S.vis.photos.push(v.id);S.vis.photoRoom=S.vis.photoRoom||{};S.vis.photoRoom[v.id]=c.room;diary(t,`和${v.n}拍了一张合照！我们是好朋友了。`,4);log(`和${v.n}拍了合照 📷`)}
+ if(!LOG&&tab=='home')toast(`${v.n}回家了，留下了${g}`)}
+function chooseDest(food,charm,t){const s=seasonAt(t),f=FOODS.find(x=>x.id==food)||FOODS[0];const tags=[...f.tags];if(charm=='acorn')tags.push('forest');if(charm=='shell')tags.push('far');
+ const pool=PLACES.filter(p=>!p.season||p.season==s).map(p=>{let w={1:10,2:4,3:1.2}[p.r];for(const g of tags){if(g=='rare'&&p.r==3)w*=3;else if(p.tags.includes(g))w*=3}if(p.season)w*=2;return[p,w]});
+ let x=Math.random()*pool.reduce((a,b)=>a+b[1],0);for(const[p,w]of pool){x-=w;if(x<=0)return p.id}return pool[0][0].id}
+function departNow(t){const tr=S.trip,f=FOODS.find(x=>x.id==tr.food);const total=rnd(f.dur[0],f.dur[1])*HR;S.trip={phase:'away',food:tr.food,charm:tr.charm,remain:total,total,left:t};
+ if(S.vis.cur)visitorLeaves(t);diary(t,`背上${f.n}出门旅行了，不知道会走到哪里。`,3);log('团子背上行囊出门旅行了');
+ if(!LOG&&tab=='home'){const a=ACTS[curAct()];if(viewRoom(true)==a.room){walker={room:a.room,x:a.x,b:a.b,dx:'300%',until:Date.now()+4000}}room=room||a.room;toast('团子自己背上行囊出门了～');render(false);setTimeout(()=>{walker=null;if(tab=='home')renderScene(false)},4100)}}
+function comeHome(t){const tr=S.trip,id=chooseDest(tr.food,tr.charm,t),p=PLACES.find(x=>x.id==id);const n=S.visits[id]=(S.visits[id]||0)+1;
+ const m={id,n,sv:pick(SOUV),cl:Math.floor(rnd(5,13))+(tr.charm=='bell'?10:0)+(p.r-1)*4,t};S.mail.push(m);S.trip=null;
+ diary(t,`旅行回来了！去了${p.n}${n>1?`（第${n}次）`:''}，带回了${m.sv.split(' ')[1]}。`,4);log(`团子旅行回来了，去了${p.n}，信箱里有明信片`);
+ if(!LOG){beep(990);const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card">${spr('p_sleep','😴',1,'display:block;width:40%;margin:auto')}<p>团子旅行回来了，累得睡着了……<br>信箱里好像多了一张明信片 📮</p><button id="okback">好的</button></div>`;document.body.appendChild(d);d.querySelector('button').onclick=()=>d.remove();render(false)}}
+function offlineCatchUp(){const now=Date.now(),el=Math.min(now-(S.lastSeen||now),OFFLINE_CAP);if(el<2*MIN)return;LOG=[];let t=now-el,left=el;while(left>0){const d=Math.min(MIN*5,left);t+=d;left-=d;step(d,t)}
+ const lines=LOG;LOG=null;save();showLetter(el,lines,now-(S.lastSeen0||now)>OFFLINE_CAP)}
+function showLetter(el,lines,capped){const h=Math.floor(el/HR),m=Math.round(el%HR/MIN);const uniq=[...new Set(lines)];const mid=uniq.length>7?[...uniq.slice(0,6),`……还有 ${uniq.length-6} 件小事`]:uniq;
+ const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card"><div class="letter"><b>致亲爱的你：</b><br>你离开了 ${h?h+' 小时 ':''}${m} 分钟${capped?'（太久啦，我只记得最近三天的事）':''}。<br>${mid.length?mid.map(x=>'· '+x).join('<br>'):'· 家里一切都好，我一直在慢慢过日子。'}<br><div style="text-align:right">—— 团子 ${home()?'':'（正在旅行中）'}</div></div>${spr(home()?'p_wave':'p_walkside','👋',1,'display:block;width:28%;margin:8px auto 0')}<button id="okletter" style="margin-top:8px">知道啦</button></div>`;
+ document.body.appendChild(d);d.querySelector('button').onclick=()=>d.remove()}
+// ---------- UI helpers ----------
+let tab=Q.get('tab')||'home',room=Q.get('room')||null,waveUntil=0,walker=null,edit=false,selDeco=-1,albumTab='pc',diaryDay=null;
 const $=id=>document.getElementById(id);
-function hourNow(){if(dbgHour!=null)return dbgHour;const d=new Date();return d.getHours()+d.getMinutes()/60}
-function hash(n){n=Math.imul(n^0x9e3779b9,0x85ebca6b);n^=n>>>13;n=Math.imul(n,0xc2b2ae35);return (n^n>>>16)>>>0}
-function dayNo(){return Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5)}
-function rainy(){return dbgRain!=null?dbgRain:hash(dayNo()*7)%4==0}
-let dbgAct=Q.get('act');
-function curAct(){if(dbgAct&&ACTS[dbgAct])return dbgAct;const h=hourNow(),d=dayNo(),half=Math.floor(h*2);
- if(rainy()&&h>=9&&h<18&&half%2==0)return 'umbrella';
- const s=SCHED.find(s=>h>=s[0]&&h<s[1]);return s[2][hash(d*100+half)%s[2].length]}
 function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;$('app').appendChild(d);setTimeout(()=>d.remove(),2700)}
-// ---- audio ----
+function spr(name,emo,w=1,style=''){return HAVE.has(name+'.png')?`<img src="${A}${name}.png" style="${style}" alt="">`:`<div class="emo" style="--w:${w*10};${style}">${emo}</div>`}
+function ico(name,emo){return HAVE.has(name+'.png')?`<img src="${A}${name}.png" style="height:34px;vertical-align:middle">`:`<span style="font-size:28px">${emo}</span>`}
 let ac,amb=null;function actx(){return ac=ac||new (window.AudioContext||window.webkitAudioContext)()}
-function beep(f=660,v=.1,d=.35){try{const a=actx(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+function beep(f=660,v=.1,d=.35){try{const a=actx(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
 function ambient(on){const a=actx();if(!on){if(amb){amb.src.stop();clearInterval(amb.iv);amb=null}return}
  const len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);let l=0;for(let i=0;i<len;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5}
- const src=a.createBufferSource();src.buffer=buf;src.loop=true;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=a.createGain();g.gain.value=.0;src.connect(f).connect(g).connect(a.destination);src.start();
- const iv=setInterval(()=>{if(Math.random()<.5){const pn=[523,587,659,784,880,1046];beep(pn[Math.floor(Math.random()*6)],.035,1.6)}},4000);amb={src,g,iv};ambVol()}
+ const src=a.createBufferSource();src.buffer=buf;src.loop=true;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=a.createGain();g.gain.value=0;src.connect(f).connect(g).connect(a.destination);src.start();
+ const iv=setInterval(()=>{if(Math.random()<.5)beep(pick([523,587,659,784,880,1046]),.035,1.6)},4000);amb={src,g,iv};ambVol()}
 function ambVol(){if(amb)amb.g.gain.setTargetAtTime(viewRoom()=='porch'&&tab=='home'?.35:.08,actx().currentTime,.8)}
-// ---- art helpers ----
 const CLV=`<svg viewBox="-20 -24 40 50"><path d="M0,6 q2,10 -3,18" fill="none" stroke="#3a2e24" stroke-width="3"/>${[0,120,240].map(a=>`<path transform="rotate(${a})" d="M0,0 C-14,-6 -12,-22 0,-14 C12,-22 14,-6 0,0Z" fill="#6fb04d" stroke="#3a2e24" stroke-width="2.5"/>`).join('')}</svg>`;
 const FERN=(flip)=>`<svg viewBox="0 0 200 160" style="transform:scaleX(${flip?-1:1})"><g stroke="#2f3b22" stroke-width="2.5" stroke-linejoin="round"><path d="M10,160 C40,110 90,70 190,40" fill="none"/>${Array.from({length:7},(_,i)=>{const t=i/7,x=10+t*170,y=160-t*118;return `<path d="M${x},${y} q${18-i},${-30+i*2} ${34-i*3},${-22+i*2} q-14,14 -34,22z" fill="${i%2?'#5f9a45':'#78b257'}"/><path d="M${x},${y} q${14-i},${16-i} ${30-i*3},${14-i} q-16,2 -30,-14z" fill="${i%2?'#6aa64c':'#5a9142'}"/>`}).join('')}</g></svg>`;
 const BLANKET=`<svg viewBox="0 0 60 100" style="position:absolute;left:56.5%;top:67%;width:6.6%;z-index:3"><path d="M4,8 q26,-10 52,0 v80 q-26,10 -52,0z" fill="#e9b7a8" stroke="#3a2e24" stroke-width="3"/><path d="M4,36 q26,8 52,0 M4,64 q26,8 52,0 M30,4 v92" stroke="#3a2e24" stroke-width="2" fill="none"/><rect x="8" y="12" width="18" height="20" fill="#9cc4c9"/><rect x="34" y="42" width="18" height="18" fill="#f3d77a"/><rect x="8" y="68" width="18" height="18" fill="#a9c47f"/></svg>`;
-function leaves(n){let h='';for(let i=0;i<n;i++)h+=`<div class="leaf ov" style="left:${5+Math.random()*85}%;animation-duration:${9+Math.random()*7}s;animation-delay:${-Math.random()*14}s;background:${['#9cc867','#f0c766','#e59156','#c9d97a'][i%4]}"></div>`;return h}
+function particles(n){const s=SEASONS[seasonAt(Date.now())];let h='';for(let i=0;i<n;i++){const c=s.pal[i%s.pal.length];
+ if(s.kind=='snow')h+=`<div class="leaf ov" style="left:${Math.random()*95}%;width:${.6+Math.random()*.8}%;aspect-ratio:1;border:none;border-radius:50%;background:#fff;box-shadow:0 0 4px #fff;animation-duration:${12+Math.random()*8}s;animation-delay:${-Math.random()*16}s"></div>`;
+ else h+=`<div class="leaf ov" style="left:${5+Math.random()*85}%;animation-duration:${9+Math.random()*7}s;animation-delay:${-Math.random()*14}s;background:${c};${s.kind=='petal'?'border-radius:60% 10% 60% 10%;border-width:1px':''}"></div>`}return h}
 const steam=(x,y,n=3)=>Array.from({length:n},(_,i)=>`<div class="ov steam" style="left:${x+i*.7}%;top:${y-i}%;animation-delay:${i*1.05}s"></div>`).join('');
-function viewRoom(){return room||(S.away?'living':ACTS[curAct()].room)}
-function ambientFX(r,h){let o='';const night=h>=19||h<5;
- if(r=='living')o+=steam(52.4,62.5)+leaves(4);
+function viewRoom(raw){return room||(home()?ACTS[curAct()].room:'living')}
+function ambientFX(r,h){let o='';const wt=weatherAt(Date.now());
+ if(r=='living'){const lc=livingCfg(Date.now());o+=steam(lc.steam[0],lc.steam[1])+particles(4)}
  if(r=='reading')o+=`<div class="ov glow" style="left:51%;top:30%;width:15%;aspect-ratio:1"></div>`;
  if(r=='kitchen')o+=steam(23,47,3)+`<div class="ov beam" style="left:62%;top:5%;width:28%;height:70%"></div>`;
- if(r=='balcony')o+=leaves(8)+[[3,12],[9,9],[15,7.5],[21,7],[27,8],[33,10]].map(([x,y],i)=>`<div class="ov twinkle" style="left:${x}%;top:${y}%;animation-delay:${-i*.7}s"></div>`).join('');
- if(r=='pond'){o+=[[45,76,8],[63,72,6],[38,81,5]].map(([x,y,w],i)=>`<div class="ov ripple" style="left:${x}%;top:${y}%;width:${w}%;aspect-ratio:3/1;animation-delay:${-i*1.5}s"></div>`).join('');o+=leaves(3)}
+ if(r=='balcony')o+=particles(8)+[[3,12],[9,9],[15,7.5],[21,7],[27,8],[33,10]].map(([x,y],i)=>`<div class="ov twinkle" style="left:${x}%;top:${y}%;animation-delay:${-i*.7}s"></div>`).join('');
+ if(r=='pond'){o+=[[45,76,8],[63,72,6],[38,81,5]].map(([x,y,w],i)=>`<div class="ov ripple" style="left:${x}%;top:${y}%;width:${w}%;aspect-ratio:3/1;animation-delay:${-i*1.5}s"></div>`).join('');o+=particles(4)}
  if(r=='porch')o+=[[63,85,7],[73,92,6],[56,94,5]].map(([x,y,w],i)=>`<div class="ov ripple" style="left:${x}%;top:${y}%;width:${w}%;aspect-ratio:3/1;animation-duration:2.2s;animation-delay:${-i*.7}s"></div>`).join('');
  if(['balcony','pond','porch'].includes(r))o+=`<div class="ov fern" style="left:-3%;bottom:-6%">${FERN(0)}</div><div class="ov fern" style="right:-3%;bottom:-6%;animation-delay:-3s">${FERN(1)}</div>`;
  return o}
-function actorHTML(r){if(S.away){let t='';if(r=='living')t=BLANKET+`<div class="note">出门旅行中～<br>🎒</div>`;if(r=='kitchen')t=`<div class="ov trace" style="left:83%;top:57%">🍵</div>`;if(r=='reading')t=`<div class="ov trace" style="left:62%;top:58%">📖</div>`;if(r=='balcony')t=`<div class="ov trace" style="left:44%;top:56%">🪣</div>`;return t}
- const k=curAct(),a=ACTS[k];let h='';if(r=='living'&&k!='tea')h+=BLANKET;if(a.room!=r)return h;
- const waving=Date.now()<waveUntil;const img=waving?'p_wave':a.img,w=waving?9:a.w;
+function decoHTML(r){return S.deco.map((d,i)=>d.room!=r?'':`<div class="deco ${i==selDeco?'sel':''}" data-di="${i}" style="left:${d.x}%;bottom:${d.b}%;width:${d.w}%">${spr('f_'+d.id,FURN.find(f=>f.id==d.id).ic,d.w/10)}</div>`).join('')}
+const PLOT_POS=[[10,36.5],[15.5,36.5],[21,36.5],[26.5,36.5]];
+function cropStage(p){if(!p)return null;const c=CROPS.find(c=>c.id==p.crop),f=1-p.left/p.total;return f>=1?'ready':f>.55?'grown':f>.2?'sprout':'seed'}
+function cropSpr(p,w){const st=cropStage(p);if(!st)return '';const c=CROPS.find(c=>c.id==p.crop);if(st=='seed')return spr('c_seed','🌰',w*.7);if(st=='sprout')return spr('c_sprout','🌱',w*.8);return spr('c_'+p.crop,c.ic,w)}
+function plotsHTML(){let o='';S.plots.forEach((p,i)=>{if(p)o+=`<div class="crop ${cropStage(p)=='ready'?'ready':''}" style="left:${PLOT_POS[i][0]}%;bottom:${PLOT_POS[i][1]}%;width:5%;animation-delay:${-i}s">${cropSpr(p,.55)}</div>`});return o}
+function actorHTML(r){let h='';const lc=livingCfg(Date.now());
+ if(!home()){if(r=='living'){if(lc.blanket)h+=BLANKET;h+=`<div class="note" ${lc.blanket?'':'style="left:46%;top:58%"'}>出门旅行中～<br>🎒</div>`}if(r=='kitchen')h+=`<div class="ov trace" style="left:83%;top:57%">🍵</div>`;if(r=='reading')h+=`<div class="ov trace" style="left:62%;top:58%">📖</div>`;return h}
+ const k=curAct(),a0=ACTS[k],a=r=='living'&&lc[k]?{...a0,...lc[k]}:a0;if(r=='living'&&k!='tea'&&lc.blanket)h+=BLANKET;
+ if(S.trip&&S.trip.phase=='packed'&&r=='living')h+=`<div class="ov trace" style="left:${lc.bag?.x??63}%;bottom:${lc.bag?.b??12}%">🎒</div>`;
+ if(a.room!=r)return h;const waving=Date.now()<waveUntil;const img=waving?'p_wave':a.img,w=waving?9:a.w;
  h+=`<div class="actor ${waving?'wave':a.cls||''}" id="actor" style="left:${a.x}%;bottom:${a.b}%;width:${w}%"><div class="bob"><div class="blk"><img src="${A}${img}.png" alt="团子"></div></div></div>`;
  if(a.cls=='sleep'&&!waving)h+=[0,1.3,2.6].map(d=>`<div class="zzz" style="left:${a.x+a.w*.95}%;bottom:${a.b+8}%;animation-delay:${d}s">z</div>`).join('');
  if(k=='fish')h+=`<div class="ov float" style="left:${a.x-3}%;top:${100-a.b-1}%"></div><div class="ov ripple" style="left:${a.x-4.3}%;top:${100-a.b}%;width:4%;aspect-ratio:3/1"></div>`;
  if(k=='lantern'&&!waving)h+=`<div class="ov glow" style="left:${a.x-6}%;top:${100-a.b-18}%;width:12%;aspect-ratio:1"></div>`;
- if(k=='tea')h+='';return h}
-let actKey='',curLayerKey='';
+ if(S.vis.cur){const v=VIS.find(x=>x.id==S.vis.cur.id),right=a.x+a.w+8<96,vx=right?a.x+a.w:a.x-7;h+=`<div class="vis" style="left:${vx}%;bottom:${a.b}%;width:6.5%"><div class="bob" style="animation-delay:-1.3s">${spr('v_'+v.id,v.ic,.65)}</div></div><div class="heart" style="left:${(a.x+vx)/2+3}%;bottom:${a.b+a.w*1.4}%">💗</div>`}
+ return h}
+function bgFor(r){if(r=='living')return livingCfg(Date.now()).bg;return ROOMS.find(x=>x.id==r).bg}
 function sceneHTML(){if(tab=='garden'){let h=`<img class="bg" src="${A}garden.jpg" alt="庭院">`;SPOTS.forEach(([x,y],i)=>h+=`<div class="clover ${S.grow[i]>0?'gone':''}" data-i="${i}" style="left:${x-2.7}%;top:${y-6}%;animation-delay:${-i*.4}s">${CLV}</div>`);
- h+=`<div class="hot" id="mailbox" title="信箱" style="left:53%;top:56%;width:9%;height:28%"></div>`;if(S.mail.length)h+=`<div class="badge" style="left:57%;top:57%">${S.mail.length}</div>`;return h+leaves(6)}
- const r=viewRoom(),R=ROOMS.find(x=>x.id==r),h=hourNow();
- let o=`<img class="bg" src="${A}${R.bg}" alt="${R.n}">`+ambientFX(r,h)+actorHTML(r);
+ h+=`<div class="hot" id="mailbox" title="信箱" style="left:53%;top:56%;width:9%;height:28%"></div>`;if(S.mail.length)h+=`<div class="badge" style="left:57%;top:57%">${S.mail.length}</div>`;return h+particles(6)}
+ const r=viewRoom(),R=ROOMS.find(x=>x.id==r);let o=`<img class="bg" src="${A}${bgFor(r)}.jpg" alt="${R.n}">`+ambientFX(r)+decoHTML(r)+(r=='balcony'?plotsHTML():'')+actorHTML(r);
  if(walker&&walker.room==r&&Date.now()<walker.until)o+=`<div class="walker" style="left:${walker.x}%;bottom:${walker.b}%;width:9%;--dx:${walker.dx}"><img src="${A}p_walkside.png"></div>`;
- o+=`<button class="arrow l" data-go="-1">‹</button><button class="arrow r" data-go="1">›</button><div class="roomname">${R.n}${!S.away&&ACTS[curAct()].room==r?' · 团子在这里':''}</div>`;
+ o+=`<button class="arrow l" data-go="-1">‹</button><button class="arrow r" data-go="1">›</button><div class="roomname">${R.n}${home()&&ACTS[curAct()].room==r?' · 团子在这里':''}${edit?' · 布置中':''}</div>`;
  if(S.mail.length)o+=`<div class="badge" style="left:2%;top:12px">📮 ${S.mail.length}</div>`;return o}
-function renderScene(fade=true){const sc=$('scene');const L=document.createElement('div');L.className='layer';L.innerHTML=sceneHTML();sc.insertBefore(L,$('fx'));
+function renderScene(fade=true){const sc=$('scene');const L=document.createElement('div');L.className='layer'+(edit?' edit':'');L.innerHTML=sceneHTML();sc.insertBefore(L,$('fx'));
  const old=[...sc.querySelectorAll('.layer')].filter(x=>x!==L);
  if(fade&&!RM){requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add('show')));setTimeout(()=>old.forEach(x=>x.remove()),950)}else{L.classList.add('show');old.forEach(x=>x.remove())}
  L.querySelectorAll('.clover').forEach(c=>c.onclick=()=>pickClover(+c.dataset.i));
  const mb=L.querySelector('#mailbox');if(mb)mb.onclick=()=>S.mail.length?openMail():toast('信箱是空的');
  L.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goRoom(+b.dataset.go));
- const ac_=L.querySelector('#actor');if(ac_)ac_.onclick=()=>{waveUntil=Date.now()+2200;beep(784,.08);setTimeout(()=>beep(988,.07),150);renderScene(false);setTimeout(()=>renderScene(false),2300)};
- updTint();ambVol()}
-function updTint(){const h=hourNow();let c='transparent';if(tab=='home'||tab=='garden'){if(h>=21||h<5)c='rgba(70,80,150,.42)';else if(h>=19)c='rgba(150,120,170,.25)';else if(h>=17)c='rgba(255,190,140,.22)';else if(h<7)c='rgba(255,220,180,.18)'}if(viewRoom()=='reading'&&tab=='home'&&c!='transparent')c=c.replace(/[\d.]+\)$/,'.12)');$('tint').style.background=c}
-function goRoom(d){const i=ROOMS.findIndex(x=>x.id==viewRoom());room=ROOMS[(i+d+ROOMS.length)%ROOMS.length].id;renderScene();renderPanel()}
+ const ac_=L.querySelector('#actor');if(ac_&&!edit)ac_.onclick=()=>{waveUntil=Date.now()+2200;beep(784,.08);setTimeout(()=>beep(988,.07),150);renderScene(false);setTimeout(()=>renderScene(false),2300)};
+ if(edit)L.querySelectorAll('.deco').forEach(el=>el.onpointerdown=e=>dragStart(e,el,L));updTint();ambVol()}
+function dragStart(e,el,L){e.preventDefault();const i=+el.dataset.di;selDeco=i;L.querySelectorAll('.deco').forEach(x=>x.classList.toggle('sel',x===el));const R=L.getBoundingClientRect(),d=S.deco[i];
+ const ox=e.clientX,oy=e.clientY,sx=d.x,sb=d.b;el.setPointerCapture(e.pointerId);
+ el.onpointermove=ev=>{d.x=Math.max(-5,Math.min(95,sx+(ev.clientX-ox)/R.width*100));d.b=Math.max(-5,Math.min(90,sb-(ev.clientY-oy)/R.height*100));el.style.left=d.x+'%';el.style.bottom=d.b+'%'};
+ el.onpointerup=()=>{el.onpointermove=null;save();renderPanel()}}
+function updTint(){const h=hourAt(Date.now());let c='transparent';if(tab=='home'||tab=='garden'){if(h>=21||h<5)c='rgba(70,80,150,.42)';else if(h>=19)c='rgba(150,120,170,.25)';else if(h>=17)c='rgba(255,190,140,.22)';else if(h<7)c='rgba(255,220,180,.18)'}if(viewRoom()=='reading'&&tab=='home'&&c!='transparent')c=c.replace(/[\d.]+\)$/,'.12)');$('tint').style.background=c}
+function goRoom(d){const i=ROOMS.findIndex(x=>x.id==viewRoom());room=ROOMS[(i+d+ROOMS.length)%ROOMS.length].id;selDeco=-1;renderScene();renderPanel()}
 function pickClover(i){if(S.grow[i]>0)return;const lucky=Math.random()<.15,n=lucky?4:1;S.clover+=n;S.grow[i]=REGROW;beep(lucky?880:660);if(lucky)toast('幸运四叶草！+4');save();renderScene(false);renderPanel();hdr()}
-const sec=ms=>Math.max(0,Math.ceil(ms/1000/S.speed))+' 秒';
+const dur=ms=>{ms=Math.max(0,ms/(S.speed||1));const tm=Math.ceil(ms/MIN),h=Math.floor(tm/60),m=tm%60;return h?`${h} 小时${m?` ${m} 分`:''}`:tm>1?`${tm} 分钟`:`${Math.ceil(ms/1000)} 秒`};
+const cnt=(o,k)=>o[k]||0;
+// ---------- panels ----------
+function roomExtras(vr){let h='';
+ if(vr=='balcony'){h+=`<div class="card"><b>🌱 小菜园</b><div class="grid" style="grid-template-columns:repeat(4,1fr);margin-top:6px">${S.plots.map((p,i)=>{if(!p)return `<div class="card plot item"><small>空花盆</small><select data-plant="${i}" style="font:inherit;font-size:12px"><option value="">种点什么…</option>${CROPS.filter(c=>cnt(S.seeds,c.id)>0).map(c=>`<option value="${c.id}">${c.ic}${c.n} ×${S.seeds[c.id]}</option>`).join('')}</select></div>`;
+  const c=CROPS.find(c=>c.id==p.crop),st=cropStage(p),f=Math.min(1,1-p.left/p.total);return `<div class="card plot item">${ico(st=='seed'?'c_seed':st=='sprout'?'c_sprout':'c_'+c.id,st=='seed'?'🌰':st=='sprout'?'🌱':c.ic)}<small>${c.n} · ${{seed:'刚播种',sprout:'发芽了',grown:'快长好了',ready:'成熟啦'}[st]}</small><div class="bar"><i style="width:${f*100}%"></i></div>${st=='ready'?`<button data-harvest="${i}">收获</button>`:`<small>${dur(p.left)}</small>`}</div>`}).join('')}</div><small>种子在商店买。作物按真实时间慢慢长大，关掉网页也会继续长。</small></div>`}
+ if(vr=='kitchen'){h+=`<div class="card"><b>🍳 做饭</b> <small>收获：${CROPS.map(c=>`${c.ic}${cnt(S.produce,c.id)}`).join(' ')}</small><div class="grid" style="margin-top:6px">${FOODS.filter(f=>f.cook).map(f=>{const ok=Object.entries(f.cook).every(([k,n])=>cnt(S.produce,k)>=n);return `<div class="card item">${ico(f.img,f.ic)}<br>${f.n}<br><small>${Object.entries(f.cook).map(([k,n])=>CROPS.find(c=>c.id==k).ic+'×'+n).join(' ')}<br>${f.d}</small><br><button data-cook="${f.id}" ${ok?'':'disabled'}>做一份</button></div>`}).join('')}</div></div>`}
+ if(vr=='living'||edit){const owned=FURN.filter(f=>cnt(S.furn,f.id)>0);h+=`<div class="card"><b>🛋 布置小屋</b> <button id="edit" style="padding:3px 10px;font-size:13px">${edit?'完成布置':'开始布置'}</button>${edit?`<br><small>拖动画面里的家具来摆放（虚线框）。可以在任何房间布置。</small><div class="chips" style="margin-top:6px">${owned.map(f=>{const placed=S.deco.filter(d=>d.id==f.id).length;return `<button data-place="${f.id}" ${placed>=S.furn[f.id]?'disabled':''}>${f.ic} 摆放${f.n} (${S.furn[f.id]-placed})</button>`}).join('')||'<small>还没有家具，去商店看看吧</small>'}</div>${selDeco>=0&&S.deco[selDeco]?`<div class="chips"><button data-dz="1.15">放大</button><button data-dz="0.87">缩小</button><button id="unplace">收起这件</button></div>`:''}`:''}</div>`}
+ return h}
 function renderPanel(){let h='';const inv=S.inv;
 if(tab=='home'){const k=curAct(),a=ACTS[k],vr=viewRoom();
- h=`<div class="chips">${ROOMS.map(r=>`<button data-room="${r.id}" class="${r.id==vr?'on':''}">${r.n}${!S.away&&a.room==r.id?'<span class="dot"></span>':''}</button>`).join('')}</div>`;
- h+=S.away?`<div class="card row"><img src="${A}p_walkside.png"><div>团子正在旅行中……<br>大约 <b id="cd">${sec(S.away.remain)}</b> 后回家。<br><small>屋子里空荡荡的，只留下一点点它的痕迹。</small></div></div>`
- :`<div class="card row"><img src="${A}${a.img}.png"><div>现在团子${a.t}。<br><small>它会按照一天的作息，自己在屋子里走来走去。点一点它，它会跟你挥手。</small>${vr!=a.room?`<br><button id="find" style="margin-top:6px">去${ROOMS.find(r=>r.id==a.room).n}看看</button>`:''}</div></div>`;
+ h=`<div class="chips">${ROOMS.map(r=>`<button data-room="${r.id}" class="${r.id==vr?'on':''}">${r.n}${home()&&a.room==r.id?'<span class="dot"></span>':''}</button>`).join('')}</div>`;
+ const tr=S.trip,v=S.vis.cur&&VIS.find(x=>x.id==S.vis.cur.id);
+ if(tr&&tr.phase=='away')h+=`<div class="card row"><img src="${A}p_walkside.png"><div>团子正在旅行中……<br><small>它会在 ${dur(tr.remain)} 左右回家。屋子里空荡荡的，只留下一点点它的痕迹。</small></div></div>`;
+ else h+=`<div class="card row"><img src="${A}${a.img}.png"><div>现在团子${a.t}。${v?`<br>💗 ${v.n}正陪着它（第 ${cnt(S.vis.meets,v.id)+1} 次见面）。`:''}${tr?'<br>🎒 行囊整理好了，团子会挑个好时候自己出门。':''}<br><small>按一天的作息自己生活，点一点它会挥手。</small>${vr!=a.room?`<br><button id="find" style="margin-top:6px">去${ROOMS.find(r=>r.id==a.room).n}看看</button>`:''}</div></div>`;
+ h+=roomExtras(vr);
  if(S.mail.length)h+=`<button id="readmail">📮 读明信片（${S.mail.length}）</button>`;
- h+=`<div class="card"><b>收藏的纪念品</b><br>${S.souv.length?S.souv.join('　'):'<small>还没有，等团子带回来吧</small>'}</div>`}
-if(tab=='garden'){const g=S.grow.filter(x=>x>0).length;h=`<div class="card">点一点草地上的三叶草来收集 🍀。摘下后约 ${REGROW/1000/S.speed} 秒长回来（${8-g}/8 可摘），偶尔会有幸运四叶草。<br><small>点信箱可以收明信片。</small></div>`}
-if(tab=='shop')h=`<h4>食物</h4><div class="grid">${FOODS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>🍀${f.p} · 持有 ${inv[f.id]||0}</small><br><button data-buy="${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join('')}</div><h4>护身符</h4><div class="grid">${CHARMS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>${f.d}<br>🍀${f.p} · 持有 ${inv[f.id]||0}</small><br><button data-buy="${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join('')}</div>`;
-if(tab=='bag'){if(S.away)h=`<div class="card row"><img src="${A}p_walkside.png"><div>团子已经背着行囊出发啦～</div></div>`;else{
- h=`<div class="card row"><img src="${A}blob_walk.png"><div>选 <b>一份食物</b>（必选）和 <b>一个护身符</b>（可选），整理好行囊，团子就会出门旅行。</div></div>
- <h4>食物</h4><div class="grid">${FOODS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.food==f.id?'sel':''}" data-pick="food:${f.id}"><div class="ic">${f.ic}</div>${f.n} ×${inv[f.id]}</div>`).join('')||'<small>没有食物，去商店买吧</small>'}</div>
+ h+=`<div class="card"><b>收藏的纪念品</b> <small>${SEASONS[seasonAt(Date.now())].n}天 · ${WN[weatherAt(Date.now())]}</small><br>${S.souv.length?S.souv.join('　'):'<small>还没有，等团子带回来吧</small>'}</div>`}
+if(tab=='garden'){const g=S.grow.filter(x=>x>0).length;h=`<div class="card">点一点草地上的三叶草来收集 🍀。摘下后大约 ${dur(REGROW)} 长回来（${8-g}/8 可摘），偶尔会有幸运四叶草。<br><small>点信箱可以收明信片。</small></div>`}
+if(tab=='shop'){const sec=(t,items)=>`<h4>${t}</h4><div class="grid">${items}</div>`;
+ h=sec('食物',FOODS.filter(f=>f.p).map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="food:${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join(''))
+ +sec('种子',CROPS.map(c=>`<div class="card item">${ico('c_seed','🌰')}<br>${c.ic}${c.n}种子<br><small>约 ${c.h} 小时成熟 · 🍀${c.p} · 持有 ${cnt(S.seeds,c.id)}</small><br><button data-buy="seed:${c.id}" ${S.clover<c.p?'disabled':''}>购买</button></div>`).join(''))
+ +sec('护身符',CHARMS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>${f.d}<br>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="charm:${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join(''))
+ +sec('家具',FURN.map(f=>`<div class="card item">${ico('f_'+f.id,f.ic)}<br>${f.n}<br><small>🍀${f.p}${f.sv?` + 纪念品×${f.sv}`:''} · 拥有 ${cnt(S.furn,f.id)}</small><br><button data-buy="furn:${f.id}" ${S.clover<f.p||(f.sv&&S.souv.length<f.sv)?'disabled':''}>购买</button></div>`).join(''))}
+if(tab=='bag'){const tr=S.trip;if(tr)h=`<div class="card row"><img src="${A}p_walkside.png"><div>${tr.phase=='away'?'团子已经背着行囊出发啦～':'行囊已经整理好了。团子会在它觉得合适的时候自己出门（不会在夜里走哦）。'}</div></div>${tr.phase=='packed'?'<button id="unpack">把行囊拿出来</button>':''}`;else{
+ h=`<div class="card row"><img src="${A}blob_walk.png"><div>选 <b>一份食物</b>（必选）和 <b>一个护身符</b>（可选）。整理好后，团子会<b>自己决定</b>什么时候出门，旅行要 1～6 小时。<br><small>自己做的便当和果酱会影响它想去的地方。</small></div></div>
+ <h4>食物</h4><div class="grid">${FOODS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.food==f.id?'sel':''}" data-pick="food:${f.id}">${f.img?ico(f.img,f.ic):`<div class="ic">${f.ic}</div>`}<br>${f.n} ×${inv[f.id]}<br><small>${f.dur[0]}～${f.dur[1]} 小时${f.d?'<br>'+f.d:''}</small></div>`).join('')||'<small>没有食物，去商店买，或者用阳台的收获做饭吧</small>'}</div>
  <h4>护身符</h4><div class="grid">${CHARMS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.charm==f.id?'sel':''}" data-pick="charm:${f.id}"><div class="ic">${f.ic}</div>${f.n}</div>`).join('')||'<small>暂无</small>'}</div>
- <p><button id="go" ${S.bag.food&&inv[S.bag.food]>0?'':'disabled'}>🎒 整理好了，出发吧！</button></p>`}}
-if(tab=='album'){const got=new Set(S.album.map(a=>a.id)).size;h=`<div class="card">已收集 ${got}/${PLACES.length} 处风景 · 明信片 ${S.album.length} 张</div><div class="grid album" style="grid-template-columns:1fr 1fr">${S.album.map((a,i)=>`<div class="card pc" data-pc="${i}"><img src="${A}pc_${a.id}.jpg" loading="lazy"><small>${PLACES.find(p=>p.id==a.id).n}</small></div>`).join('')||'<small>还没有明信片</small>'}</div>`}
-const P=$('panel');P.innerHTML=h;
-P.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
-P.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const[k,id]=b.dataset.pick.split(':');S.bag[k]=S.bag[k]==id?null:id;save();renderPanel()});
-P.querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>showPc(S.album[+b.dataset.pc]));
-P.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{room=b.dataset.room;renderScene();renderPanel()});
-const f=$('find');if(f)f.onclick=()=>{room=ACTS[curAct()].room;renderScene();renderPanel()};
-const rm=$('readmail');if(rm)rm.onclick=openMail;const go=$('go');if(go)go.onclick=depart}
-function hdr(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;const h=hourNow();$('clock').textContent=String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor(h%1*60)).padStart(2,'0')+(rainy()?' 🌧':'')}
+ <p><button id="go" ${S.bag.food&&inv[S.bag.food]>0?'':'disabled'}>🎒 整理好了</button></p>`}}
+if(tab=='diary')h=diaryHTML();
+if(tab=='album')h=albumHTML();
+const P=$('panel');P.innerHTML=h;bindPanel(P)}
+function diaryHTML(){const today=sh(Date.now()).day;const days=[...new Set([...Object.keys(S.diary),today])].sort();if(!diaryDay||!days.includes(diaryDay))diaryDay=days[days.length-1];
+ const i=days.indexOf(diaryDay);let L=[...(S.diary[diaryDay]||[])].sort((a,b)=>a.h-b.h);const isToday=diaryDay==today;
+ if(!L.length)L=[{t:isToday?'今天才刚刚开始，还没有什么要写的……':fillerFor(diaryDay)}];const [y,m,d]=diaryDay.split('-');const t0=Date.parse(diaryDay+'T12:00:00+08:00');
+ return `<div class="tabs"><button data-dd="-1" ${i<=0?'disabled':''}>‹ 前一页</button><button data-dd="1" ${i>=days.length-1?'disabled':''}>后一页 ›</button><small style="align-self:center">共 ${days.length} 页</small></div>
+ <div class="book"><h3>📔 ${+m}月${+d}日 · ${SEASONS[seasonAt(t0)].n} · ${WN[weatherAt(t0)]}${isToday?' <span class="tag">今天</span>':''}</h3>${L.map(e=>`<p>${e.t}</p>`).join('')}<img class="doodle" src="${A}${['p_read','p_tea','p_rest','p_wave'][dayNum(diaryDay)%4]}.png"></div>`}
+function pcArt(id){const p=PLACES.find(x=>x.id==id);return HAVE.has('pc_'+id+'.jpg')?`<img src="${A}pc_${id}.jpg" loading="lazy">`:`<div class="ph" style="background:linear-gradient(160deg,${p.c},#fffaf0)">${p.ic}<span>${p.n}</span></div>`}
+const stars=r=>'★'.repeat(r);
+function albumHTML(){let h=`<div class="tabs"><button data-at="pc" class="${albumTab=='pc'?'on':''}">明信片</button><button data-at="photo" class="${albumTab=='photo'?'on':''}">合照</button></div>`;
+ if(albumTab=='pc'){const got=PLACES.filter(p=>S.visits[p.id]);h+=`<div class="card">已去过 ${got.length}/${PLACES.length} 个地方 · 明信片 ${S.album.length} 张 <small>★普通 ★★少见 ★★★稀有</small></div><div class="grid album" style="grid-template-columns:1fr 1fr">${PLACES.map(p=>S.visits[p.id]?`<div class="card pc" data-pc="${p.id}">${pcArt(p.id)}<small>${p.n} <span class="stars">${stars(p.r)}</span>${p.season?`<span class="tag">${SEASONS[p.season].n}季限定</span>`:''} · ${S.visits[p.id]} 次</small></div>`:`<div class="card"><div class="lock">？</div><small>${p.season?SEASONS[p.season].n+'季限定 · ':''}<span class="stars">${stars(p.r)}</span></small></div>`).join('')}</div>`}
+ else{h+=`<div class="card">和同一位朋友见面 ${PHOTO_AT} 次，就能拍一张合照。</div><div class="grid album" style="grid-template-columns:1fr 1fr">${VIS.map(v=>{const n=cnt(S.vis.meets,v.id);return S.vis.photos.includes(v.id)?`<div class="card">${photoArt(v.id)}<small>和${v.n}的合照 · 见过 ${n} 次</small></div>`:`<div class="card"><div class="lock">${n?v.ic:'？'}</div><small>${n?v.n:'还没见过'} · ${n}/${PHOTO_AT}</small></div>`}).join('')}</div>`}
+ return h}
+function photoArt(id){const v=VIS.find(x=>x.id==id),r=(S.vis.photoRoom||{})[id]||'balcony';return `<div class="photo"><img class="bg" src="${A}${bgFor(r)}.jpg"><div class="vis" style="left:34%;bottom:8%;width:16%">${spr('p_wave','',1.6)}</div><div class="vis" style="left:52%;bottom:8%;width:14%"><div class="bob">${spr('v_'+id,v.ic,1.4)}</div></div></div>`}
+function bindPanel(P){
+ P.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(...b.dataset.buy.split(':')));
+ P.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const[k,id]=b.dataset.pick.split(':');S.bag[k]=S.bag[k]==id?null:id;save();renderPanel()});
+ P.querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>showPc(b.dataset.pc));
+ P.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{room=b.dataset.room;selDeco=-1;renderScene();renderPanel()});
+ P.querySelectorAll('[data-plant]').forEach(s=>s.onchange=()=>{const c=CROPS.find(c=>c.id==s.value);if(!c)return;S.seeds[c.id]--;S.plots[+s.dataset.plant]={crop:c.id,left:c.h*HR,total:c.h*HR};diary(Date.now(),`在阳台种下了${c.n}，希望它快快长大。`,1);beep(600);save();render(false)});
+ P.querySelectorAll('[data-harvest]').forEach(b=>b.onclick=()=>{const i=+b.dataset.harvest,p=S.plots[i],c=CROPS.find(c=>c.id==p.crop);S.produce[c.id]=cnt(S.produce,c.id)+2;S.plots[i]=null;toast(`收获了 ${c.ic}${c.n} ×2`);diary(Date.now(),`收获了两份${c.n}，闻起来香香的。`,2);beep(880);save();render(false)});
+ P.querySelectorAll('[data-cook]').forEach(b=>b.onclick=()=>{const f=FOODS.find(x=>x.id==b.dataset.cook);for(const[k,n]of Object.entries(f.cook))S.produce[k]-=n;S.inv[f.id]=cnt(S.inv,f.id)+1;toast(`做好了 ${f.ic}${f.n}`);diary(Date.now(),`用自己种的菜做了${f.n}，可以带去旅行。`,2);beep(700);save();renderPanel()});
+ P.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{const f=FURN.find(x=>x.id==b.dataset.place);S.deco.push({id:f.id,room:viewRoom(),x:45,b:12,w:f.w});selDeco=S.deco.length-1;save();renderScene(false);renderPanel()});
+ P.querySelectorAll('[data-dz]').forEach(b=>b.onclick=()=>{const d=S.deco[selDeco];d.w=Math.max(3,Math.min(40,d.w*+b.dataset.dz));save();renderScene(false)});
+ P.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{const days=[...new Set([...Object.keys(S.diary),sh(Date.now()).day])].sort();diaryDay=days[days.indexOf(diaryDay)+ +b.dataset.dd];beep(500,.05);renderPanel()});
+ P.querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>{albumTab=b.dataset.at;renderPanel()});
+ const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};
+ on('find',()=>{room=ACTS[curAct()].room;renderScene();renderPanel()});on('readmail',openMail);on('go',pack);
+ on('edit',()=>{edit=!edit;selDeco=-1;render(false)});on('unplace',()=>{S.deco.splice(selDeco,1);selDeco=-1;save();render(false)});
+ on('unpack',()=>{const tr=S.trip;S.inv[tr.food]=cnt(S.inv,tr.food)+1;if(tr.charm)S.inv[tr.charm]=cnt(S.inv,tr.charm)+1;S.trip=null;save();render(false)})}
+function hdr(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;const h=hourAt(Date.now()),w=weatherAt(Date.now());$('clock').textContent=String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor(h%1*60)).padStart(2,'0')+' '+SEASONS[seasonAt(Date.now())].n+(w=='rain'?'🌧':w=='snow'?'❄':'')}
 function render(fade=true){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene(fade);renderPanel()}
-function buy(id){const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=(S.inv[id]||0)+1;beep(520);toast(`买到了 ${it.ic}${it.n}`);save();hdr();renderPanel()}
-function depart(){const f=FOODS.find(x=>x.id==S.bag.food);if(!f||!(S.inv[f.id]>0))return;S.inv[f.id]--;const c=S.bag.charm&&S.inv[S.bag.charm]>0?S.bag.charm:null;if(c)S.inv[c]--;
- S.away={food:f.id,charm:c,remain:Math.round((30+Math.random()*60)*1000*f.t)};S.bag={food:null,charm:null};save();beep(440);
- tab='home';room='living';walker={room:'living',x:50,b:12,dx:'420%',until:Date.now()+4000};render();toast('团子背上行囊出门了～');setTimeout(()=>{walker=null;if(tab=='home')renderScene(false)},4100)}
-function comeHome(){const c=S.away.charm;let pool=PLACES.map(p=>p.id);if(c=='acorn')pool.push('camper','camper');if(c=='shell')pool.push('dome','village');
- const id=pool[Math.floor(Math.random()*pool.length)];S.mail.push({id,sv:SOUV[Math.floor(Math.random()*SOUV.length)],cl:5+Math.floor(Math.random()*8)+(c=='bell'?10:0),t:Date.now()});S.away=null;save();beep(990);
- const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card"><img src="${A}p_sleep.png" style="width:45%"><p>团子旅行回来了，累得睡着了……<br>信箱里好像多了一张明信片 📮</p><button id="okback">好的</button></div>`;
- document.body.appendChild(d);d.querySelector('button').onclick=()=>d.remove();render(false)}
-function openMail(){const m=S.mail.shift();if(!m)return;S.album.push({id:m.id,t:m.t});S.souv.push(m.sv);S.clover+=m.cl;save();render(false);const p=PLACES.find(x=>x.id==m.id);
- const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc"><img src="${A}pc_${m.id}.jpg"><p><b>${p.n}</b><br>${p.txt}</p><p>带回了：${m.sv}，还有 🍀${m.cl}</p><button id="keep">收进相册</button></div>`;d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)}
-function showPc(a){const p=PLACES.find(x=>x.id==a.id);const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc"><img src="${A}pc_${a.id}.jpg"><p><b>${p.n}</b><br>${p.txt}</p><button>关闭</button></div>`;d.onclick=()=>d.remove();document.body.appendChild(d)}
-// ---- canvas fx (one rAF loop also drives game time) ----
+function buy(kind,id){if(kind=='seed'){const c=CROPS.find(x=>x.id==id);if(S.clover<c.p)return;S.clover-=c.p;S.seeds[id]=cnt(S.seeds,id)+1;toast(`买到了${c.n}种子`)}
+ else if(kind=='furn'){const f=FURN.find(x=>x.id==id);if(S.clover<f.p||(f.sv&&S.souv.length<f.sv))return;S.clover-=f.p;if(f.sv)S.souv.splice(0,f.sv);S.furn[id]=cnt(S.furn,id)+1;toast(`买到了${f.n}，去客厅“开始布置”吧`);diary(Date.now(),`家里多了一件${f.n}。`,1)}
+ else{const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=cnt(S.inv,id)+1;toast(`买到了 ${it.ic}${it.n}`)}
+ beep(520);save();hdr();renderPanel()}
+function pack(){const f=FOODS.find(x=>x.id==S.bag.food);if(!f||!(S.inv[f.id]>0))return;S.inv[f.id]--;const c=S.bag.charm&&S.inv[S.bag.charm]>0?S.bag.charm:null;if(c)S.inv[c]--;
+ S.trip={phase:'packed',food:f.id,charm:c,leaveIn:rnd(10,45)*MIN};S.bag={food:null,charm:null};save();beep(440);toast('行囊整理好了，团子会自己挑时候出门～');render(false)}
+function openMail(){const m=S.mail.shift();if(!m)return;S.album.push({id:m.id,t:m.t});S.souv.push(m.sv);S.clover+=m.cl;save();render(false);showPc(m.id,m)}
+function showPc(id,m){const p=PLACES.find(x=>x.id==id),n=m?m.n:S.visits[id]||1;const note=p.notes[Math.min(n,p.notes.length)-1];
+ const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc">${pcArt(id)}<p><b>${p.n}</b> <span class="stars">${stars(p.r)}</span>${p.season?`<span class="tag">${SEASONS[p.season].n}季限定</span>`:''}<br><small>第 ${n} 次来到这里</small><br>${note}</p>${m?`<p>带回了：${m.sv}，还有 🍀${m.cl}</p>`:''}${n<p.notes.length?`<small>再来 ${p.notes.length-n} 次，故事会继续……</small><br>`:''}<button id="keep">${m?'收进相册':'关闭'}</button></div>`;d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)}
+// ---------- canvas fx + main loop ----------
 const cv=$('fx'),cx=cv.getContext('2d');let drops=[],flies=[],wdrops=[];
 function sizeCv(){const r=cv.getBoundingClientRect();cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio}
 addEventListener('resize',sizeCv);
 for(let i=0;i<120;i++)drops.push({x:Math.random(),y:Math.random(),v:.9+Math.random()*.6,l:.03+Math.random()*.03});
 for(let i=0;i<18;i++)flies.push({x:Math.random(),y:.15+Math.random()*.7,p:Math.random()*6.28,s:.3+Math.random()*.5});
-function drawFx(t,dt){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);if(tab!='home'||RM)return;const r=viewRoom(),h=hourNow();
- if(r=='porch'){cx.strokeStyle='rgba(225,240,255,.55)';cx.lineWidth=1.3*devicePixelRatio;cx.beginPath();for(const d of drops){d.y+=d.v*dt/1000;d.x-=.08*dt/1000;if(d.y>1){d.y=-.05;d.x=Math.random()*1.1}if(d.x<0)d.x+=1;cx.moveTo(d.x*W,d.y*H);cx.lineTo((d.x-.008)*W,(d.y+d.l)*H)}cx.stroke()}
- if(r=='reading'||((h>=19||h<5)&&['balcony','pond','porch'].includes(r))){const area=r=='reading'?[0,.25]:[0,1];for(const f of flies){f.p+=dt/1000*f.s;const x=(area[0]+(area[1]-area[0])*f.x+Math.sin(f.p*.7)*.02)*W,y=(f.y+Math.cos(f.p*.5)*.03)*H,a=.35+.65*Math.max(0,Math.sin(f.p*2));
+function drawFx(t,dt){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);if(tab!='home'||RM)return;const r=viewRoom(),h=hourAt(Date.now()),wt=weatherAt(Date.now()),out=['balcony','pond','porch'].includes(r);
+ const rain=r=='porch'?(wt=='snow'?'snow':'rain'):out?(wt=='rain'?'rain':wt=='snow'?'snow':null):null;
+ if(rain=='rain'){cx.strokeStyle='rgba(225,240,255,.55)';cx.lineWidth=1.3*devicePixelRatio;cx.beginPath();for(const d of drops){d.y+=d.v*dt/1000;d.x-=.08*dt/1000;if(d.y>1){d.y=-.05;d.x=Math.random()*1.1}if(d.x<0)d.x+=1;cx.moveTo(d.x*W,d.y*H);cx.lineTo((d.x-.008)*W,(d.y+d.l)*H)}cx.stroke()}
+ if(rain=='snow'){cx.fillStyle='rgba(255,255,255,.9)';for(const d of drops){d.y+=d.v*.12*dt/1000;d.x+=Math.sin(t/1000+d.l*100)*.0004;if(d.y>1){d.y=-.02;d.x=Math.random()}cx.beginPath();cx.arc(d.x*W,d.y*H,(1.5+d.l*40)*devicePixelRatio,0,7);cx.fill()}}
+ if(r=='reading'||((h>=19||h<5)&&out&&seasonAt(Date.now())!='winter')){const area=r=='reading'?[0,.25]:[0,1];for(const f of flies){f.p+=dt/1000*f.s;const x=(area[0]+(area[1]-area[0])*f.x+Math.sin(f.p*.7)*.02)*W,y=(f.y+Math.cos(f.p*.5)*.03)*H,a=.35+.65*Math.max(0,Math.sin(f.p*2));
   const g=cx.createRadialGradient(x,y,0,x,y,9*devicePixelRatio);g.addColorStop(0,`rgba(255,250,170,${a})`);g.addColorStop(1,'rgba(255,240,120,0)');cx.fillStyle=g;cx.fillRect(x-10*devicePixelRatio,y-10*devicePixelRatio,20*devicePixelRatio,20*devicePixelRatio)}}
- if(!S.away&&curAct()=='water'&&r=='balcony'&&Date.now()>waveUntil){const a=ACTS.water;if(Math.random()<.35)wdrops.push({x:(a.x+.5+Math.random()*1.2)/100,y:(100-a.b-6)/100,v:0});cx.fillStyle='rgba(150,205,240,.9)';
+ if(home()&&curAct()=='water'&&r=='balcony'&&Date.now()>waveUntil){const a=ACTS.water;if(Math.random()<.35)wdrops.push({x:(a.x+.5+Math.random()*1.2)/100,y:(100-a.b-6)/100,v:0});cx.fillStyle='rgba(150,205,240,.9)';
   wdrops=wdrops.filter(d=>{d.v+=dt/1000*.9;d.y+=d.v*dt/1000;cx.beginPath();cx.arc(d.x*W,d.y*H,2.2*devicePixelRatio,0,7);cx.fill();return d.y<(100-a.b+1)/100})}}
-let last=performance.now(),acc=0,lastBlink=0,lastSec=0;
-function loop(t){const dt=Math.min(100,t-last);last=t;
- const gdt=dt*S.speed;let ch=false;S.grow=S.grow.map(x=>{if(x>0){x-=gdt;if(x<=0){ch=true;return 0}}return x});
- if(S.away){S.away.remain-=gdt;if(S.away.remain<=0)comeHome()}
- if(t-lastSec>1000){lastSec=t;save();hdr();const cd=$('cd');if(cd&&S.away)cd.textContent=sec(S.away.remain);
-  const k=(S.away?'away':curAct())+'|'+tab;if(k!==actKey){const prev=actKey;actKey=k;if(prev&&tab=='home'){const pa=ACTS[prev.split('|')[0]];if(pa&&!S.away&&room==pa.room){walker={room:pa.room,x:pa.x,b:pa.b,dx:'300%',until:Date.now()+4000};setTimeout(()=>walker=null,4100)}renderScene(false);renderPanel()}}
-  if(ch&&tab=='garden')renderScene(false);updTint()}
+let last=performance.now(),lastBlink=0,lastSec=0,sceneKey='';
+function keyNow(){return [home()?curAct():'away',tab,S.vis.cur?.id,S.trip?.phase,S.plots.map(cropStage).join(),seasonAt(Date.now()),weatherAt(Date.now())].join('|')}
+function loop(t){const dt=Math.min(200,t-last);last=t;step(dt*S.speed,Date.now());
+ if(t-lastSec>1000){lastSec=t;save();hdr();const k=keyNow();if(k!==sceneKey){const prev=sceneKey;sceneKey=k;if(prev&&!edit){renderScene(false);renderPanel()}}
+  else if(tab=='garden')renderScene(false);updTint();if(tab=='home'&&!edit&&(S.trip||S.plots.some(Boolean))&&Math.floor(t/1000)%5==0){const sel=document.activeElement&&document.activeElement.tagName=='SELECT';if(!sel)renderPanel()}}
  if(t-lastBlink>3500+Math.random()*3000){lastBlink=t;const b=document.querySelector('.layer.show .actor .blk');if(b){b.classList.add('blink');setTimeout(()=>b.classList.remove('blink'),140)}}
  drawFx(t,dt);requestAnimationFrame(loop)}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
-$('spd').onclick=()=>{S.speed={1:2,2:5,5:1}[S.speed]||1;save();render(false)};
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;if(tab!='home')edit=false;render()});
+$('spd').onclick=()=>{S.speed={1:10,10:60,60:1}[S.speed]||1;save();render(false)};
 $('snd').onclick=()=>{const on=!amb;ambient(on);$('snd').textContent=on?'🔊':'🔈'};
-window.dango={setHour:h=>{dbgHour=h;room=null;render(false)},setRain:v=>{dbgRain=v;render(false)},setAct:k=>{dbgAct=k;room=null;render(false)},act:()=>curAct(),room:()=>viewRoom()};
-sizeCv();render(false);requestAnimationFrame(loop);
+window.dango={S:()=>S,setHour:h=>{dbgHour=h;room=null;render(false)},setRain:v=>{dbgRain=v==null?null:v?'1':'0';render(false)},setAct:k=>{dbgAct=k;room=null;render(false)},setSeason:s=>{dbgSeason=s;render(false)},
+ act:()=>curAct(),room:()=>viewRoom(),skip:ms=>{LOG=[];let t=Date.now(),l=ms;while(l>0){const d=Math.min(5*MIN,l);t+=d;step(d,t);l-=d}const lines=LOG;LOG=null;save();render(false);return lines},
+ visitor:id=>{visitorComes(Date.now(),id);save();render(false)},visitorLeave:()=>{if(S.vis.cur){S.vis.cur.left=0;step(1,Date.now());save();render(false)}},leaveNow:()=>{if(S.trip?.phase=='packed'){S.trip.leaveIn=0;departNow(Date.now());save()}},returnNow:()=>{if(S.trip?.phase=='away'){S.trip.remain=0;step(1,Date.now());save()}}};
+if(DEBUG){const d=document.createElement('div');d.className='dbg';d.innerHTML=`<b>调试</b><button data-x="h1">+1小时</button><button data-x="off8">模拟离线8小时</button><button data-x="vis">叫访客</button><button data-x="leave">马上出发</button><button data-x="ret">马上回家</button><button data-x="season">换季节</button><button data-x="rain">换天气</button><button data-x="cl">+100🍀</button>`;document.body.appendChild(d);
+ d.onclick=e=>{const x=e.target.dataset.x;if(!x)return;if(x=='h1')dango.skip(HR);if(x=='off8'){S.lastSeen-=8*HR;localStorage.setItem(K3,JSON.stringify(S));noSave=true;location.reload()}if(x=='vis')dango.visitor();if(x=='leave')dango.leaveNow();if(x=='ret')dango.returnNow();
+  if(x=='season'){const L=['spring','summer','autumn','winter'];dango.setSeason(L[(L.indexOf(seasonAt(Date.now()))+1)%4])}if(x=='rain')dango.setRain(weatherAt(Date.now())=='sun');if(x=='cl'){S.clover+=100;save();render(false)}}}
+let noSave=false;const _save=save;
+// boot
+S.lastSeen0=S.lastSeen;if(!S.lastDay)S.lastDay=sh(Date.now()).day;
+sizeCv();offlineCatchUp();if(S.migrated){delete S.migrated;toast('已继承之前的存档 🍃')}save();render(false);sceneKey=keyNow();requestAnimationFrame(loop);
 </script></body></html>
