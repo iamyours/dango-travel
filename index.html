@@ -1,122 +1,233 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:,"><title>团子去旅行</title>
 <style>
-:root{--ink:#3a2e24;--g:#7fae55;--gd:#4f7f3a;--cream:#fbf4e2;--card:#fffaf0;--yel:#f3d77a;--pink:#ecb3a6}
+:root{--ink:#3a2e24;--cream:#fbf4e2;--card:#fffaf0;--yel:#f3d77a;--gd:#4f7f3a}
 *{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:#dfe8cc;color:var(--ink);display:flex;justify-content:center}
 #app{width:min(760px,100vw);min-height:100vh;background:var(--cream);position:relative;overflow:hidden;box-shadow:0 0 0 2px var(--ink)}
-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(#a6cc7a,#8cbc63);border-bottom:2px solid var(--ink);font-weight:700;font-size:18px}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(#a6cc7a,#8cbc63);border-bottom:2px solid var(--ink);font-weight:700;font-size:18px;gap:6px}
 .pill{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:3px 12px;font-size:15px}
-button{font:inherit;cursor:pointer;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:7px 14px;box-shadow:0 3px 0 var(--ink);transition:.1s;color:var(--ink)}
+button{font:inherit;cursor:pointer;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:7px 14px;box-shadow:0 3px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink)}
 button:active{transform:translateY(3px);box-shadow:none}button:disabled{opacity:.45;cursor:default}
+.hb{padding:2px 10px;font-size:14px}
 .scene{position:relative;width:100%;aspect-ratio:1600/893;border-bottom:2px solid var(--ink);overflow:hidden;background:#cfe0b8}
-.scene>img.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.layer{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}.layer.show{opacity:1}
+.layer>img.bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ov{position:absolute;pointer-events:none}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.tint{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;transition:background 2s;z-index:5}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:8;width:38px;height:38px;border-radius:50%;padding:0;font-size:18px;opacity:.85;background:#fffaf0d0}
+.arrow.l{left:8px}.arrow.r{right:8px}.arrow:active{transform:translateY(calc(-50% + 3px))}
+.roomname{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:8;background:#fffaf0e0;border:2px solid var(--ink);border-radius:14px;padding:2px 12px;font-size:14px;font-weight:700}
 nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px 14px}
-nav button{padding:9px 2px;font-size:14px}nav button.on{background:var(--yel)}
+nav button{padding:9px 2px;font-size:14px}nav button.on,.chips button.on{background:var(--yel)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.chips button{padding:4px 10px;font-size:13px;box-shadow:0 2px 0 var(--ink)}
+.chips button .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e86a55;margin-left:4px;vertical-align:middle}
 .panel{padding:2px 16px 24px}.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:12px;margin:8px 0}
-.row{display:flex;gap:12px;align-items:center}.row img{width:110px;flex:none}
+.row{display:flex;gap:12px;align-items:center}.row img{width:96px;flex:none}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.item{text-align:center;font-size:14px;cursor:pointer}.item .ic{font-size:30px}
-.item.sel{background:#fbe9a8;box-shadow:inset 0 0 0 2px var(--gd)}
-h4{margin:12px 0 4px}
-.leaf{position:absolute;top:-4%;width:1.6%;aspect-ratio:3/2;border:1.5px solid var(--ink);border-radius:0 80% 0 80%;animation:fall linear infinite;pointer-events:none;z-index:3}
+.item.sel{background:#fbe9a8;box-shadow:inset 0 0 0 2px var(--gd)}h4{margin:12px 0 4px}
+/* actor */
+.actor{position:absolute;z-index:4;cursor:pointer}
+.actor .bob{animation:bob 5s ease-in-out infinite}
+.actor .blk{transform-origin:50% 100%;transition:transform .12s ease}
+.actor .blk.blink{transform:scale(1.02,.94)}
+.actor img{width:100%;display:block;transform-origin:50% 100%;animation:breath 4.2s ease-in-out infinite;filter:drop-shadow(0 3px 0 #0002)}
+@keyframes breath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.965)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5%)}}
+.actor.read img{animation:breath 4.2s ease-in-out infinite,wob 3.6s ease-in-out infinite}
+@keyframes wob{0%,80%,100%{rotate:0deg}86%{rotate:-2deg}92%{rotate:1.5deg}}
+.actor.sleep .bob{animation:bob 6s ease-in-out infinite}.actor.sleep img{animation:breath 6s ease-in-out infinite}
+.actor.wave img{animation:hop .5s ease-in-out 3}
+@keyframes hop{50%{transform:translateY(-6%) scale(.98,1.03)}}
+.walker{position:absolute;z-index:4;animation:walk 4s linear forwards}
+.walker img{width:100%;animation:step .5s ease-in-out infinite}
+@keyframes walk{to{transform:translateX(var(--dx));opacity:0}}
+@keyframes step{50%{transform:translateY(-4%) rotate(2deg)}}
+.zzz{position:absolute;font-weight:700;color:#fff;-webkit-text-stroke:1px var(--ink);font-size:clamp(12px,2.6vw,22px);animation:zz 4s ease-out infinite;opacity:0;z-index:5}
+@keyframes zz{0%{transform:translate(0,0) scale(.6);opacity:0}25%{opacity:1}100%{transform:translate(30%,-180%) scale(1.2);opacity:0}}
+.leaf{position:absolute;top:-4%;width:1.6%;aspect-ratio:3/2;border:1.5px solid var(--ink);border-radius:0 80% 0 80%;animation:fall linear infinite;z-index:5}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(4vw,25vw) rotate(180deg)}100%{transform:translate(-1vw,60vw) rotate(360deg)}}
-.breathe{animation:br 3.2s ease-in-out infinite;transform-origin:50% 100%}
-@keyframes br{50%{transform:scale(1.035,.965)}}
-.steam{width:1.4%;height:6%;border-left:3px solid #fff;border-radius:50%;opacity:0;animation:st 2.6s ease-out infinite;filter:blur(.4px)}
+.steam{width:1.4%;height:6%;border-left:3px solid #fff;border-radius:50%;opacity:0;animation:st 3.2s ease-out infinite;filter:blur(.4px);z-index:3}
 @keyframes st{0%{transform:translateY(0) scaleX(1);opacity:0}30%{opacity:.85}100%{transform:translateY(-130%) scaleX(-1);opacity:0}}
-.clover{position:absolute;width:5.5%;cursor:pointer;z-index:2;transition:transform .2s;animation:sway 3s ease-in-out infinite;transform-origin:50% 100%}
-.clover:hover{transform:scale(1.18)}.clover.gone{opacity:.0;pointer-events:none}
-@keyframes sway{50%{rotate:6deg}}
+.glow{border-radius:50%;background:radial-gradient(#ffe7a0cc,#ffd47a55 40%,transparent 70%);mix-blend-mode:screen;animation:flick 5s ease-in-out infinite;z-index:3}
+@keyframes flick{0%,100%{opacity:.75;transform:scale(1)}40%{opacity:.95;transform:scale(1.04)}55%{opacity:.7}70%{opacity:.9}}
+.beam{background:linear-gradient(115deg,#fff6c000,#fff6c066,#fff6c000);mix-blend-mode:screen;animation:beam 6s ease-in-out infinite;z-index:3}
+@keyframes beam{50%{opacity:.4}}
+.twinkle{width:1.2%;aspect-ratio:1;border-radius:50%;background:#ffe9a0;box-shadow:0 0 8px 3px #ffe08a;animation:tw 3s ease-in-out infinite;z-index:3}
+@keyframes tw{50%{opacity:.35}}
+.ripple{border:2px solid #ffffffb0;border-radius:50%;animation:rip 4.5s ease-out infinite;opacity:0;z-index:3}
+@keyframes rip{0%{transform:scale(.2);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.float{width:1.4%;aspect-ratio:1;border-radius:50%;background:linear-gradient(#e8574a 50%,#fff 50%);border:2px solid var(--ink);animation:fl 3s ease-in-out infinite;z-index:3}
+@keyframes fl{50%{transform:translateY(25%)}}
+.fern{width:22%;transform-origin:50% 100%;animation:sway 6s ease-in-out infinite;z-index:7;opacity:.95}
+@keyframes sway{0%,100%{rotate:-2deg}50%{rotate:2.5deg}}
+.trace{font-size:clamp(14px,3vw,26px);z-index:3;filter:drop-shadow(0 2px 0 #0003)}
+.note{position:absolute;left:55.5%;top:65%;width:10%;min-height:19%;display:flex;flex-direction:column;justify-content:center;background:#fffaf0;border:2px solid var(--ink);border-radius:8px;padding:4px;font-size:clamp(9px,1.6vw,13px);text-align:center;rotate:-4deg;box-shadow:2px 3px 0 #0003;line-height:1.3;z-index:3}
+.clover{position:absolute;width:5.5%;cursor:pointer;z-index:2;transition:transform .2s;animation:csw 3s ease-in-out infinite;transform-origin:50% 100%}
+.clover:hover{transform:scale(1.18)}.clover.gone{opacity:0;pointer-events:none}@keyframes csw{50%{rotate:6deg}}
 .hot{position:absolute;cursor:pointer;z-index:2}
-.badge{position:absolute;background:#e86a55;color:#fff;border:2px solid var(--ink);border-radius:12px;padding:0 7px;font-size:13px;font-weight:700;animation:bob 1.2s ease-in-out infinite;pointer-events:none;z-index:4}
-@keyframes bob{50%{transform:translateY(-5px)}}
-.note{position:absolute;left:55.5%;top:65%;width:10%;min-height:19%;display:flex;flex-direction:column;justify-content:center;background:#fffaf0;border:2px solid var(--ink);border-radius:8px;padding:4px;font-size:clamp(9px,1.6vw,13px);text-align:center;rotate:-4deg;box-shadow:2px 3px 0 #0003;line-height:1.3}
-.walker{position:absolute;left:52%;top:60%;width:11%;animation:walkout 3s ease-in forwards;z-index:5}
-@keyframes walkout{0%{transform:translateX(0)}20%{transform:translateX(0) translateY(-6%)}100%{transform:translateX(230%);opacity:0}}
+.badge{position:absolute;background:#e86a55;color:#fff;border:2px solid var(--ink);border-radius:12px;padding:0 7px;font-size:13px;font-weight:700;animation:bobb 1.6s ease-in-out infinite;pointer-events:none;z-index:8;white-space:nowrap}
+@keyframes bobb{50%{transform:translateY(-4px)}}
 .toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:8px 16px;z-index:20;animation:pop 2.6s forwards;white-space:nowrap}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,10px)}10%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .modal{position:fixed;inset:0;background:#2a20184d;display:flex;align-items:center;justify-content:center;z-index:30}
-.modal .card{width:92%;max-width:520px;text-align:center}
-.pc img{width:100%;border:2px solid var(--ink);border-radius:10px;display:block}
-.album .card{padding:8px;cursor:pointer}.album small{display:block;margin-top:4px}
-small{color:#7a6a58}
+.modal .card{width:92%;max-width:520px;text-align:center}.pc img{width:100%;border:2px solid var(--ink);border-radius:10px;display:block}
+.album .card{padding:8px;cursor:pointer}.album small{display:block;margin-top:4px}small{color:#7a6a58}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head><body><div id="app">
-<header><span>🍃 团子去旅行</span><span><span class="pill">🍀 <b id="cl">0</b></span> <button id="spd" title="时间倍速" style="padding:2px 10px;font-size:14px">×1</button></span></header>
-<div class="scene" id="scene"></div>
+<header><span>🍃 团子去旅行</span><span><span class="pill" id="clock">--:--</span> <span class="pill">🍀 <b id="cl">0</b></span> <button id="snd" class="hb" title="环境音">🔈</button> <button id="spd" class="hb" title="时间倍速">×1</button></span></header>
+<div class="scene" id="scene"><canvas id="fx"></canvas><div class="tint" id="tint"></div></div>
 <nav><button data-t="home">小屋</button><button data-t="garden">庭院</button><button data-t="shop">商店</button><button data-t="bag">行囊</button><button data-t="album">相册</button></nav>
 <div class="panel" id="panel"></div></div>
 <script>
-const K='cozy-tabi-v2',A='assets/';
+const K='cozy-tabi-v2',A='assets/',Q=new URLSearchParams(location.search);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FOODS=[{id:'bun',n:'艾草团子',ic:'🍡',p:5,t:.8},{id:'onigiri',n:'海苔饭团',ic:'🍙',p:12,t:1.2},{id:'bento',n:'森林便当',ic:'🍱',p:25,t:1.6}];
 const CHARMS=[{id:'acorn',n:'橡果护符',ic:'🌰',p:15,d:'更容易去森林'},{id:'bell',n:'小铃铛',ic:'🔔',p:20,d:'带回更多三叶草'},{id:'shell',n:'蓝贝壳',ic:'🐚',p:30,d:'更容易去远方'}];
 const PLACES=[{id:'train',n:'被藤蔓覆盖的旧车厢',txt:'车厢里长满了蕨类，我在红色座椅上晒了一下午太阳。'},{id:'camper',n:'森林里的露营车',txt:'在露营车里弹了吉他，听了一整夜虫鸣。'},{id:'dome',n:'丛林玻璃温室',txt:'玻璃穹顶下有好多从没见过的大叶子！'},{id:'village',n:'树荫下的小镇',txt:'小镇的房顶都长着青苔，面包店老板送了我一块面包。'}];
 const SOUV=['🍄 小蘑菇','🪶 羽毛','🌸 干花','🪨 圆石头','🎐 风铃','🍯 蜂蜜罐','🌰 橡果帽'];
-// clover spots on garden art (% of scene)
-const SPOTS=[[13,66],[21,72],[29,64],[37,70],[45,63],[17,80],[33,79],[49,76]];
-const REGROW=20000;
+const SPOTS=[[13,66],[21,72],[29,64],[37,70],[45,63],[17,80],[33,79],[49,76]],REGROW=20000;
+const ROOMS=[{id:'living',n:'客厅',bg:'home_empty.jpg'},{id:'reading',n:'读书角',bg:'bg_reading.jpg'},{id:'kitchen',n:'厨房',bg:'bg_kitchen.jpg'},{id:'balcony',n:'阳台',bg:'bg_balcony.jpg'},{id:'pond',n:'池塘',bg:'bg_pond.jpg'},{id:'porch',n:'门廊',bg:'bg_rain.jpg'}];
+// activities: room, sprite, position (left%, bottom%, width%)
+const ACTS={
+ sleep:{room:'living',img:'p_sleep',x:33.5,b:20,w:10.5,cls:'sleep',t:'在被窝里呼呼大睡 💤'},
+ stretch:{room:'living',img:'p_stretch',x:40,b:11,w:9,t:'起床伸了个大大的懒腰'},
+ tea:{room:'living',img:'blob_home',x:57,b:17.25,w:6.125,t:'坐在桌边慢慢喝茶 🍵'},
+ stir:{room:'kitchen',img:'p_stir',x:33,b:6,w:15,t:'在厨房煮早饭，咕嘟咕嘟'},
+ water:{room:'balcony',img:'p_water',x:42,b:34,w:10,t:'在阳台给小花浇水 🌱'},
+ rest:{room:'balcony',img:'p_rest',x:30,b:47,w:8,t:'坐在长椅上发呆，吹吹风'},
+ lantern:{room:'balcony',img:'p_lantern',x:50,b:34,w:9,t:'提着小灯笼看星星 ✨'},
+ fish:{room:'pond',img:'p_fish',x:55,b:21,w:10,t:'在池塘边钓鱼，静静地等'},
+ read:{room:'reading',img:'p_read',x:59,b:29,w:11,cls:'read',t:'窝在扶手椅里看书 📖'},
+ doze:{room:'reading',img:'p_rest',x:59,b:29,w:11,cls:'sleep',t:'看着看着就打起了瞌睡'},
+ umbrella:{room:'porch',img:'p_umbrella',x:58,b:9,w:13,t:'撑着伞在门廊外听雨 ☔'},
+};
+const SCHED=[[0,6,['sleep']],[6,8,['stretch']],[8,10,['stir','stir','stretch']],[10,12,['water','fish']],[12,14,['fish','rest']],[14,16,['tea','tea','rest']],[16,18,['water','fish','tea']],[18,20,['read','lantern']],[20,22,['read','lantern','doze']],[22,24,['doze','sleep']]];
 const def={clover:20,inv:{bun:1},bag:{food:null,charm:null},away:null,album:[],souv:[],grow:Array(8).fill(0),speed:1,mail:[]};
 let S;try{S=Object.assign({},def,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){S={...def}}
 const save=()=>localStorage.setItem(K,JSON.stringify(S));
-let tab=location.hash.slice(1)||'home',walking=0;const $=id=>document.getElementById(id);
+let tab=Q.get('tab')||'home',room=Q.get('room')||null,waveUntil=0,walker=null,dbgHour=Q.has('hour')?+Q.get('hour'):null,dbgRain=Q.has('rain')?Q.get('rain')=='1':null;
+const $=id=>document.getElementById(id);
+function hourNow(){if(dbgHour!=null)return dbgHour;const d=new Date();return d.getHours()+d.getMinutes()/60}
+function hash(n){n=Math.imul(n^0x9e3779b9,0x85ebca6b);n^=n>>>13;n=Math.imul(n,0xc2b2ae35);return (n^n>>>16)>>>0}
+function dayNo(){return Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5)}
+function rainy(){return dbgRain!=null?dbgRain:hash(dayNo()*7)%4==0}
+let dbgAct=Q.get('act');
+function curAct(){if(dbgAct&&ACTS[dbgAct])return dbgAct;const h=hourNow(),d=dayNo(),half=Math.floor(h*2);
+ if(rainy()&&h>=9&&h<18&&half%2==0)return 'umbrella';
+ const s=SCHED.find(s=>h>=s[0]&&h<s[1]);return s[2][hash(d*100+half)%s[2].length]}
 function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;$('app').appendChild(d);setTimeout(()=>d.remove(),2700)}
-let ac;function beep(f=660){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.setValueAtTime(.1,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+.3)}catch(e){}}
+// ---- audio ----
+let ac,amb=null;function actx(){return ac=ac||new (window.AudioContext||window.webkitAudioContext)()}
+function beep(f=660,v=.1,d=.35){try{const a=actx(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+function ambient(on){const a=actx();if(!on){if(amb){amb.src.stop();clearInterval(amb.iv);amb=null}return}
+ const len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);let l=0;for(let i=0;i<len;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5}
+ const src=a.createBufferSource();src.buffer=buf;src.loop=true;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=a.createGain();g.gain.value=.0;src.connect(f).connect(g).connect(a.destination);src.start();
+ const iv=setInterval(()=>{if(Math.random()<.5){const pn=[523,587,659,784,880,1046];beep(pn[Math.floor(Math.random()*6)],.035,1.6)}},4000);amb={src,g,iv};ambVol()}
+function ambVol(){if(amb)amb.g.gain.setTargetAtTime(viewRoom()=='porch'&&tab=='home'?.35:.08,actx().currentTime,.8)}
+// ---- art helpers ----
 const CLV=`<svg viewBox="-20 -24 40 50"><path d="M0,6 q2,10 -3,18" fill="none" stroke="#3a2e24" stroke-width="3"/>${[0,120,240].map(a=>`<path transform="rotate(${a})" d="M0,0 C-14,-6 -12,-22 0,-14 C12,-22 14,-6 0,0Z" fill="#6fb04d" stroke="#3a2e24" stroke-width="2.5"/>`).join('')}</svg>`;
-function leaves(n=7){let h='';for(let i=0;i<n;i++)h+=`<div class="leaf" style="left:${5+Math.random()*85}%;animation-duration:${7+Math.random()*6}s;animation-delay:${-Math.random()*12}s;background:${['#9cc867','#f0c766','#e59156','#c9d97a'][i%4]}"></div>`;return h}
-function renderScene(){let h='';
-if(tab=='garden'){h=`<img class="bg" src="${A}garden.jpg" alt="庭院">`;
- SPOTS.forEach(([x,y],i)=>h+=`<div class="clover ${S.grow[i]>0?'gone':''}" data-i="${i}" style="left:${x-2.7}%;top:${y-6}%;animation-delay:${-i*.4}s">${CLV}</div>`);
- h+=`<div class="hot" id="mailbox" title="信箱" style="left:53%;top:56%;width:9%;height:28%"></div>`;
- if(S.mail.length)h+=`<div class="badge" style="left:57%;top:57%">${S.mail.length}</div>`;
-}else{const home=!S.away&&!walking;
- h=`<img class="bg" src="${A}home_empty.jpg" alt="小屋">`;
- if(home)h+=`<img class="ov breathe" src="${A}blob_home.png" style="left:57%;top:66.85%;width:6.125%">`;
- else h+=`<div class="note">出门旅行中～<br>🎒</div>`;
- h+=[0,1,2].map(i=>`<div class="ov steam" style="left:${52.4+i*.7}%;top:${62.5-i}%;animation-delay:${i*.85}s"></div>`).join('');
- h+=`<div class="ov steam" style="left:49.6%;top:70%;animation-delay:.4s;height:4%"></div><div class="ov steam" style="left:55.6%;top:70%;animation-delay:1.6s;height:4%"></div>`;
- if(walking)h+=`<img class="walker" src="${A}blob_walk.png">`;
- if(S.mail.length)h+=`<div class="badge" style="left:47%;top:4%">📮 有 ${S.mail.length} 封明信片，去庭院信箱看看</div>`;
-}
-$('scene').innerHTML=h+leaves();
-$('scene').querySelectorAll('.clover').forEach(c=>c.onclick=()=>pickClover(+c.dataset.i));
-const mb=$('mailbox');if(mb)mb.onclick=()=>S.mail.length?openMail():toast('信箱是空的')}
-function pickClover(i){if(S.grow[i]>0)return;const lucky=Math.random()<.15,n=lucky?4:1;S.clover+=n;S.grow[i]=REGROW;beep(lucky?880:660);if(lucky)toast('幸运四叶草！+4');save();render()}
+const FERN=(flip)=>`<svg viewBox="0 0 200 160" style="transform:scaleX(${flip?-1:1})"><g stroke="#2f3b22" stroke-width="2.5" stroke-linejoin="round"><path d="M10,160 C40,110 90,70 190,40" fill="none"/>${Array.from({length:7},(_,i)=>{const t=i/7,x=10+t*170,y=160-t*118;return `<path d="M${x},${y} q${18-i},${-30+i*2} ${34-i*3},${-22+i*2} q-14,14 -34,22z" fill="${i%2?'#5f9a45':'#78b257'}"/><path d="M${x},${y} q${14-i},${16-i} ${30-i*3},${14-i} q-16,2 -30,-14z" fill="${i%2?'#6aa64c':'#5a9142'}"/>`}).join('')}</g></svg>`;
+const BLANKET=`<svg viewBox="0 0 60 100" style="position:absolute;left:56.5%;top:67%;width:6.6%;z-index:3"><path d="M4,8 q26,-10 52,0 v80 q-26,10 -52,0z" fill="#e9b7a8" stroke="#3a2e24" stroke-width="3"/><path d="M4,36 q26,8 52,0 M4,64 q26,8 52,0 M30,4 v92" stroke="#3a2e24" stroke-width="2" fill="none"/><rect x="8" y="12" width="18" height="20" fill="#9cc4c9"/><rect x="34" y="42" width="18" height="18" fill="#f3d77a"/><rect x="8" y="68" width="18" height="18" fill="#a9c47f"/></svg>`;
+function leaves(n){let h='';for(let i=0;i<n;i++)h+=`<div class="leaf ov" style="left:${5+Math.random()*85}%;animation-duration:${9+Math.random()*7}s;animation-delay:${-Math.random()*14}s;background:${['#9cc867','#f0c766','#e59156','#c9d97a'][i%4]}"></div>`;return h}
+const steam=(x,y,n=3)=>Array.from({length:n},(_,i)=>`<div class="ov steam" style="left:${x+i*.7}%;top:${y-i}%;animation-delay:${i*1.05}s"></div>`).join('');
+function viewRoom(){return room||(S.away?'living':ACTS[curAct()].room)}
+function ambientFX(r,h){let o='';const night=h>=19||h<5;
+ if(r=='living')o+=steam(52.4,62.5)+leaves(4);
+ if(r=='reading')o+=`<div class="ov glow" style="left:51%;top:30%;width:15%;aspect-ratio:1"></div>`;
+ if(r=='kitchen')o+=steam(23,47,3)+`<div class="ov beam" style="left:62%;top:5%;width:28%;height:70%"></div>`;
+ if(r=='balcony')o+=leaves(8)+[[3,12],[9,9],[15,7.5],[21,7],[27,8],[33,10]].map(([x,y],i)=>`<div class="ov twinkle" style="left:${x}%;top:${y}%;animation-delay:${-i*.7}s"></div>`).join('');
+ if(r=='pond'){o+=[[45,76,8],[63,72,6],[38,81,5]].map(([x,y,w],i)=>`<div class="ov ripple" style="left:${x}%;top:${y}%;width:${w}%;aspect-ratio:3/1;animation-delay:${-i*1.5}s"></div>`).join('');o+=leaves(3)}
+ if(r=='porch')o+=[[63,85,7],[73,92,6],[56,94,5]].map(([x,y,w],i)=>`<div class="ov ripple" style="left:${x}%;top:${y}%;width:${w}%;aspect-ratio:3/1;animation-duration:2.2s;animation-delay:${-i*.7}s"></div>`).join('');
+ if(['balcony','pond','porch'].includes(r))o+=`<div class="ov fern" style="left:-3%;bottom:-6%">${FERN(0)}</div><div class="ov fern" style="right:-3%;bottom:-6%;animation-delay:-3s">${FERN(1)}</div>`;
+ return o}
+function actorHTML(r){if(S.away){let t='';if(r=='living')t=BLANKET+`<div class="note">出门旅行中～<br>🎒</div>`;if(r=='kitchen')t=`<div class="ov trace" style="left:83%;top:57%">🍵</div>`;if(r=='reading')t=`<div class="ov trace" style="left:62%;top:58%">📖</div>`;if(r=='balcony')t=`<div class="ov trace" style="left:44%;top:56%">🪣</div>`;return t}
+ const k=curAct(),a=ACTS[k];let h='';if(r=='living'&&k!='tea')h+=BLANKET;if(a.room!=r)return h;
+ const waving=Date.now()<waveUntil;const img=waving?'p_wave':a.img,w=waving?9:a.w;
+ h+=`<div class="actor ${waving?'wave':a.cls||''}" id="actor" style="left:${a.x}%;bottom:${a.b}%;width:${w}%"><div class="bob"><div class="blk"><img src="${A}${img}.png" alt="团子"></div></div></div>`;
+ if(a.cls=='sleep'&&!waving)h+=[0,1.3,2.6].map(d=>`<div class="zzz" style="left:${a.x+a.w*.95}%;bottom:${a.b+8}%;animation-delay:${d}s">z</div>`).join('');
+ if(k=='fish')h+=`<div class="ov float" style="left:${a.x-3}%;top:${100-a.b-1}%"></div><div class="ov ripple" style="left:${a.x-4.3}%;top:${100-a.b}%;width:4%;aspect-ratio:3/1"></div>`;
+ if(k=='lantern'&&!waving)h+=`<div class="ov glow" style="left:${a.x-6}%;top:${100-a.b-18}%;width:12%;aspect-ratio:1"></div>`;
+ if(k=='tea')h+='';return h}
+let actKey='',curLayerKey='';
+function sceneHTML(){if(tab=='garden'){let h=`<img class="bg" src="${A}garden.jpg" alt="庭院">`;SPOTS.forEach(([x,y],i)=>h+=`<div class="clover ${S.grow[i]>0?'gone':''}" data-i="${i}" style="left:${x-2.7}%;top:${y-6}%;animation-delay:${-i*.4}s">${CLV}</div>`);
+ h+=`<div class="hot" id="mailbox" title="信箱" style="left:53%;top:56%;width:9%;height:28%"></div>`;if(S.mail.length)h+=`<div class="badge" style="left:57%;top:57%">${S.mail.length}</div>`;return h+leaves(6)}
+ const r=viewRoom(),R=ROOMS.find(x=>x.id==r),h=hourNow();
+ let o=`<img class="bg" src="${A}${R.bg}" alt="${R.n}">`+ambientFX(r,h)+actorHTML(r);
+ if(walker&&walker.room==r&&Date.now()<walker.until)o+=`<div class="walker" style="left:${walker.x}%;bottom:${walker.b}%;width:9%;--dx:${walker.dx}"><img src="${A}p_walkside.png"></div>`;
+ o+=`<button class="arrow l" data-go="-1">‹</button><button class="arrow r" data-go="1">›</button><div class="roomname">${R.n}${!S.away&&ACTS[curAct()].room==r?' · 团子在这里':''}</div>`;
+ if(S.mail.length)o+=`<div class="badge" style="left:2%;top:12px">📮 ${S.mail.length}</div>`;return o}
+function renderScene(fade=true){const sc=$('scene');const L=document.createElement('div');L.className='layer';L.innerHTML=sceneHTML();sc.insertBefore(L,$('fx'));
+ const old=[...sc.querySelectorAll('.layer')].filter(x=>x!==L);
+ if(fade&&!RM){requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add('show')));setTimeout(()=>old.forEach(x=>x.remove()),950)}else{L.classList.add('show');old.forEach(x=>x.remove())}
+ L.querySelectorAll('.clover').forEach(c=>c.onclick=()=>pickClover(+c.dataset.i));
+ const mb=L.querySelector('#mailbox');if(mb)mb.onclick=()=>S.mail.length?openMail():toast('信箱是空的');
+ L.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goRoom(+b.dataset.go));
+ const ac_=L.querySelector('#actor');if(ac_)ac_.onclick=()=>{waveUntil=Date.now()+2200;beep(784,.08);setTimeout(()=>beep(988,.07),150);renderScene(false);setTimeout(()=>renderScene(false),2300)};
+ updTint();ambVol()}
+function updTint(){const h=hourNow();let c='transparent';if(tab=='home'||tab=='garden'){if(h>=21||h<5)c='rgba(70,80,150,.42)';else if(h>=19)c='rgba(150,120,170,.25)';else if(h>=17)c='rgba(255,190,140,.22)';else if(h<7)c='rgba(255,220,180,.18)'}if(viewRoom()=='reading'&&tab=='home'&&c!='transparent')c=c.replace(/[\d.]+\)$/,'.12)');$('tint').style.background=c}
+function goRoom(d){const i=ROOMS.findIndex(x=>x.id==viewRoom());room=ROOMS[(i+d+ROOMS.length)%ROOMS.length].id;renderScene();renderPanel()}
+function pickClover(i){if(S.grow[i]>0)return;const lucky=Math.random()<.15,n=lucky?4:1;S.clover+=n;S.grow[i]=REGROW;beep(lucky?880:660);if(lucky)toast('幸运四叶草！+4');save();renderScene(false);renderPanel();hdr()}
 const sec=ms=>Math.max(0,Math.ceil(ms/1000/S.speed))+' 秒';
 function renderPanel(){let h='';const inv=S.inv;
-if(tab=='home'){h=S.away?`<div class="card row"><img src="${A}blob_walk.png"><div>团子正在旅行中……<br>大约 <b id="cd">${sec(S.away.remain)}</b> 后回家。</div></div>`
- :`<div class="card row"><img class="breathe" src="${A}blob_${Math.random()<.5?'sit':'eat'}.png"><div>团子在小屋里悠闲地喝茶。<br>给它准备好<b>行囊</b>，它就会自己出门旅行哦。</div></div>`;
- if(S.mail.length)h+=`<button id="readmail" onclick="openMail()">📮 读明信片（${S.mail.length}）</button>`;
+if(tab=='home'){const k=curAct(),a=ACTS[k],vr=viewRoom();
+ h=`<div class="chips">${ROOMS.map(r=>`<button data-room="${r.id}" class="${r.id==vr?'on':''}">${r.n}${!S.away&&a.room==r.id?'<span class="dot"></span>':''}</button>`).join('')}</div>`;
+ h+=S.away?`<div class="card row"><img src="${A}p_walkside.png"><div>团子正在旅行中……<br>大约 <b id="cd">${sec(S.away.remain)}</b> 后回家。<br><small>屋子里空荡荡的，只留下一点点它的痕迹。</small></div></div>`
+ :`<div class="card row"><img src="${A}${a.img}.png"><div>现在团子${a.t}。<br><small>它会按照一天的作息，自己在屋子里走来走去。点一点它，它会跟你挥手。</small>${vr!=a.room?`<br><button id="find" style="margin-top:6px">去${ROOMS.find(r=>r.id==a.room).n}看看</button>`:''}</div></div>`;
+ if(S.mail.length)h+=`<button id="readmail">📮 读明信片（${S.mail.length}）</button>`;
  h+=`<div class="card"><b>收藏的纪念品</b><br>${S.souv.length?S.souv.join('　'):'<small>还没有，等团子带回来吧</small>'}</div>`}
 if(tab=='garden'){const g=S.grow.filter(x=>x>0).length;h=`<div class="card">点一点草地上的三叶草来收集 🍀。摘下后约 ${REGROW/1000/S.speed} 秒长回来（${8-g}/8 可摘），偶尔会有幸运四叶草。<br><small>点信箱可以收明信片。</small></div>`}
 if(tab=='shop')h=`<h4>食物</h4><div class="grid">${FOODS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>🍀${f.p} · 持有 ${inv[f.id]||0}</small><br><button data-buy="${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join('')}</div><h4>护身符</h4><div class="grid">${CHARMS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>${f.d}<br>🍀${f.p} · 持有 ${inv[f.id]||0}</small><br><button data-buy="${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join('')}</div>`;
-if(tab=='bag'){if(S.away)h=`<div class="card row"><img src="${A}blob_walk.png"><div>团子已经背着行囊出发啦～</div></div>`;else{
- h=`<div class="card row"><img class="breathe" src="${A}blob_walk.png"><div>选 <b>一份食物</b>（必选）和 <b>一个护身符</b>（可选），整理好行囊，团子就会出门旅行。</div></div>
+if(tab=='bag'){if(S.away)h=`<div class="card row"><img src="${A}p_walkside.png"><div>团子已经背着行囊出发啦～</div></div>`;else{
+ h=`<div class="card row"><img src="${A}blob_walk.png"><div>选 <b>一份食物</b>（必选）和 <b>一个护身符</b>（可选），整理好行囊，团子就会出门旅行。</div></div>
  <h4>食物</h4><div class="grid">${FOODS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.food==f.id?'sel':''}" data-pick="food:${f.id}"><div class="ic">${f.ic}</div>${f.n} ×${inv[f.id]}</div>`).join('')||'<small>没有食物，去商店买吧</small>'}</div>
  <h4>护身符</h4><div class="grid">${CHARMS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.charm==f.id?'sel':''}" data-pick="charm:${f.id}"><div class="ic">${f.ic}</div>${f.n}</div>`).join('')||'<small>暂无</small>'}</div>
  <p><button id="go" ${S.bag.food&&inv[S.bag.food]>0?'':'disabled'}>🎒 整理好了，出发吧！</button></p>`}}
 if(tab=='album'){const got=new Set(S.album.map(a=>a.id)).size;h=`<div class="card">已收集 ${got}/${PLACES.length} 处风景 · 明信片 ${S.album.length} 张</div><div class="grid album" style="grid-template-columns:1fr 1fr">${S.album.map((a,i)=>`<div class="card pc" data-pc="${i}"><img src="${A}pc_${a.id}.jpg" loading="lazy"><small>${PLACES.find(p=>p.id==a.id).n}</small></div>`).join('')||'<small>还没有明信片</small>'}</div>`}
-$('panel').innerHTML=h;
-$('panel').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
-$('panel').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const[k,id]=b.dataset.pick.split(':');S.bag[k]=S.bag[k]==id?null:id;save();renderPanel()});
-$('panel').querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>showPc(S.album[+b.dataset.pc]));
-const go=$('go');if(go)go.onclick=depart}
-function render(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene();renderPanel()}
-function buy(id){const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=(S.inv[id]||0)+1;beep(520);toast(`买到了 ${it.ic}${it.n}`);save();render()}
+const P=$('panel');P.innerHTML=h;
+P.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>buy(b.dataset.buy));
+P.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const[k,id]=b.dataset.pick.split(':');S.bag[k]=S.bag[k]==id?null:id;save();renderPanel()});
+P.querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>showPc(S.album[+b.dataset.pc]));
+P.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>{room=b.dataset.room;renderScene();renderPanel()});
+const f=$('find');if(f)f.onclick=()=>{room=ACTS[curAct()].room;renderScene();renderPanel()};
+const rm=$('readmail');if(rm)rm.onclick=openMail;const go=$('go');if(go)go.onclick=depart}
+function hdr(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;const h=hourNow();$('clock').textContent=String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor(h%1*60)).padStart(2,'0')+(rainy()?' 🌧':'')}
+function render(fade=true){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene(fade);renderPanel()}
+function buy(id){const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=(S.inv[id]||0)+1;beep(520);toast(`买到了 ${it.ic}${it.n}`);save();hdr();renderPanel()}
 function depart(){const f=FOODS.find(x=>x.id==S.bag.food);if(!f||!(S.inv[f.id]>0))return;S.inv[f.id]--;const c=S.bag.charm&&S.inv[S.bag.charm]>0?S.bag.charm:null;if(c)S.inv[c]--;
-S.away={food:f.id,charm:c,remain:Math.round((30+Math.random()*60)*1000*f.t)};S.bag={food:null,charm:null};save();beep(440);
-tab='home';walking=1;render();toast('团子背上行囊出门了～');setTimeout(()=>{walking=0;render()},3000)}
+ S.away={food:f.id,charm:c,remain:Math.round((30+Math.random()*60)*1000*f.t)};S.bag={food:null,charm:null};save();beep(440);
+ tab='home';room='living';walker={room:'living',x:50,b:12,dx:'420%',until:Date.now()+4000};render();toast('团子背上行囊出门了～');setTimeout(()=>{walker=null;if(tab=='home')renderScene(false)},4100)}
 function comeHome(){const c=S.away.charm;let pool=PLACES.map(p=>p.id);if(c=='acorn')pool.push('camper','camper');if(c=='shell')pool.push('dome','village');
-const id=pool[Math.floor(Math.random()*pool.length)];S.mail.push({id,sv:SOUV[Math.floor(Math.random()*SOUV.length)],cl:5+Math.floor(Math.random()*8)+(c=='bell'?10:0),t:Date.now()});S.away=null;save();beep(990);
-const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card"><img src="${A}blob_sleep.png" style="width:60%"><p>团子旅行回来了，累得睡着了……<br>信箱里好像多了一张明信片 📮</p><button id="okback">好的</button></div>`;
-document.body.appendChild(d);d.querySelector('button').onclick=()=>d.remove();render()}
-let last=Date.now();
-function tick(){const now=Date.now(),dt=(now-last)*S.speed;last=now;let ch=false;
-S.grow=S.grow.map(t=>{if(t>0){t-=dt;if(t<=0){ch=true;return 0}}return t});
-if(S.away){S.away.remain-=dt;if(S.away.remain<=0)comeHome();else{const cd=$('cd');if(cd)cd.textContent=sec(S.away.remain)}}
-save();if(ch&&tab=='garden')render()}
-function openMail(){const m=S.mail.shift();if(!m)return;S.album.push({id:m.id,t:m.t});S.souv.push(m.sv);S.clover+=m.cl;save();render();const p=PLACES.find(x=>x.id==m.id);
-const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc"><img src="${A}pc_${m.id}.jpg"><p><b>${p.n}</b><br>${p.txt}</p><p>带回了：${m.sv}，还有 🍀${m.cl}</p><button id="keep">收进相册</button></div>`;d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)}
+ const id=pool[Math.floor(Math.random()*pool.length)];S.mail.push({id,sv:SOUV[Math.floor(Math.random()*SOUV.length)],cl:5+Math.floor(Math.random()*8)+(c=='bell'?10:0),t:Date.now()});S.away=null;save();beep(990);
+ const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card"><img src="${A}p_sleep.png" style="width:45%"><p>团子旅行回来了，累得睡着了……<br>信箱里好像多了一张明信片 📮</p><button id="okback">好的</button></div>`;
+ document.body.appendChild(d);d.querySelector('button').onclick=()=>d.remove();render(false)}
+function openMail(){const m=S.mail.shift();if(!m)return;S.album.push({id:m.id,t:m.t});S.souv.push(m.sv);S.clover+=m.cl;save();render(false);const p=PLACES.find(x=>x.id==m.id);
+ const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc"><img src="${A}pc_${m.id}.jpg"><p><b>${p.n}</b><br>${p.txt}</p><p>带回了：${m.sv}，还有 🍀${m.cl}</p><button id="keep">收进相册</button></div>`;d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)}
 function showPc(a){const p=PLACES.find(x=>x.id==a.id);const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc"><img src="${A}pc_${a.id}.jpg"><p><b>${p.n}</b><br>${p.txt}</p><button>关闭</button></div>`;d.onclick=()=>d.remove();document.body.appendChild(d)}
+// ---- canvas fx (one rAF loop also drives game time) ----
+const cv=$('fx'),cx=cv.getContext('2d');let drops=[],flies=[],wdrops=[];
+function sizeCv(){const r=cv.getBoundingClientRect();cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio}
+addEventListener('resize',sizeCv);
+for(let i=0;i<120;i++)drops.push({x:Math.random(),y:Math.random(),v:.9+Math.random()*.6,l:.03+Math.random()*.03});
+for(let i=0;i<18;i++)flies.push({x:Math.random(),y:.15+Math.random()*.7,p:Math.random()*6.28,s:.3+Math.random()*.5});
+function drawFx(t,dt){const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);if(tab!='home'||RM)return;const r=viewRoom(),h=hourNow();
+ if(r=='porch'){cx.strokeStyle='rgba(225,240,255,.55)';cx.lineWidth=1.3*devicePixelRatio;cx.beginPath();for(const d of drops){d.y+=d.v*dt/1000;d.x-=.08*dt/1000;if(d.y>1){d.y=-.05;d.x=Math.random()*1.1}if(d.x<0)d.x+=1;cx.moveTo(d.x*W,d.y*H);cx.lineTo((d.x-.008)*W,(d.y+d.l)*H)}cx.stroke()}
+ if(r=='reading'||((h>=19||h<5)&&['balcony','pond','porch'].includes(r))){const area=r=='reading'?[0,.25]:[0,1];for(const f of flies){f.p+=dt/1000*f.s;const x=(area[0]+(area[1]-area[0])*f.x+Math.sin(f.p*.7)*.02)*W,y=(f.y+Math.cos(f.p*.5)*.03)*H,a=.35+.65*Math.max(0,Math.sin(f.p*2));
+  const g=cx.createRadialGradient(x,y,0,x,y,9*devicePixelRatio);g.addColorStop(0,`rgba(255,250,170,${a})`);g.addColorStop(1,'rgba(255,240,120,0)');cx.fillStyle=g;cx.fillRect(x-10*devicePixelRatio,y-10*devicePixelRatio,20*devicePixelRatio,20*devicePixelRatio)}}
+ if(!S.away&&curAct()=='water'&&r=='balcony'&&Date.now()>waveUntil){const a=ACTS.water;if(Math.random()<.35)wdrops.push({x:(a.x+.5+Math.random()*1.2)/100,y:(100-a.b-6)/100,v:0});cx.fillStyle='rgba(150,205,240,.9)';
+  wdrops=wdrops.filter(d=>{d.v+=dt/1000*.9;d.y+=d.v*dt/1000;cx.beginPath();cx.arc(d.x*W,d.y*H,2.2*devicePixelRatio,0,7);cx.fill();return d.y<(100-a.b+1)/100})}}
+let last=performance.now(),acc=0,lastBlink=0,lastSec=0;
+function loop(t){const dt=Math.min(100,t-last);last=t;
+ const gdt=dt*S.speed;let ch=false;S.grow=S.grow.map(x=>{if(x>0){x-=gdt;if(x<=0){ch=true;return 0}}return x});
+ if(S.away){S.away.remain-=gdt;if(S.away.remain<=0)comeHome()}
+ if(t-lastSec>1000){lastSec=t;save();hdr();const cd=$('cd');if(cd&&S.away)cd.textContent=sec(S.away.remain);
+  const k=(S.away?'away':curAct())+'|'+tab;if(k!==actKey){const prev=actKey;actKey=k;if(prev&&tab=='home'){const pa=ACTS[prev.split('|')[0]];if(pa&&!S.away&&room==pa.room){walker={room:pa.room,x:pa.x,b:pa.b,dx:'300%',until:Date.now()+4000};setTimeout(()=>walker=null,4100)}renderScene(false);renderPanel()}}
+  if(ch&&tab=='garden')renderScene(false);updTint()}
+ if(t-lastBlink>3500+Math.random()*3000){lastBlink=t;const b=document.querySelector('.layer.show .actor .blk');if(b){b.classList.add('blink');setTimeout(()=>b.classList.remove('blink'),140)}}
+ drawFx(t,dt);requestAnimationFrame(loop)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
-$('spd').onclick=()=>{S.speed={1:2,2:5,5:1}[S.speed]||1;save();render()};
-render();setInterval(tick,500);
+$('spd').onclick=()=>{S.speed={1:2,2:5,5:1}[S.speed]||1;save();render(false)};
+$('snd').onclick=()=>{const on=!amb;ambient(on);$('snd').textContent=on?'🔊':'🔈'};
+window.dango={setHour:h=>{dbgHour=h;room=null;render(false)},setRain:v=>{dbgRain=v;render(false)},setAct:k=>{dbgAct=k;room=null;render(false)},act:()=>curAct(),room:()=>viewRoom()};
+sizeCv();render(false);requestAnimationFrame(loop);
 </script></body></html>
