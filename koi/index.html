@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Serene Nishikigoi — Living 3D Koi Pond</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b191e;
+      font-family: 'Inter', sans-serif;
+    }
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+    }
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+    .serif-jp {
+      font-family: 'Noto Serif JP', serif;
+    }
+    .glass-panel {
+      background: rgba(12, 25, 30, 0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+    }
+    .feed-btn {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+      box-shadow: 0 8px 25px -4px rgba(234, 88, 12, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .feed-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 12px 30px -4px rgba(234, 88, 12, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+    }
+    .feed-btn:active {
+      transform: translateY(1px) scale(0.97);
+    }
+    .mode-btn {
+      transition: all 0.2s ease;
+    }
+    .mode-btn.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(251, 191, 36, 0.7);
+      color: #fde68a;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      70% { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+    .pulse-ring::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      border: 2px solid #fb923c;
+      animation: pulse-ring 2.2s infinite;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="text-slate-100 antialiased">
+
+  <!-- 3D Viewport Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Top Header & Live Stats Overlay -->
+  <div class="fixed top-0 left-0 right-0 z-10 pointer-events-none p-3 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+    
+    <!-- Brand / Title Card -->
+    <div class="glass-panel rounded-2xl px-4 py-3 pointer-events-auto flex items-center gap-3.5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-red-600/30 border border-orange-400/40 flex items-center justify-center shadow-inner">
+        <!-- SVG Koi Emblem -->
+        <svg class="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21.5 3.5c-2.8 0-5.8 1.2-8.2 3.3-1.4-0.3-3.1-0.2-4.6 0.6 0.6 0.8 1 1.7 1.1 2.7-1.6 1.8-2.7 4-3.1 6.3-1.7 0.7-3.5 0.6-5.2-0.2 0.6 2.1 2.4 3.4 4.5 3.6 0.2 1.8 1.2 3.4 2.8 4.2-0.5-1.6-0.4-3.3 0.4-4.8 2.3-0.4 4.5-1.5 6.3-3.1 1 0.1 1.9 0.5 2.7 1.1 0.8-1.5 0.9-3.2 0.6-4.6 2.1-2.4 3.3-5.4 3.3-8.2 0-0.5-0.1-0.9-0.6-0.9z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="serif-jp font-bold text-base sm:text-lg tracking-wide text-white">錦鯉の庭 • Nishikigoi Sanctuary</h1>
+          <span id="behavior-badge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+            Tranquil Cruise
+          </span>
+        </div>
+        <p class="text-xs text-slate-300/80 hidden sm:block">
+          Drag to orbit • Scroll/Pinch to zoom • <span class="text-amber-300 font-medium">Click water to toss pellets</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Live Telemetry & Ambiance Switcher -->
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3 pointer-events-auto">
+      <!-- Live Counters -->
+      <div class="glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-4 text-xs sm:text-sm">
+        <div class="flex items-center gap-1.5" title="Living Koi Varieties">
+          <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+          <span class="text-slate-400">Koi:</span>
+          <span id="stat-koi" class="font-semibold text-white">16</span>
+        </div>
+        <div class="h-3.5 w-px bg-white/15"></div>
+        <div class="flex items-center gap-1.5" title="Floating Food Pellets">
+          <span class="w-2 h-2 rounded-full bg-amber-300"></span>
+          <span class="text-slate-400">Floating:</span>
+          <span id="stat-pellets" class="font-semibold text-amber-300">0</span>
+        </div>
+        <div class="h-3.5 w-px bg-white/15"></div>
+        <div class="flex items-center gap-1.5" title="Total Pellets Eaten">
+          <span class="text-slate-400">Fed:</span>
+          <span id="stat-eaten" class="font-semibold text-emerald-300">0</span>
+        </div>
+      </div>
+
+      <!-- Lighting / Time of Day Switcher -->
+      <div class="glass-panel rounded-2xl p-1 flex items-center gap-1 text-xs">
+        <button data-mode="day" class="mode-btn active px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
+          <span>☀️</span><span class="hidden sm:inline">Day</span>
+        </button>
+        <button data-mode="sunset" class="mode-btn px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
+          <span>🌅</span><span class="hidden sm:inline">Golden</span>
+        </button>
+        <button data-mode="night" class="mode-btn px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
+          <span>🏮</span><span class="hidden sm:inline">Lantern</span>
+        </button>
+      </div>
+
+      <!-- Sound Toggle -->
+      <button id="audio-btn" class="glass-panel rounded-2xl p-2.5 text-slate-300 hover:text-white transition" title="Toggle Water & Feeding Chimes">
+        <svg id="icon-sound-on" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+        </svg>
+        <svg id="icon-sound-off" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Control Bar -->
+  <div class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center gap-2.5 w-full max-w-xl px-4">
+    
+    <!-- Toast / Event Feed Notification -->
+    <div id="toast-banner" class="glass-panel rounded-full px-4 py-1.5 text-xs text-amber-200/95 opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+      <span id="toast-text">Tossed floating koi pellets into the pond!</span>
+    </div>
+
+    <!-- Main Interactive Controls -->
+    <div class="glass-panel rounded-full p-2 px-3 pointer-events-auto flex items-center gap-2 sm:gap-3">
+      
+      <!-- Camera View Presets -->
+      <div class="hidden sm:flex items-center gap-1 pr-1 border-r border-white/15">
+        <button data-cam="overview" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
+          Overview
+        </button>
+        <button data-cam="waterfall" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
+          Waterfall
+        </button>
+        <button data-cam="surface" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
+          Waterline
+        </button>
+      </div>
+
+      <!-- Primary Action: Feed the Koi Button -->
+      <button id="feed-koi-btn" class="feed-btn pulse-ring relative rounded-full px-6 py-3 font-semibold text-sm sm:text-base text-white flex items-center gap-2.5 cursor-pointer">
+        <span class="text-lg leading-none">🌾</span>
+        <span>Feed the Koi</span>
+        <span class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100">+12 Pellets</span>
+      </button>
+
+      <!-- Auto-Feeder Toggle -->
+      <button id="autofeed-btn" class="px-3.5 py-2.5 rounded-full text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 transition flex items-center gap-1.5" title="Automatically toss pellets every few seconds">
+        <span id="autofeed-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+        <span>Auto-Feed</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Subtle Legend Drawer (Bottom Left on Desktop) -->
+  <div class="fixed bottom-6 left-5 z-10 hidden xl:block pointer-events-auto">
+    <div class="glass-panel rounded-2xl p-3.5 w-60 text-xs space-y-2">
+      <div class="font-semibold text-slate-200 flex items-center justify-between">
+        <span>Nishikigoi Varieties</span>
+        <span class="text-[10px] text-slate-400">7 Lineages</span>
+      </div>
+      <div class="grid grid-cols-2 gap-1.5 text-[11px] text-slate-300">
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-white to-red-500 border border-white/30"></span>Kohaku</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 via-white to-zinc-900 border border-white/30"></span>Taisho Sanke</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-zinc-900 via-red-600 to-white border border-white/30"></span>Showa</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/30"></span>Yamabuki Gold</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-white/30"></span>Purachina</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border-2 border-red-500"></span>Tancho</div>
+        <div class="flex items-center gap-1.5 col-span-2"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-sky-700 to-orange-500 border border-white/30"></span>Asagi (Indigo Net & Crimson)</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      // ============================================================================
+      // 1. AUDIO SYNTHESIZER (GENTLE WATER PLOPS & ZEN CHIMES ON FEEDING)
+      // ============================================================================
+      class PondAudio {
+        constructor() {
+          this.ctx = null;
+          this.enabled = false;
+        }
+        toggle() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+          this.enabled = !this.enabled;
+          if (this.enabled) this.playChime(528, 0.08);
+          return this.enabled;
+        }
+        playPlop(pitchOffset = 0) {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            const baseFreq = 260 + pitchOffset * 80 + Math.random() * 60;
+            osc.frequency.setValueAtTime(baseFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(baseFreq * 2.1, now + 0.09);
+            gain.gain.setValueAtTime(0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+          } catch (e) {}
+        }
+        playChime(freq = 660, vol = 0.04) {
+          if (!this.enabled || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.65);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.7);
+          } catch (e) {}
+        }
+      }
+      const sound = new PondAudio();
+
+      // ============================================================================
+      // 2. SCENE, CAMERA, RENDERER & ORBIT CONTROLS
+      // ============================================================================
+      const container = document.getElementById('canvas-container');
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0d2229);
+      scene.fog = new THREE.FogExp2(0x0d2229, 0.014);
+
+      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 160);
+      camera.position.set(0, 16.5, 21.5);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.12;
+      container.appendChild(renderer.domElement);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.target.set(0, -0.3, 0);
+      controls.minDistance = 5.5;
+      controls.maxDistance = 38;
+      controls.maxPolarAngle = Math.PI * 0.475; // Keep camera above the water surface
+      controls.minPolarAngle = 0.12;
+
+      // Smooth camera transition target
+      let camTransition = null;
+      function flyCameraTo(pos, target) {
+        camTransition = {
+          startPos: camera.position.clone(),
+          endPos: new THREE.Vector3(...pos),
+          startTarget: controls.target.clone(),
+          endTarget: new THREE.Vector3(...target),
+          progress: 0
+        };
+      }
+
+      // ============================================================================
+      // 3. LIGHTING & AMBIANCE SYSTEM (DAY / GOLDEN HOUR / LANTERN NIGHT)
+      // ============================================================================
+      const hemiLight = new THREE.HemisphereLight(0xdff4ff, 0x1a362b, 0.75);
+      scene.add(hemiLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfff5e0, 1.35);
+      sunLight.position.set(16, 26, 14);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 2;
+      sunLight.shadow.camera.far = 65;
+      const d = 20;
+      sunLight.shadow.camera.left = -d;
+      sunLight.shadow.camera.right = d;
+      sunLight.shadow.camera.top = d;
+      sunLight.shadow.camera.bottom = -d;
+      sunLight.shadow.bias = -0.0005;
+      scene.add(sunLight);
+
+      // Subtle underwater fill glow
+      const pondGlowLight = new THREE.PointLight(0x2dd4bf, 0.65, 25, 1.5);
+      pondGlowLight.position.set(0, -1.5, 0);
+      scene.add(pondGlowLight);
+
+      // Japanese Stone Lantern Light (Yukimi-doro)
+      const lanternLight = new THREE.PointLight(0xff9e3b, 0.6, 16, 1.6);
+      scene.add(lanternLight);
+
+      // ============================================================================
+      // 4. ANALYTICAL POND SHAPE & DEPTH FUNCTIONS
+      // ============================================================================
+      // Star-convex organic kidney contour so every element aligns seamlessly
+      function getPondBoundaryRadius(theta) {
+        return (
+          12.4 +
+          2.15 * Math.cos(theta * 2.0 - 0.45) -
+          1.55 * Math.sin(theta + 1.15) +
+          0.95 * Math.cos(theta * 3.0 + 0.65) +
+          0.42 * Math.sin(theta * 5.0 - 0.2)
+        );
+      }
+
+      function getPondMetrics(x, z) {
+        const r = Math.hypot(x, z);
+        const theta = Math.atan2(z, x);
+        const maxR = getPondBoundaryRadius(theta);
+        const normDist = r / maxR; // 0 = center, 1.0 = exact water edge
+        return { r, theta, maxR, normDist };
+      }
+
+      function getPondBedHeight(x, z) {
+        const { normDist } = getPondMetrics(x, z);
+        // Subtle organic ripples on the seabed
+        const bump =
+          0.12 * Math.sin(x * 0.45) * Math.cos(z * 0.45) +
+          0.06 * Math.sin(x * 1.1 + z * 0.9);
+        if (normDist < 1.0) {
+          // Smooth basin profile down to -3.15 units deep
+          const edgeFactor = Math.pow(1.0 - normDist * normDist, 0.72);
+          return -3.15 * edgeFactor + bump * (1.0 - normDist * 0.5);
+        } else {
+          // Gently raised mossy garden perimeter bank
+          const bankDist = Math.min(normDist - 1.0, 0.8);
+          return 0.15 + Math.sin(bankDist * Math.PI * 0.8) * 0.65 + bump * 0.5;
+        }
+      }
+
+      // Waterfall location angle (Northwest bank)
+      const WF_THETA = -Math.PI * 0.68;
+      const WF_MAX_R = getPondBoundaryRadius(WF_THETA);
+      const WF_DIR_X = Math.cos(WF_THETA);
+      const WF_DIR_Z = Math.sin(WF_THETA);
+      // Plunge pool impact point just inside the shoreline
+      const PLUNGE_X = WF_DIR_X * (WF_MAX_R - 1.15);
+      const PLUNGE_Z = WF_DIR_Z * (WF_MAX_R - 1.15);
+
+      // ============================================================================
+      // 5. SCULPTED POND BED WITH ANIMATED UNDERWATER CAUSTICS SHADER
+      // ============================================================================
+      const bedSize = 48;
+      const bedSegments = 160;
+      const bedGeo = new THREE.PlaneGeometry(bedSize, bedSize, bedSegments, bedSegments);
+      bedGeo.rotateX(-Math.PI / 2);
+
+      const bedPos = bedGeo.attributes.position;
+      const bedColors = new Float32Array(bedPos.count * 3);
+
+      for (let i = 0; i < bedPos.count; i++) {
+        const vx = bedPos.getX(i);
+        const vz = bedPos.getZ(i);
+        const vy = getPondBedHeight(vx, vz);
+        bedPos.setY(i, vy);
+
+        const { normDist } = getPondMetrics(vx, vz);
+        const c = new THREE.Color();
+        const grain = 0.92 + 0.16 * Math.sin(vx * 7.3 + vz * 5.9);
+
+        if (normDist < 0.98) {
+          // Underwater sand & river silt gradient from warm golden shallow sand to deep teal-olive basin
+          const depthT = THREE.MathUtils.clamp(-vy / 3.15, 0, 1);
+          c.setRGB(
+            THREE.MathUtils.lerp(0.62, 0.16, depthT) * grain,
+            THREE.MathUtils.lerp(0.56, 0.27, depthT) * grain,
+            THREE.MathUtils.lerp(0.41, 0.24, depthT) * grain
+          );
+        } else {
+          // Rich mossy garden soil & forest floor around the pond
+          c.setRGB(0.16 * grain, 0.25 * grain, 0.14 * grain);
+        }
+        bedColors[i * 3] = c.r;
+        bedColors[i * 3 + 1] = c.g;
+        bedColors[i * 3 + 2] = c.b;
+      }
+      bedGeo.setAttribute('color', new THREE.BufferAttribute(bedColors, 3));
+      bedGeo.computeVertexNormals();
+
+      const bedUniforms = {
+        uTime: { value: 0 },
+        uCausticIntensity: { value: 0.55 },
+        uCausticColor: { value: new THREE.Color(0x99f6e4) }
+      };
+
+      const bedMat = new THREE.MeshStandardMaterial({
+        vertexColors: true,
+        roughness: 0.88,
+        metalness: 0.05
+      });
+
+      bedMat.onBeforeCompile = (shader) => {
+        shader.uniforms.uTime = bedUniforms.uTime;
+        shader.uniforms.uCausticIntensity = bedUniforms.uCausticIntensity;
+        shader.uniforms.uCausticColor = bedUniforms.uCausticColor;
+
+        shader.vertexShader =
+          `varying vec3 vWorldPos;\n` +
+          shader.vertexShader.replace(
+            `#include <worldpos_vertex>`,
+            `#include <worldpos_vertex>\nvWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
+          );
+
+        shader.fragmentShader =
+          `uniform float uTime;
+           uniform float uCausticIntensity;
+           uniform vec3 uCausticColor;
+           varying vec3 vWorldPos;
+           
+           // Procedural overlapping water caustic network
+           float causticPattern(vec2 uv, float t) {
+             vec2 p = uv * 0.65;
+             float v1 = sin(p.x * 3.1 + t * 1.4 + cos(p.y * 2.7 - t * 1.1));
+             float v2 = sin(p.y * 3.5 - t * 1.2 + cos(p.x * 2.9 + t * 1.6));
+             float v3 = sin((p.x + p.y) * 2.6 + t * 1.3);
+             float c = abs(v1 + v2 + v3) / 3.0;
+             return pow(max(0.0, 1.0 - c * 1.45), 2.4);
+           }\n` +
+          shader.fragmentShader.replace(
+            `#include <dithering_fragment>`,
+            `#include <dithering_fragment>
+             if (vWorldPos.y < -0.02) {
+               float depthFade = smoothstep(-0.02, -0.45, vWorldPos.y) * smoothstep(-3.8, -0.6, vWorldPos.y);
+               float c1 = causticPattern(vWorldPos.xz, uTime);
+               float c2 = causticPattern(vWorldPos.xz * 1.35 + vec2(4.2, -3.1), -uTime * 0.85);
+               float caustics = (c1 + c2 * 0.7) * depthFade * uCausticIntensity;
+               gl_FragColor.rgb += uCausticColor * caustics;
+             }`
+          );
+      };
+
+      const pondBedMesh = new THREE.Mesh(bedGeo, bedMat);
+      pondBedMesh.receiveShadow = true;
+      scene.add(pondBedMesh);
+
+      // ============================================================================
+      // 6. SUBMERGED RIVER PEBBLES, SHORELINE BOULDERS & WATERFALL CLIFF
+      // ============================================================================
+      // Helper to create organic deformed rock geometry
+      function createRockGeometry(radius = 1, detail = 2, squashY = 0.65, seed = 1) {
+        const geo = new THREE.IcosahedronGeometry(radius, detail);
+        const pos = geo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          let vx = pos.getX(i);
+          let vy = pos.getY(i);
+          let vz = pos.getZ(i);
+          const n =
+            0.84 +
+            0.18 * Math.sin(vx * 2.3 + seed) * Math.cos(vy * 2.1 + seed * 1.7) +
+            0.1 * Math.cos(vz * 3.5 - seed);
+          vx *= n;
+          vy *= n * squashY;
+          vz *= n;
+          pos.setXYZ(i, vx, vy, vz);
+        }
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      // 6A. Instanced Colorful Submerged River Pebbles on the Pond Floor
+      const pebbleCount = 520;
+      const pebbleGeo = createRockGeometry(0.24, 1, 0.5, 4.2);
+      const pebbleMat = new THREE.MeshStandardMaterial({
+        roughness: 0.45,
+        metalness: 0.08
+      });
+      const pebbleInstanced = new THREE.InstancedMesh(pebbleGeo, pebbleMat, pebbleCount);
+      pebbleInstanced.receiveShadow = true;
+
+      const dummy = new THREE.Object3D();
+      const pebblePalette = [
+        new THREE.Color(0x525b66),
+        new THREE.Color(0x7c6f64),
+        new THREE.Color(0x3f4e4f),
+        new THREE.Color(0x9a7b56),
+        new THREE.Color(0x4a5546),
+        new THREE.Color(0x6e5a4f)
+      ];
+
+      for (let i = 0; i < pebbleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const maxR = getPondBoundaryRadius(angle);
+        const dist = Math.sqrt(Math.random()) * (maxR * 0.93);
+        const px = Math.cos(angle) * dist;
+        const pz = Math.sin(angle) * dist;
+        const py = getPondBedHeight(px, pz) + 0.02;
+
+        dummy.position.set(px, py, pz);
+        dummy.rotation.set(
+          (Math.random() - 0.5) * 0.4,
+          Math.random() * Math.PI * 2,
+          (Math.random() - 0.5) * 0.4
+        );
+        const s = 0.45 + Math.random() * 1.25;
+        dummy.scale.set(s * (0.8 + Math.random() * 0.5), s * 0.65, s * (0.8 + Math.random() * 0.5));
+        dummy.updateMatrix();
+        pebbleInstanced.setMatrixAt(i, dummy.matrix);
+
+        const col = pebblePalette[i % pebblePalette.length].clone();
+        col.multiplyScalar(0.8 + Math.random() * 0.35);
+        pebbleInstanced.setColorAt(i, col);
+      }
+      pebbleInstanced.instanceMatrix.needsUpdate = true;
+      pebbleInstanced.instanceColor.needsUpdate = true;
+      scene.add(pebbleInstanced);
+
+      // 6B. Shoreline Boulders & Mossy Stones Lining the Pond Edge
+      const rockGroup = new THREE.Group();
+      scene.add(rockGroup);
+
+      const stoneMats = [
+        new THREE.MeshStandardMaterial({ color: 0x4b5558, roughness: 0.82, metalness: 0.06 }),
+        new THREE.MeshStandardMaterial({ color: 0x3b4942, roughness: 0.86, metalness: 0.04 }), // Mossy slate
+        new THREE.MeshStandardMaterial({ color: 0x5c574f, roughness: 0.8, metalness: 0.05 })
+      ];
+
+      const rockGeos = [
+        createRockGeometry(1.0, 2, 0.62, 1.1),
+        createRockGeometry(1.0, 2, 0.55, 2.7),
+        createRockGeometry(1.0, 2, 0.72, 5.4)
+      ];
+
+      const numShoreRocks = 82;
+      for (let i = 0; i < numShoreRocks; i++) {
+        const theta = (i / numShoreRocks) * Math.PI * 2 + (Math.random() - 0.5) * 0.04;
+        // Skip the immediate waterfall chute center so we can build custom waterfall ledges there
+        if (Math.abs(theta - WF_THETA) < 0.14) continue;
+
+        const maxR = getPondBoundaryRadius(theta);
+        const radialOffset = (Math.random() - 0.35) * 0.65;
+        const rx = Math.cos(theta) * (maxR + radialOffset);
+        const rz = Math.sin(theta) * (maxR + radialOffset);
+        const ry = getPondBedHeight(rx, rz);
+
+        const rockMesh = new THREE.Mesh(
+          rockGeos[i % rockGeos.length],
+          stoneMats[i % stoneMats.length]
+        );
+        const scaleX = 0.75 + Math.random() * 0.95;
+        const scaleY = 0.55 + Math.random() * 0.65;
+        const scaleZ = 0.75 + Math.random() * 0.95;
+        rockMesh.scale.set(scaleX, scaleY, scaleZ);
+        rockMesh.position.set(rx, ry + scaleY * 0.18, rz);
+        rockMesh.rotation.set(
+          (Math.random() - 0.5) * 0.3,
+          Math.random() * Math.PI * 2,
+          (Math.random() - 0.5) * 0.3
+        );
+        rockMesh.castShadow = true;
+        rockMesh.receiveShadow = true;
+        rockGroup.add(rockMesh);
+
+        // Add occasional soft green moss cap on top of shoreline boulders
+        if (i % 3 === 0) {
+          const mossMesh = new THREE.Mesh(
+            rockGeos[(i + 1) % rockGeos.length],
+            new THREE.MeshStandardMaterial({ color: 0x3b6e38, roughness: 0.95 })
+          );
+          mossMesh.scale.set(scaleX * 0.82, scaleY * 0.35, scaleZ * 0.82);
+          mossMesh.position.set(rx, ry + scaleY * 0.48, rz);
+          mossMesh.rotation.copy(rockMesh.rotation);
+          mossMesh.receiveShadow = true;
+          rockGroup.add(mossMesh);
+        }
+      }
+
+      // ============================================================================
+      // 7. MULTI-TIERED ROCK WATERFALL, FLOWING STREAMS & JAPANESE LANTERN
+      // ============================================================================
+      const waterfallGroup = new THREE.Group();
+      scene.add(waterfallGroup);
+
+      // Forward unit vector from waterfall cliff toward pond center
+      const wfForward = new THREE.Vector3(-WF_DIR_X, 0, -WF_DIR_Z).normalize();
+      const wfRight = new THREE.Vector3(-wfForward.z, 0, wfForward.x).normalize();
+      const wfBasePos = new THREE.Vector3(WF_DIR_X * WF_MAX_R, 0, WF_DIR_Z * WF_MAX_R);
+
+      // Helper to place waterfall rocks relative to the waterfall base
+      function addWaterfallRock(forwardOffset, rightOffset, y, sx, sy, sz, matIdx = 0) {
+        const pos = wfBasePos
+          .clone()
+          .addScaledVector(wfForward, forwardOffset)
+          .addScaledVector(wfRight, rightOffset);
+        pos.y = y;
+        const mesh = new THREE.Mesh(rockGeos[Math.floor(Math.random() * 3)], stoneMats[matIdx]);
+        mesh.scale.set(sx, sy, sz);
+        mesh.position.copy(pos);
+        mesh.rotation.y = Math.random() * Math.PI * 2;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        waterfallGroup.add(mesh);
+      }
+
+      // Build the 3-tier stone cliff structure
+      // Back cliff massif
+      addWaterfallRock(-2.4, 0, 2.3, 3.4, 3.6, 2.8, 0);
+      addWaterfallRock(-2.1, -2.5, 1.9, 2.5, 2.8, 2.4, 1);
+      addWaterfallRock(-2.1, 2.5, 1.8, 2.6, 2.7, 2.4, 1);
+      // Side framing boulders for top, middle, and lower pools
+      for (let side of [-1, 1]) {
+        addWaterfallRock(-1.2, side * 1.65, 3.5, 1.4, 1.2, 1.4, 1);
+        addWaterfallRock(-0.3, side * 1.45, 2.2, 1.5, 1.2, 1.5, 0);
+        addWaterfallRock(0.45, side * 1.25, 1.0, 1.3, 0.95, 1.3, 2);
+      }
+      // Step spill-ledge slabs
+      addWaterfallRock(-1.3, 0, 3.4, 1.6, 0.45, 1.2, 0);
+      addWaterfallRock(-0.4, 0, 2.1, 1.5, 0.45, 1.2, 2);
+      addWaterfallRock(0.35, 0, 0.95, 1.4, 0.4, 1.1, 0);
+
+      // Animated Flowing Waterfall Chutes (Custom ShaderMaterial)
+      const waterfallUniforms = {
+        uTime: { value: 0 }
+      };
+
+      const waterfallStreamMat = new THREE.ShaderMaterial({
+        uniforms: waterfallUniforms,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        vertexShader: `
+          uniform float uTime;
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            vec3 pos = position;
+            // Subtle water surface undulation along the chute
+            pos.z += sin(uv.y * 14.0 - uTime * 9.0 + uv.x * 5.0) * 0.045;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uTime;
+          varying vec2 vUv;
+          void main() {
+            // Fast scrolling vertical foam streaks
+            float scrollY = vUv.y * 3.5 + uTime * 2.8;
+            float s1 = sin(vUv.x * 24.0 + sin(scrollY * 4.0) * 1.5);
+            float s2 = cos(vUv.x * 38.0 - scrollY * 6.5);
+            float foam = smoothstep(0.15, 0.9, (s1 + s2) * 0.5 + 0.5);
+            
+            // Extra whitewater aeration at top lip and bottom impact
+            float edgeFoam = smoothstep(0.25, 0.0, vUv.y) * 0.65 + smoothstep(0.75, 1.0, vUv.y) * 0.5;
+            float sideFade = smoothstep(0.0, 0.15, vUv.x) * smoothstep(1.0, 0.85, vUv.x);
+            
+            vec3 waterCol = mix(vec3(0.45, 0.82, 0.88), vec3(0.96, 0.99, 1.0), clamp(foam + edgeFoam, 0.0, 1.0));
+            float alpha = (0.55 + 0.38 * clamp(foam + edgeFoam, 0.0, 1.0)) * sideFade;
+            gl_FragColor = vec4(waterCol, alpha);
+          }
+        `
+      });
+
+      // Helper to place a curved waterfall stream tier
+      function createWaterfallTier(forwardOffset, topY, bottomY, width, forwardDrop) {
+        const tierGeo = new THREE.PlaneGeometry(width, 1, 16, 20);
+        const pos = tierGeo.attributes.position;
+        const height = topY - bottomY;
+        for (let i = 0; i < pos.count; i++) {
+          const u = pos.getX(i); // -width/2 .. +width/2
+          const v = 0.5 - pos.getY(i); // 0 at top lip, 1 at bottom splash
+          // Parabolic spill arc
+          const y = topY - Math.pow(v, 1.35) * height;
+          const zArc = Math.sin(v * Math.PI * 0.65) * forwardDrop;
+          pos.setXYZ(i, u, y, zArc);
+        }
+        tierGeo.computeVertexNormals();
+
+        const mesh = new THREE.Mesh(tierGeo, waterfallStreamMat);
+        const worldPos = wfBasePos.clone().addScaledVector(wfForward, forwardOffset);
+        mesh.position.set(worldPos.x, 0, worldPos.z);
+        mesh.lookAt(worldPos.x + wfForward.x, 0, worldPos.z + wfForward.z);
+        waterfallGroup.add(mesh);
+      }
+
+      // 3 Cascading Waterfall Tiers
+      createWaterfallTier(-1.15, 3.65, 2.25, 1.55, 0.85);
+      createWaterfallTier(-0.25, 2.35, 1.05, 1.45, 0.78);
+      createWaterfallTier(0.48, 1.12, -0.05, 1.35, 0.72);
+
+      // Waterfall Mist / Splash Particle System at Plunge Pool
+      const mistCount = 110;
+      const mistGeo = new THREE.BufferGeometry();
+      const mistPositions = new Float32Array(mistCount * 3);
+      const mistData = [];
+
+      for (let i = 0; i < mistCount; i++) {
+        mistData.push({
+          age: Math.random(),
+          speed: 0.45 + Math.random() * 0.55,
+          vx: (Math.random() - 0.5) * 1.1,
+          vy: 0.7 + Math.random() * 1.2,
+          vz: (Math.random() - 0.5) * 1.1
+        });
+      }
+      mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPositions, 3));
+
+      // Soft circular radial sprite texture for mist & splash droplets
+      function createSoftParticleTexture() {
+        const c = document.createElement('canvas');
+        c.width = 64;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 30);
+        grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        grad.addColorStop(0.45, 'rgba(220, 248, 255, 0.55)');
+        grad.addColorStop(1, 'rgba(200, 240, 255, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 64, 64);
+        return new THREE.CanvasTexture(c);
+      }
+      const particleTex = createSoftParticleTexture();
+
+      const mistMat = new THREE.PointsMaterial({
+        size: 0.55,
+        map: particleTex,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const mistPoints = new THREE.Points(mistGeo, mistMat);
+      scene.add(mistPoints);
+
+      // Traditional Japanese Stone Lantern (Yukimi-doro) near the Waterfall Bank
+      const lanternGroup = new THREE.Group();
+      const lanternPos = wfBasePos
+        .clone()
+        .addScaledVector(wfRight, -2.85)
+        .addScaledVector(wfForward, -0.35);
+      lanternPos.y = getPondBedHeight(lanternPos.x, lanternPos.z);
+      lanternGroup.position.copy(lanternPos);
+
+      const lanternStoneMat = new THREE.MeshStandardMaterial({ color: 0x686b65, roughness: 0.88 });
+      const lanternGlowMat = new THREE.MeshBasicMaterial({ color: 0xffb347 });
+
+      // Pedestal legs & column
+      const legGeo = new THREE.CylinderGeometry(0.18, 0.24, 0.75, 6);
+      const legMesh = new THREE.Mesh(legGeo, lanternStoneMat);
+      legMesh.position.y = 0.35;
+      legMesh.castShadow = true;
+      lanternGroup.add(legMesh);
+
+      // Middle platform
+      const platMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.42, 0.14, 6), lanternStoneMat);
+      platMesh.position.y = 0.78;
+      lanternGroup.add(platMesh);
+
+      // Glowing firebox chamber
+      const fireBox = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.42, 6), lanternGlowMat);
+      fireBox.position.y = 1.05;
+      lanternGroup.add(fireBox);
+
+      // Curved pagoda roof cap
+      const roofMesh = new THREE.Mesh(new THREE.ConeGeometry(0.85, 0.42, 6), lanternStoneMat);
+      roofMesh.position.y = 1.42;
+      roofMesh.castShadow = true;
+      lanternGroup.add(roofMesh);
+
+      // Finial lotus bud on top
+      const finialMesh = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), lanternStoneMat);
+      finialMesh.position.y = 1.68;
+      lanternGroup.add(finialMesh);
+
+      scene.add(lanternGroup);
+      lanternLight.position.set(lanternPos.x, lanternPos.y + 1.1, lanternPos.z);
+
+      // ============================================================================
+      // 8. ANIMATED TRANSLUCENT WATER SURFACE & INTERACTIVE RIPPLE SYSTEM
+      // ============================================================================
+      // Build a custom water mesh matching the pond basin
+      const waterGeo = new THREE.PlaneGeometry(34, 34, 128, 128);
+      waterGeo.rotateX(-Math.PI / 2);
+
+      const MAX_SHADER_RIPPLES = 12;
+      const shaderRippleCenters = [];
+      for (let i = 0; i < MAX_SHADER_RIPPLES; i++) {
+        shaderRippleCenters.push(new THREE.Vector4(0, 0, -999, 0)); // x, z, startTime, strength
+      }
+      let nextShaderRippleIdx = 0;
+
+      const waterUniforms = {
+        uTime: { value: 0 },
+        uSunDir: { value: sunLight.position.clone().normalize() },
+        uSunColor: { value: new THREE.Color(0xfff6e5) },
+        uSkyColor: { value: new THREE.Color(0x7dd3fc) },
+        uDeepColor: { value: new THREE.Color(0x0b3b42) },
+        uPlungePos: { value: new THREE.Vector2(PLUNGE_X, PLUNGE_Z) },
+        uRipples: { value: shaderRippleCenters }
+      };
+
+      const waterMat = new THREE.ShaderMaterial({
+        uniforms: waterUniforms,
+        transparent: true,
+        depthWrite: false,
+        vertexShader: `
+          uniform float uTime;
+          uniform vec2 uPlungePos;
+          uniform vec4 uRipples[${MAX_SHADER_RIPPLES}];
+          varying vec3 vWorldPos;
+          varying float vWaveHeight;
+
+          void main() {
+            vec3 wPos = (modelMatrix * vec4(position, 1.0)).xyz;
+            
+            // Gentle ambient pond waves
+            float w1 = sin(wPos.x * 0.65 + uTime * 1.45) * cos(wPos.z * 0.55 + uTime * 1.15) * 0.028;
+            float w2 = sin((wPos.x * 0.8 - wPos.z * 0.7) + uTime * 2.1) * 0.015;
+            
+            // Continuous waterfall plunge ripples
+            float dPlunge = length(wPos.xz - uPlungePos);
+            float wPlunge = sin(dPlunge * 5.5 - uTime * 7.5) * exp(-dPlunge * 0.28) * 0.055;
+
+            // Interactive ripples from pellets and koi
+            float wInteractive = 0.0;
+            for (int i = 0; i < ${MAX_SHADER_RIPPLES}; i++) {
+              float age = uTime - uRipples[i].z;
+              if (age > 0.0 && age < 3.5) {
+                float dist = length(wPos.xz - uRipples[i].xy);
+                float radius = age * 2.6;
+                float band = exp(-pow(dist - radius, 2.0) * 3.5);
+                wInteractive += sin((dist - radius) * 10.0) * band * (1.0 - age / 3.5) * uRipples[i].w * 0.045;
+              }
+            }
+
+            float totalH = w1 + w2 + wPlunge + wInteractive;
+            vec3 displaced = position + vec3(0.0, totalH, 0.0);
+            vWaveHeight = totalH;
+            vWorldPos = (modelMatrix * vec4(displaced, 1.0)).xyz;
+            gl_Position = projectionMatrix * viewMatrix * vec4(vWorldPos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uTime;
+          uniform vec3 uSunDir;
+          uniform vec3 uSunColor;
+          uniform vec3 uSkyColor;
+          uniform vec3 uDeepColor;
+          uniform vec2 uPlungePos;
+          uniform vec4 uRipples[${MAX_SHADER_RIPPLES}];
+          varying vec3 vWorldPos;
+          varying float vWaveHeight;
+
+          // Match analytical pond boundary to clip water outside the stone rim
+          float getBoundaryRadius(float theta) {
+            return 12.4
+              + 2.15 * cos(theta * 2.0 - 0.45)
+              - 1.55 * sin(theta + 1.15)
+              + 0.95 * cos(theta * 3.0 + 0.65)
+              + 0.42 * sin(theta * 5.0 - 0.2);
+          }
+
+          void main() {
+            float r = length(vWorldPos.xz);
+            float theta = atan(vWorldPos.z, vWorldPos.x);
+            float maxR = getBoundaryRadius(theta);
+            if (r > maxR + 0.25) discard;
+
+            // Compute detailed animated surface normal for specular glints & Fresnel
+            vec2 p = vWorldPos.xz;
+            float nx = cos(p.x * 1.3 + uTime * 1.8) * 0.06 + cos(p.x * 3.1 - p.y * 2.4 + uTime * 2.7) * 0.04;
+            float nz = sin(p.y * 1.4 - uTime * 1.6) * 0.06 + sin(p.y * 3.3 + p.x * 2.1 - uTime * 2.4) * 0.04;
+
+            // Plunge pool normal perturbation & foam rings
+            float dPlunge = length(p - uPlungePos);
+            if (dPlunge < 6.0) {
+              vec2 dir = normalize(p - uPlungePos + 0.0001);
+              float waveDeriv = cos(dPlunge * 5.5 - uTime * 7.5) * exp(-dPlunge * 0.35) * 0.22;
+              nx += dir.x * waveDeriv;
+              nz += dir.y * waveDeriv;
+            }
+
+            // Interactive ring highlights
+            float ringHighlight = 0.0;
+            for (int i = 0; i < ${MAX_SHADER_RIPPLES}; i++) {
+              float age = uTime - uRipples[i].z;
+              if (age > 0.0 && age < 3.2) {
+                float dist = length(p - uRipples[i].xy);
+                float radius = age * 2.6;
+                float ring = exp(-pow(dist - radius, 2.0) * 9.0) * (1.0 - age / 3.2) * uRipples[i].w;
+                ringHighlight += ring * 0.45;
+                vec2 rDir = normalize(p - uRipples[i].xy + 0.0001);
+                nx += rDir.x * ring * 0.18;
+                nz += rDir.y * ring * 0.18;
+              }
+            }
+
+            vec3 normal = normalize(vec3(-nx, 1.0, -nz));
+            vec3 viewDir = normalize(cameraPosition - vWorldPos);
+
+            // Schlick Fresnel reflection
+            float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.2);
+
+            // Specular sun glints on water ripples
+            vec3 halfVec = normalize(uSunDir + viewDir);
+            float spec = pow(max(dot(normal, halfVec), 0.0), 96.0) * 1.35;
+
+            // Plunge pool whitewater foam rings
+            float plungeFoam = smoothstep(2.6, 0.2, dPlunge) * (0.45 + 0.55 * sin(dPlunge * 7.0 - uTime * 8.0));
+            plungeFoam = max(0.0, plungeFoam);
+
+            vec3 baseColor = mix(uDeepColor, uSkyColor, clamp(fresnel * 0.75 + 0.12, 0.0, 1.0));
+            vec3 finalColor = baseColor + uSunColor * spec + vec3(0.92, 0.98, 1.0) * (plungeFoam * 0.65 + ringHighlight);
+
+            float shoreFade = smoothstep(maxR + 0.2, maxR - 0.35, r);
+            float alpha = clamp(0.32 + fresnel * 0.42 + spec * 0.5 + plungeFoam * 0.5 + ringHighlight * 0.4, 0.0, 0.88) * shoreFade;
+
+            gl_FragColor = vec4(finalColor, alpha);
+          }
+        `
+      });
+
+      const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+      waterMesh.position.y = 0.0;
+      scene.add(waterMesh);
+
+      // Visual 3D Expanding Ripple Rings Pool (for crisp surface rings on feed/splashes)
+      const visualRipples = [];
+      const rippleRingGeo = new THREE.RingGeometry(0.12, 0.19, 36);
+      rippleRingGeo.rotateX(-Math.PI / 2);
+
+      function spawnWaterRipple(x, z, strength = 1.0, maxScale = 2.6) {
+        // 1. Register in shader uniform array
+        shaderRippleCenters[nextShaderRippleIdx].set(
+          x,
+          z,
+          waterUniforms.uTime.value,
+          strength
+        );
+        nextShaderRippleIdx = (nextShaderRippleIdx + 1) % MAX_SHADER_RIPPLES;
+
+        // 2. Spawn crisp expanding surface ring mesh
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0xe0f7fa,
+          transparent: true,
+          opacity: 0.65 * Math.min(strength, 1.2),
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+        const mesh = new THREE.Mesh(rippleRingGeo, mat);
+        mesh.position.set(x, 0.018, z);
+        scene.add(mesh);
+        visualRipples.push({
+          mesh,
+          age: 0,
+          maxAge: 1.5 + Math.random() * 0.6,
+          maxScale: maxScale * (0.85 + Math.random() * 0.3),
+          initOpacity: mat.opacity
+        });
+      }
+
+      // ============================================================================
+      // 9. LUSH FLORA: LILY PADS, LOTUS FLOWERS, SWAYING REEDS, BAMBOO & MAPLE
+      // ============================================================================
+      // 9A. Procedural Detailed Lily Pad Texture with Radial Leaf Veins
+      function createLilyPadTexture() {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 256;
+        const ctx = c.getContext('2d');
+        const cx = 128, cy = 128, r = 120;
+
+        const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, r);
+        grad.addColorStop(0, '#4d8b31');
+        grad.addColorStop(0.65, '#2f6f28');
+        grad.addColorStop(0.92, '#24581f');
+        grad.addColorStop(1, '#583e26'); // Subtle bronze leaf rim
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Radial botanical veins
+        ctx.strokeStyle = 'rgba(163, 217, 119, 0.35)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 18; i++) {
+          const ang = (i / 18) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.quadraticCurveTo(
+            cx + Math.cos(ang + 0.1) * r * 0.5,
+            cy + Math.sin(ang + 0.1) * r * 0.5,
+            cx + Math.cos(ang) * r * 0.92,
+            cy + Math.sin(ang) * r * 0.92
+          );
+          ctx.stroke();
+        }
+        return new THREE.CanvasTexture(c);
+      }
+
+      const lilyPadTex = createLilyPadTexture();
+      const lilyPadMat = new THREE.MeshStandardMaterial({
+        map: lilyPadTex,
+        roughness: 0.65,
+        metalness: 0.05,
+        side: THREE.DoubleSide
+      });
+
+      // Helper to build a multi-petaled 3D Lotus Flower
+      function createLotusFlower(colorHex) {
+        const lotus = new THREE.Group();
+        const petalMat = new THREE.MeshStandardMaterial({
+          color: colorHex,
+          roughness: 0.4,
+          side: THREE.DoubleSide
+        });
+        const petalGeo = new THREE.SphereGeometry(0.16, 8, 8);
+        petalGeo.scale(0.55, 0.22, 1.45);
+        petalGeo.translate(0, 0, 0.16);
+
+        // Outer & inner rings of lotus petals
+        for (let ring = 0; ring < 2; ring++) {
+          const count = ring === 0 ? 8 : 6;
+          const tilt = ring === 0 ? 0.38 : 0.78;
+          const scale = ring === 0 ? 1.0 : 0.78;
+          for (let i = 0; i < count; i++) {
+            const p = new THREE.Mesh(petalGeo, petalMat);
+            const ang = (i / count) * Math.PI * 2 + ring * 0.4;
+            p.rotation.y = ang;
+            p.rotation.x = -tilt;
+            p.scale.setScalar(scale);
+            lotus.add(p);
+          }
+        }
+        // Golden stamen center
+        const stamen = new THREE.Mesh(
+          new THREE.SphereGeometry(0.09, 10, 8),
+          new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.5 })
+        );
+        stamen.scale.set(1, 0.6, 1);
+        stamen.position.y = 0.05;
+        lotus.add(stamen);
+        return lotus;
+      }
+
+      const lilyPads = [];
+      // Place 3 scenic clusters of lily pads around the calmer edges of the pond
+      const lilyClusters = [
+        { x: 6.2, z: 3.8, count: 9 },
+        { x: -6.8, z: 4.5, count: 8 },
+        { x: 4.8, z: -5.8, count: 8 }
+      ];
+
+      const lotusColors = [0xfbcfe8, 0xf472b6, 0xfff1f2, 0xfde047];
+
+      lilyClusters.forEach((cluster, cIdx) => {
+        for (let i = 0; i < cluster.count; i++) {
+          const angle = (i / cluster.count) * Math.PI * 2 + Math.random() * 0.6;
+          const dist = 0.5 + Math.random() * 2.8;
+          const lx = cluster.x + Math.cos(angle) * dist;
+          const lz = cluster.z + Math.sin(angle) * dist;
+
+          const { normDist } = getPondMetrics(lx, lz);
+          if (normDist > 0.86) continue;
+
+          // Avoid overlapping previously placed lily pads
+          if (lilyPads.some((p) => Math.hypot(p.x - lx, p.z - lz) < 1.15)) continue;
+
+          const radius = 0.42 + Math.random() * 0.48;
+          // Pac-man V-notch cut circle geometry
+          const padGeo = new THREE.CircleGeometry(radius, 28, 0.18, Math.PI * 2 - 0.36);
+          padGeo.rotateX(-Math.PI / 2);
+
+          const padGroup = new THREE.Group();
+          const padMesh = new THREE.Mesh(padGeo, lilyPadMat);
+          padMesh.castShadow = true;
+          padMesh.receiveShadow = true;
+          padGroup.add(padMesh);
+
+          // Add blooming lotus flower to roughly 40% of lily pads
+          if (i % 2 === 0 || i === 1) {
+            const lotus = createLotusFlower(lotusColors[(cIdx + i) % lotusColors.length]);
+            lotus.position.y = 0.03;
+            lotus.scale.setScalar(0.85 + Math.random() * 0.35);
+            padGroup.add(lotus);
+          }
+
+          padGroup.position.set(lx, 0.025, lz);
+          padGroup.rotation.y = Math.random() * Math.PI * 2;
+          scene.add(padGroup);
+
+          lilyPads.push({
+            group: padGroup,
+            x: lx,
+            z: lz,
+            radius,
+            phase: Math.random() * Math.PI * 2,
+            baseRotY: padGroup.rotation.y
+          });
+        }
+      });
+
+      // 9B. Swaying Reeds, Cattails, Bamboo & Underwater Kelp
+      const floraGroup = new THREE.Group();
+      scene.add(floraGroup);
+      const swayingPlants = [];
+
+      const reedMat = new THREE.MeshStandardMaterial({ color: 0x4d7c2b, roughness: 0.75 });
+      const cattailHeadMat = new THREE.MeshStandardMaterial({ color: 0x4a2c18, roughness: 0.9 });
+      const bambooMat = new THREE.MeshStandardMaterial({ color: 0x65a30d, roughness: 0.45 });
+
+      // Clusters of shoreline reeds & cattails
+      const reedClusterAngles = [0.25, 0.85, 1.95, 2.55, -0.45, -1.35];
+      reedClusterAngles.forEach((baseTheta) => {
+        for (let i = 0; i < 16; i++) {
+          const theta = baseTheta + (Math.random() - 0.5) * 0.24;
+          const maxR = getPondBoundaryRadius(theta);
+          const r = maxR - 0.35 + Math.random() * 0.65;
+          const rx = Math.cos(theta) * r;
+          const rz = Math.sin(theta) * r;
+          const ry = getPondBedHeight(rx, rz);
+
+          const h = 1.6 + Math.random() * 1.9;
+          const stalkGroup = new THREE.Group();
+          stalkGroup.position.set(rx, ry, rz);
+
+          const stalkGeo = new THREE.CylinderGeometry(0.018, 0.04, h, 6);
+          stalkGeo.translate(0, h / 2, 0);
+          const stalkMesh = new THREE.Mesh(stalkGeo, reedMat);
+          stalkMesh.castShadow = true;
+          stalkGroup.add(stalkMesh);
+
+          // Add brown cattail cylinder on tall stalks
+          if (i % 3 === 0 && h > 2.2) {
+            const catGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.38, 8);
+            const catMesh = new THREE.Mesh(catGeo, cattailHeadMat);
+            catMesh.position.y = h * 0.78;
+            stalkGroup.add(catMesh);
+          }
+
+          const initTiltX = (Math.random() - 0.5) * 0.22;
+          const initTiltZ = (Math.random() - 0.5) * 0.22;
+          stalkGroup.rotation.set(initTiltX, Math.random() * Math.PI, initTiltZ);
+          floraGroup.add(stalkGroup);
+
+          swayingPlants.push({
+            obj: stalkGroup,
+            baseX: initTiltX,
+            baseZ: initTiltZ,
+            phase: Math.random() * Math.PI * 2,
+            speed: 1.4 + Math.random() * 0.8,
+            amp: 0.045
+          });
+        }
+      });
+
+      // Bamboo Stalk Grove near the Northeast Bank
+      const bambooBaseAngle = -0.35;
+      const bambooMaxR = getPondBoundaryRadius(bambooBaseAngle);
+      for (let i = 0; i < 9; i++) {
+        const bx = Math.cos(bambooBaseAngle) * (bambooMaxR + 1.1) + (Math.random() - 0.5) * 1.8;
+        const bz = Math.sin(bambooBaseAngle) * (bambooMaxR + 1.1) + (Math.random() - 0.5) * 1.8;
+        const by = getPondBedHeight(bx, bz);
+        const bh = 4.2 + Math.random() * 2.5;
+
+        const bGroup = new THREE.Group();
+        bGroup.position.set(bx, by, bz);
+
+        const bGeo = new THREE.CylinderGeometry(0.09, 0.12, bh, 8);
+        bGeo.translate(0, bh / 2, 0);
+        const bMesh = new THREE.Mesh(bGeo, bambooMat);
+        bMesh.castShadow = true;
+        bGroup.add(bMesh);
+
+        const tx = (Math.random() - 0.5) * 0.14;
+        const tz = (Math.random() - 0.5) * 0.14;
+        bGroup.rotation.set(tx, 0, tz);
+        floraGroup.add(bGroup);
+
+        swayingPlants.push({
+          obj: bGroup,
+          baseX: tx,
+          baseZ: tz,
+          phase: Math.random() * 6,
+          speed: 1.1,
+          amp: 0.025
+        });
+      }
+
+      // Overarching Japanese Maple Tree (Momiji) beside the Waterfall
+      const mapleGroup = new THREE.Group();
+      const mapleBase = wfBasePos
+        .clone()
+        .addScaledVector(wfRight, 3.1)
+        .addScaledVector(wfForward, -0.5);
+      mapleBase.y = getPondBedHeight(mapleBase.x, mapleBase.z);
+      mapleGroup.position.copy(mapleBase);
+
+      const barkMat = new THREE.MeshStandardMaterial({ color: 0x3e2c23, roughness: 0.9 });
+      // Gnarled leaning trunk
+      const trunkGeo = new THREE.CylinderGeometry(0.18, 0.36, 4.2, 8);
+      trunkGeo.translate(0, 2.1, 0);
+      const trunkMesh = new THREE.Mesh(trunkGeo, barkMat);
+      trunkMesh.rotation.z = 0.28;
+      trunkMesh.rotation.x = 0.18;
+      trunkMesh.castShadow = true;
+      mapleGroup.add(trunkMesh);
+
+      // Crimson & Autumn Amber Foliage Canopies overhanging the water
+      const mapleColors = [0xb91c1c, 0xdc2626, 0xea580c, 0x991b1b];
+      const canopyOffsets = [
+        [-1.1, 3.8, 0.8, 1.45],
+        [-2.1, 3.4, 1.5, 1.25],
+        [-0.4, 4.3, -0.2, 1.35],
+        [-1.6, 4.1, -0.5, 1.15],
+        [-2.6, 3.0, 0.6, 1.05]
+      ];
+      canopyOffsets.forEach(([cx, cy, cz, rad], idx) => {
+        const leafGeo = createRockGeometry(rad, 2, 0.45, idx + 3.1);
+        const leafMat = new THREE.MeshStandardMaterial({
+          color: mapleColors[idx % mapleColors.length],
+          roughness: 0.75
+        });
+        const leafCloud = new THREE.Mesh(leafGeo, leafMat);
+        leafCloud.position.set(cx, cy, cz);
+        leafCloud.castShadow = true;
+        mapleGroup.add(leafCloud);
+      });
+      scene.add(mapleGroup);
+
+      // Underwater Swaying Waterweeds on the Pond Bed
+      const weedMat = new THREE.MeshStandardMaterial({
+        color: 0x15803d,
+        roughness: 0.6,
+        side: THREE.DoubleSide
+      });
+      for (let i = 0; i < 45; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const maxR = getPondBoundaryRadius(ang);
+        const dist = (0.35 + Math.random() * 0.5) * maxR;
+        const wx = Math.cos(ang) * dist;
+        const wz = Math.sin(ang) * dist;
+        const wy = getPondBedHeight(wx, wz);
+        if (wy > -0.8) continue;
+
+        const wh = Math.min(1.3, Math.abs(wy) * 0.65);
+        const wGeo = new THREE.PlaneGeometry(0.14, wh, 1, 5);
+        wGeo.translate(0, wh / 2, 0);
+        const wMesh = new THREE.Mesh(wGeo, weedMat);
+        wMesh.position.set(wx, wy, wz);
+        wMesh.rotation.y = Math.random() * Math.PI * 2;
+        floraGroup.add(wMesh);
+
+        swayingPlants.push({
+          obj: wMesh,
+          baseX: 0,
+          baseZ: 0,
+          phase: Math.random() * 6.28,
+          speed: 2.2,
+          amp: 0.14
+        });
+      }
+
+      // ============================================================================
+      // 10. AMBIENT LIFE: DARTING DRAGONFLIES & DRIFTING BLOSSOM PETALS
+      // ============================================================================
+      const dragonflies = [];
+      const wingMat = new THREE.MeshBasicMaterial({
+        color: 0xe0f2fe,
+        transparent: true,
+        opacity: 0.65,
+        side: THREE.DoubleSide
+      });
+
+      for (let i = 0; i < 3; i++) {
+        const dfGroup = new THREE.Group();
+        const bodyColor = i === 0 ? 0x0ea5e9 : i === 1 ? 0x10b981 : 0xf43f5e;
+        const bodyMat = new THREE.MeshStandardMaterial({
+          color: bodyColor,
+          metalness: 0.6,
+          roughness: 0.2
+        });
+
+        const thorax = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.012, 0.42, 6), bodyMat);
+        thorax.rotation.x = Math.PI / 2;
+        dfGroup.add(thorax);
+
+        const wingGeo = new THREE.PlaneGeometry(0.36, 0.07);
+        const leftWing = new THREE.Mesh(wingGeo, wingMat);
+        leftWing.position.set(0.18, 0.02, 0.06);
+        const rightWing = new THREE.Mesh(wingGeo, wingMat);
+        rightWing.position.set(-0.18, 0.02, 0.06);
+        dfGroup.add(leftWing, rightWing);
+
+        scene.add(dfGroup);
+        const startPad = lilyPads[i % lilyPads.length] || { x: 0, z: 0 };
+        dfGroup.position.set(startPad.x, 0.45, startPad.z);
+
+        dragonflies.push({
+          group: dfGroup,
+          leftWing,
+          rightWing,
+          targetPos: new THREE.Vector3(startPad.x, 0.45, startPad.z),
+          waitTimer: Math.random() * 3
+        });
+      }
+
+      // Drifting Maple / Cherry Petals on the Water Surface
+      const floatingPetals = [];
+      const petalGeo = new THREE.CircleGeometry(0.08, 6);
+      petalGeo.rotateX(-Math.PI / 2);
+      const blossomMat = new THREE.MeshBasicMaterial({ color: 0xfda4af, side: THREE.DoubleSide });
+
+      for (let i = 0; i < 28; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const r = Math.random() * 9.5;
+        const pMesh = new THREE.Mesh(petalGeo, blossomMat);
+        pMesh.position.set(Math.cos(ang) * r, 0.015, Math.sin(ang) * r);
+        pMesh.rotation.y = Math.random() * Math.PI * 2;
+        scene.add(pMesh);
+        floatingPetals.push({
+          mesh: pMesh,
+          angle: ang,
+          radius: r,
+          speed: 0.03 + Math.random() * 0.04,
+          phase: Math.random() * 6.28
+        });
+      }
+
+      // ============================================================================
+      // 11. PROCEDURAL NISHIKIGOI TEXTURES & SCULPTED KOI GEOMETRY (16 KOI)
+      // ============================================================================
+      // Generate high-res 512x512 procedural textures for 7 iconic Japanese Koi varieties
+      function createKoiTexture(variety, seed = 1) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Pseudo-random generator per fish so every single koi has unique markings
+        let s = seed * 9973;
+        const rand = () => {
+          s = (s * 16807) % 2147483647;
+          return (s - 1) / 2147483646;
+        };
+
+        // UV mapping layout: v=0 is nose, v=0.72 is tail base, v=1.0 is tail tip
+        // u=0.5 is dorsal spine center, u=0 or 1 is belly centerline
+        const drawOrganicPatches = (color, count, minR, maxR, minV = 0.08, maxV = 0.72) => {
+          ctx.fillStyle = color;
+          for (let i = 0; i < count; i++) {
+            const cx = 120 + rand() * 272;
+            const cy = minV * 512 + rand() * (maxV - minV) * 512;
+            const rx = minR + rand() * (maxR - minR);
+            const ry = rx * (0.65 + rand() * 0.75);
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, rx, ry, rand() * Math.PI, 0, Math.PI * 2);
+            ctx.fill();
+            // Secondary lobe for natural stepped Kohaku/Sanke pigment edge (kiwa/sashi)
+            ctx.beginPath();
+            ctx.ellipse(
+              cx + (rand() - 0.5) * rx * 0.8,
+              cy + (rand() - 0.5) * ry * 0.8,
+              rx * 0.75,
+              ry * 0.75,
+              rand() * Math.PI,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+          }
+        };
+
+        if (variety === 'kohaku') {
+          ctx.fillStyle = '#fcfaf5';
+          ctx.fillRect(0, 0, 512, 512);
+          drawOrganicPatches('#e12d19', 7, 36, 78, 0.06, 0.7);
+        } else if (variety === 'sanke') {
+          ctx.fillStyle = '#fbfaf6';
+          ctx.fillRect(0, 0, 512, 512);
+          drawOrganicPatches('#dc2626', 6, 34, 72, 0.07, 0.7);
+          drawOrganicPatches('#141619', 5, 16, 36, 0.12, 0.72);
+        } else if (variety === 'showa') {
+          ctx.fillStyle = '#141619';
+          ctx.fillRect(0, 0, 512, 512);
+          drawOrganicPatches('#f8fafc', 6, 40, 82, 0.05, 0.74);
+          drawOrganicPatches('#dc2626', 6, 35, 72, 0.06, 0.7);
+        } else if (variety === 'yamabuki') {
+          const grad = ctx.createLinearGradient(0, 0, 512, 0);
+          grad.addColorStop(0, '#fef08a');
+          grad.addColorStop(0.5, '#f59e0b');
+          grad.addColorStop(1, '#fef08a');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 512, 512);
+        } else if (variety === 'purachina') {
+          const grad = ctx.createLinearGradient(0, 0, 512, 0);
+          grad.addColorStop(0, '#e2e8f0');
+          grad.addColorStop(0.5, '#ffffff');
+          grad.addColorStop(1, '#e2e8f0');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 512, 512);
+        } else if (variety === 'tancho') {
+          ctx.fillStyle = '#fcfbf7';
+          ctx.fillRect(0, 0, 512, 512);
+          // Prized circular crimson Tancho spot right on the crown of the head
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(256, 56, 36, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (variety === 'asagi') {
+          // Red/orange lower flanks & belly, deep indigo dorsal net scales
+          const grad = ctx.createLinearGradient(0, 0, 512, 0);
+          grad.addColorStop(0, '#ea580c');
+          grad.addColorStop(0.22, '#f97316');
+          grad.addColorStop(0.32, '#1e3a8a');
+          grad.addColorStop(0.5, '#1d4ed8');
+          grad.addColorStop(0.68, '#1e3a8a');
+          grad.addColorStop(0.78, '#f97316');
+          grad.addColorStop(1, '#ea580c');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 512, 512);
+          // Pale creamy nose/head
+          ctx.fillStyle = '#e0f2fe';
+          ctx.beginPath();
+          ctx.ellipse(256, 35, 95, 42, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Subtle diamond reticulated scale pattern across body (v from 0.12 to 0.74)
+        ctx.strokeStyle =
+          variety === 'asagi'
+            ? 'rgba(147, 197, 253, 0.42)'
+            : variety === 'yamabuki'
+            ? 'rgba(180, 83, 9, 0.22)'
+            : 'rgba(0, 0, 0, 0.08)';
+        ctx.lineWidth = variety === 'asagi' ? 2.0 : 1.2;
+
+        const rows = 24;
+        const cols = 18;
+        for (let r = 3; r < rows - 5; r++) {
+          const y = (r / rows) * 512;
+          for (let c = 0; c < cols; c++) {
+            const x = ((c + (r % 2) * 0.5) / cols) * 512;
+            ctx.beginPath();
+            ctx.arc(x, y, 14, 0, Math.PI);
+            ctx.stroke();
+          }
+        }
+
+        // Delicate fin ray striations in the tail region (v > 0.74)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 32; i++) {
+          const x = (i / 32) * 512;
+          ctx.beginPath();
+          ctx.moveTo(256 + (x - 256) * 0.4, 375);
+          ctx.lineTo(x, 512);
+          ctx.stroke();
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.anisotropy = 4;
+        return tex;
+      }
+
+      // Build a custom sculpted 3D Koi body + integrated caudal tail + dorsal fin
+      function createSculptedKoiGeometry() {
+        const lenSegs = 32;
+        const radSegs = 18;
+        const geo = new THREE.BufferGeometry();
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+
+        // Total length: nose at z = +0.95 to tail tip at z = -1.35
+        const zStart = 0.95;
+        const zEnd = -1.35;
+
+        for (let i = 0; i <= lenSegs; i++) {
+          const t = i / lenSegs; // 0 = nose, 1 = tail tip
+          const z = THREE.MathUtils.lerp(zStart, zEnd, t);
+
+          let rx, ry, yCenter = 0;
+          if (t < 0.72) {
+            // Plump streamlined Nishikigoi body profile
+            const bt = t / 0.72;
+            rx = Math.sin(Math.pow(bt, 0.58) * Math.PI) * 0.25 + 0.025 * (1.0 - bt);
+            ry = Math.sin(Math.pow(bt, 0.62) * Math.PI) * 0.29 + 0.03 * (1.0 - bt);
+            // Slightly arched dorsal spine
+            yCenter = Math.sin(bt * Math.PI) * 0.045;
+          } else {
+            // Vertically flared, forked caudal tail fin
+            const tt = (t - 0.72) / 0.28;
+            rx = THREE.MathUtils.lerp(0.032, 0.004, tt);
+            ry = THREE.MathUtils.lerp(0.055, 0.38, Math.pow(tt, 0.78));
+          }
+
+          for (let j = 0; j <= radSegs; j++) {
+            const u = j / radSegs;
+            // Angle 0 at bottom belly, PI at dorsal ridge, 2*PI back to bottom belly
+            const angle = u * Math.PI * 2;
+            const x = Math.sin(angle) * rx;
+            let y = -Math.cos(angle) * ry + yCenter;
+
+            // Create graceful V-notch fork at the very tip of the caudal tail fin
+            let zMod = z;
+            if (t > 0.75) {
+              const tt = (t - 0.75) / 0.25;
+              const centerDist = Math.abs(Math.cos(angle)); // 1 at top/bottom lobes, 0 at center fork
+              zMod += (1.0 - centerDist) * tt * 0.22;
+            }
+
+            positions.push(x, y, zMod);
+            // Map U symmetrically around dorsal spine (u=0.5) so dorsal markings are continuous!
+            const symU = 0.5 + (Math.sin(angle) * 0.48);
+            uvs.push(symU, t);
+          }
+        }
+
+        const ringVerts = radSegs + 1;
+        for (let i = 0; i < lenSegs; i++) {
+          for (let j = 0; j < radSegs; j++) {
+            const a = i * ringVerts + j;
+            const b = (i + 1) * ringVerts + j;
+            const c = (i + 1) * ringVerts + (j + 1);
+            const d = i * ringVerts + (j + 1);
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
+        return geo;
+      }
+
+      const sharedKoiBodyGeo = createSculptedKoiGeometry();
+
+      // Custom Tear-Drop Fin Geometry for Pectoral & Ventral Fins
+      function createPectoralFinGeometry(isLeft = true) {
+        const shape = new THREE.Shape();
+        const dir = isLeft ? 1 : -1;
+        shape.moveTo(0, 0);
+        shape.quadraticCurveTo(dir * 0.28, 0.08, dir * 0.38, -0.14);
+        shape.quadraticCurveTo(dir * 0.22, -0.34, 0, -0.18);
+        shape.closePath();
+        const geo = new THREE.ShapeGeometry(shape);
+        geo.rotateX(Math.PI / 2);
+        return geo;
+      }
+      const leftPecGeo = createPectoralFinGeometry(true);
+      const rightPecGeo = createPectoralFinGeometry(false);
+
+      // Soft Drop Shadow Blob Texture on the Pond Bed directly beneath each Koi
+      function createShadowBlobTexture() {
+        const c = document.createElement('canvas');
+        c.width = 128;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createRadialGradient(64, 32, 4, 64, 32, 56);
+        grad.addColorStop(0, 'rgba(5, 15, 18, 0.52)');
+        grad.addColorStop(0.55, 'rgba(5, 15, 18, 0.24)');
+        grad.addColorStop(1, 'rgba(5, 15, 18, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 128, 64);
+        return new THREE.CanvasTexture(c);
+      }
+      const shadowBlobTex = createShadowBlobTexture();
+      const shadowBlobGeo = new THREE.PlaneGeometry(1.15, 2.45);
+      shadowBlobGeo.rotateX(-Math.PI / 2);
+
+      // Build all 16 Living Koi Fish across the 7 Varieties
+      const koiVarieties = [
+        'kohaku', 'sanke', 'showa', 'yamabuki', 'purachina', 'tancho', 'asagi',
+        'kohaku', 'sanke', 'showa', 'yamabuki', 'tancho', 'asagi', 'kohaku', 'purachina', 'sanke'
+      ];
+
+      const koiList = [];
+
+      koiVarieties.forEach((variety, idx) => {
+        const koiGroup = new THREE.Group();
+        const tex = createKoiTexture(variety, idx + 1);
+        const isMetallic = variety === 'yamabuki' || variety === 'purachina';
+
+        // Per-fish uniforms for GPU S-curve spine undulation
+        const fishUniforms = {
+          uSwimPhase: { value: Math.random() * 10 },
+          uBendAmp: { value: 0.14 }
+        };
+
+        const bodyMat = new THREE.MeshStandardMaterial({
+          map: tex,
+          roughness: isMetallic ? 0.22 : 0.32,
+          metalness: isMetallic ? 0.55 : 0.08
+        });
+
+        bodyMat.onBeforeCompile = (shader) => {
+          shader.uniforms.uSwimPhase = fishUniforms.uSwimPhase;
+          shader.uniforms.uBendAmp = fishUniforms.uBendAmp;
+          shader.vertexShader =
+            `uniform float uSwimPhase;
+             uniform float uBendAmp;\n` +
+            shader.vertexShader.replace(
+              `#include <begin_vertex>`,
+              `#include <begin_vertex>
+               // Traveling S-wave along the spine from nose (z=0.95) to tail tip (z=-1.35)
+               float spineT = clamp((0.95 - transformed.z) / 2.3, 0.0, 1.0);
+               float wave = sin(uSwimPhase - spineT * 4.8) * pow(spineT, 1.35) * uBendAmp;
+               transformed.x += wave;`
+            );
+        };
+
+        const bodyMesh = new THREE.Mesh(sharedKoiBodyGeo, bodyMat);
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        koiGroup.add(bodyMesh);
+
+        // Translucent Dorsal Sail Fin along the top ridge
+        const dorsalGeo = new THREE.PlaneGeometry(0.02, 0.65, 1, 8);
+        const dPos = dorsalGeo.attributes.position;
+        for (let k = 0; k < dPos.count; k++) {
+          const zCoord = dPos.getY(k); // -0.325 to +0.325
+          const arch = Math.sin(((zCoord + 0.325) / 0.65) * Math.PI) * 0.18;
+          dPos.setXYZ(k, 0, 0.25 + (dPos.getX(k) > 0 ? arch : 0), zCoord - 0.08);
+        }
+        dorsalGeo.computeVertexNormals();
+
+        const finTint =
+          variety === 'yamabuki'
+            ? 0xfef08a
+            : variety === 'asagi'
+            ? 0xf97316
+            : variety === 'showa'
+            ? 0xf8fafc
+            : 0xfff7ed;
+
+        const finMat = new THREE.MeshStandardMaterial({
+          color: finTint,
+          transparent: true,
+          opacity: 0.78,
+          roughness: 0.4,
+          side: THREE.DoubleSide
+        });
+        finMat.onBeforeCompile = bodyMat.onBeforeCompile;
+
+        const dorsalMesh = new THREE.Mesh(dorsalGeo, finMat);
+        koiGroup.add(dorsalMesh);
+
+        // Paired Fluttering Pectoral Fins
+        const leftPec = new THREE.Mesh(leftPecGeo, finMat);
+        leftPec.position.set(0.18, -0.1, 0.44);
+        leftPec.rotation.z = -0.25;
+
+        const rightPec = new THREE.Mesh(rightPecGeo, finMat);
+        rightPec.position.set(-0.18, -0.1, 0.44);
+        rightPec.rotation.z = 0.25;
+        koiGroup.add(leftPec, rightPec);
+
+        // Paired Smaller Ventral Fins
+        const leftVen = new THREE.Mesh(leftPecGeo, finMat);
+        leftVen.scale.setScalar(0.58);
+        leftVen.position.set(0.11, -0.18, -0.05);
+        leftVen.rotation.z = -0.4;
+
+        const rightVen = new THREE.Mesh(rightPecGeo, finMat);
+        rightVen.scale.setScalar(0.58);
+        rightVen.position.set(-0.11, -0.18, -0.05);
+        rightVen.rotation.z = 0.4;
+        koiGroup.add(leftVen, rightVen);
+
+        // Expressive Eyes & Sensory Whisker Barbels at the Mouth
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+        const eyeRingMat = new THREE.MeshBasicMaterial({ color: 0xfde68a });
+        for (let side of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), eyeMat);
+          eye.position.set(side * 0.135, 0.065, 0.72);
+          const iris = new THREE.Mesh(new THREE.SphereGeometry(0.033, 8, 8), eyeRingMat);
+          iris.scale.set(0.6, 1, 1);
+          iris.position.set(side * 0.128, 0.065, 0.72);
+          koiGroup.add(eye, iris);
+
+          // Whisker barbel
+          const barbel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.004, 0.001, 0.14, 4),
+            finMat
+          );
+          barbel.position.set(side * 0.085, -0.04, 0.88);
+          barbel.rotation.set(0.4, 0, side * 0.55);
+          koiGroup.add(barbel);
+        }
+
+        // Size variations (from agile young koi to majestic jumbo koi)
+        const scale = 0.78 + (idx % 5) * 0.11;
+        koiGroup.scale.setScalar(scale);
+
+        // Initial spawn position inside the safe swimming basin
+        const initAngle = (idx / koiVarieties.length) * Math.PI * 2;
+        const initR = 2.5 + (idx % 4) * 2.1;
+        const startX = Math.cos(initAngle) * initR;
+        const startZ = Math.sin(initAngle) * initR;
+        const startY = -0.38 - (idx % 4) * 0.32;
+
+        koiGroup.position.set(startX, startY, startZ);
+        scene.add(koiGroup);
+
+        // Projected Soft Drop Shadow on Pond Floor
+        const shadowMat = new THREE.MeshBasicMaterial({
+          map: shadowBlobTex,
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false
+        });
+        const shadowMesh = new THREE.Mesh(shadowBlobGeo, shadowMat);
+        shadowMesh.scale.setScalar(scale);
+        scene.add(shadowMesh);
+
+        // Pick an initial cruising target
+        const targetAngle = initAngle + 1.2;
+        koiList.push({
+          id: idx,
+          variety,
+          group: koiGroup,
+          shadowMesh,
+          uniforms: fishUniforms,
+          leftPec,
+          rightPec,
+          scale,
+          heading: initAngle + Math.PI / 2,
+          pitch: 0,
+          roll: 0,
+          speed: 1.15,
+          baseCruiseSpeed: 1.05 + Math.random() * 0.45,
+          swimPhase: Math.random() * 100,
+          cruiseDepth: -0.32 - Math.random() * 0.95,
+          wanderTarget: new THREE.Vector3(
+            Math.cos(targetAngle) * 5,
+            -0.5,
+            Math.sin(targetAngle) * 5
+          ),
+          wanderTimer: 2 + Math.random() * 4,
+          state: 'cruising', // 'cruising' | 'feeding'
+          targetPellet: null,
+          rippleCooldown: Math.random() * 2
+        });
+      });
+
+      // ============================================================================
+      // 12. INTERACTIVE KOI FEEDING SYSTEM (PELLETS, SPLASH BURSTS & AI)
+      // ============================================================================
+      const pellets = [];
+      const splashBursts = [];
+      let totalPelletsEaten = 0;
+
+      const pelletGeo = new THREE.SphereGeometry(0.075, 10, 8);
+      pelletGeo.scale(1.1, 0.78, 1.1);
+      const pelletMat = new THREE.MeshStandardMaterial({
+        color: 0xd97706,
+        roughness: 0.65,
+        emissive: 0x78350f,
+        emissiveIntensity: 0.25
+      });
+
+      const statPelletsEl = document.getElementById('stat-pellets');
+      const statEatenEl = document.getElementById('stat-eaten');
+      const behaviorBadgeEl = document.getElementById('behavior-badge');
+      const toastBanner = document.getElementById('toast-banner');
+      const toastText = document.getElementById('toast-text');
+      let toastTimeout = null;
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toastBanner.style.opacity = '1';
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toastBanner.style.opacity = '0';
+        }, 2800);
+      }
+
+      function updateFeedingHUD() {
+        statPelletsEl.textContent = pellets.length;
+        statEatenEl.textContent = totalPelletsEaten;
+
+        if (pellets.length > 0) {
+          behaviorBadgeEl.textContent = 'Feeding Frenzy!';
+          behaviorBadgeEl.className =
+            'text-[11px] font-medium px-2 py-0.5 rounded-full bg-orange-500/25 text-orange-300 border border-orange-400/40 animate-pulse';
+        } else {
+          behaviorBadgeEl.textContent = 'Tranquil Cruise';
+          behaviorBadgeEl.className =
+            'text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+        }
+      }
+
+      // Spawn a 3D droplet splash burst when a koi gulps a pellet
+      function spawnGulpSplash(x, z) {
+        const dropletCount = 14;
+        const group = new THREE.Group();
+        group.position.set(x, 0.03, z);
+        const dropGeo = new THREE.SphereGeometry(0.032, 6, 6);
+        const dropMat = new THREE.MeshBasicMaterial({
+          color: 0xe0f2fe,
+          transparent: true,
+          opacity: 0.9
+        });
+        const drops = [];
+        for (let i = 0; i < dropletCount; i++) {
+          const m = new THREE.Mesh(dropGeo, dropMat);
+          const ang = (i / dropletCount) * Math.PI * 2 + Math.random() * 0.4;
+          const spd = 0.8 + Math.random() * 1.4;
+          group.add(m);
+          drops.push({
+            mesh: m,
+            vx: Math.cos(ang) * spd,
+            vy: 1.6 + Math.random() * 1.6,
+            vz: Math.sin(ang) * spd
+          });
+        }
+        scene.add(group);
+        splashBursts.push({ group, drops, mat: dropMat, age: 0 });
+      }
+
+      // Drop a cluster of food pellets around target (x, z)
+      function tossFoodPellets(centerX, centerZ, count = 12) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spread = Math.sqrt(Math.random()) * (count > 5 ? 2.8 : 1.3);
+          let px = centerX + Math.cos(angle) * spread;
+          let pz = centerZ + Math.sin(angle) * spread;
+
+          // Keep pellets well inside the water boundary so fish can comfortably reach them
+          const { theta, maxR, normDist } = getPondMetrics(px, pz);
+          if (normDist > 0.78) {
+            px = Math.cos(theta) * (maxR * 0.72);
+            pz = Math.sin(theta) * (maxR * 0.72);
+          }
+
+          const mesh = new THREE.Mesh(pelletGeo, pelletMat);
+          // Start above the water and arc down with gravity
+          const startHeight = 2.6 + Math.random() * 1.6;
+          mesh.position.set(
+            px + (Math.random() - 0.5) * 0.6,
+            startHeight,
+            pz + (Math.random() - 0.5) * 0.6
+          );
+          mesh.castShadow = true;
+          scene.add(mesh);
+
+          pellets.push({
+            mesh,
+            targetX: px,
+            targetZ: pz,
+            vy: -2.2 - Math.random() * 1.5,
+            landed: false,
+            eaten: false,
+            bobPhase: Math.random() * Math.PI * 2
+          });
+        }
+        updateFeedingHUD();
+      }
+
+      // Pick a random scenic spot inside the pond to toss food when clicking the button
+      function feedFromButton() {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 1.2 + Math.random() * 4.2;
+        const tx = Math.cos(angle) * dist;
+        const tz = Math.sin(angle) * dist;
+        tossFoodPellets(tx, tz, 12);
+        showToast('Tossed 12 floating pellets! Watch the koi race to the surface.');
+      }
+
+      document.getElementById('feed-koi-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        feedFromButton();
+      });
+
+      // Auto-Feeder Toggle
+      let autoFeedActive = false;
+      let autoFeedTimer = 0;
+      const autoFeedBtn = document.getElementById('autofeed-btn');
+      const autoFeedDot = document.getElementById('autofeed-dot');
+
+      autoFeedBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        autoFeedActive = !autoFeedActive;
+        if (autoFeedActive) {
+          autoFeedDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+          autoFeedBtn.classList.add('border-emerald-400/50', 'text-emerald-200');
+          if (pellets.length < 4) feedFromButton();
+          showToast('Auto-Feeder enabled: pellets will drop periodically.');
+        } else {
+          autoFeedDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+          autoFeedBtn.classList.remove('border-emerald-400/50', 'text-emerald-200');
+          showToast('Auto-Feeder paused.');
+        }
+      });
+
+      // Direct Raycasting on Water Surface to Toss Pellets Where User Clicks/Taps
+      const raycaster = new THREE.Raycaster();
+      const pointerDownPos = new THREE.Vector2();
+      const pointerUpPos = new THREE.Vector2();
+
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        pointerDownPos.set(e.clientX, e.clientY);
+      });
+
+      renderer.domElement.addEventListener('pointerup', (e) => {
+        pointerUpPos.set(e.clientX, e.clientY);
+        // Only trigger water click if user didn't drag to orbit the camera
+        if (pointerDownPos.distanceTo(pointerUpPos) < 6) {
+          const ndc = new THREE.Vector2(
+            (e.clientX / window.innerWidth) * 2 - 1,
+            -(e.clientY / window.innerHeight) * 2 + 1
+          );
+          raycaster.setFromCamera(ndc, camera);
+          const hits = raycaster.intersectObject(waterMesh);
+          if (hits.length > 0) {
+            const pt = hits[0].point;
+            const { normDist } = getPondMetrics(pt.x, pt.z);
+            if (normDist < 0.92) {
+              tossFoodPellets(pt.x, pt.z, 6);
+              spawnWaterRipple(pt.x, pt.z, 0.85, 2.2);
+              showToast('Dropped 6 pellets right at your cursor!');
+            }
+          }
+        }
+      });
+
+      // ============================================================================
+      // 13. UI CONTROLS: AMBIANCE MODES, CAMERA PRESETS & SOUND
+      // ============================================================================
+      const modeButtons = document.querySelectorAll('.mode-btn');
+      modeButtons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          modeButtons.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const mode = btn.getAttribute('data-mode');
+
+          if (mode === 'day') {
+            scene.background.setHex(0x0d2229);
+            scene.fog.color.setHex(0x0d2229);
+            hemiLight.color.setHex(0xdff4ff);
+            hemiLight.groundColor.setHex(0x1a362b);
+            hemiLight.intensity = 0.75;
+            sunLight.color.setHex(0xfff5e0);
+            sunLight.intensity = 1.35;
+            sunLight.position.set(16, 26, 14);
+            waterUniforms.uSkyColor.value.setHex(0x7dd3fc);
+            waterUniforms.uDeepColor.value.setHex(0x0b3b42);
+            waterUniforms.uSunColor.value.setHex(0xfff6e5);
+            bedUniforms.uCausticIntensity.value = 0.55;
+            bedUniforms.uCausticColor.value.setHex(0x99f6e4);
+            lanternLight.intensity = 0.5;
+            pondGlowLight.intensity = 0.65;
+          } else if (mode === 'sunset') {
+            scene.background.setHex(0x1f1624);
+            scene.fog.color.setHex(0x1f1624);
+            hemiLight.color.setHex(0xfdba74);
+            hemiLight.groundColor.setHex(0x27171c);
+            hemiLight.intensity = 0.65;
+            sunLight.color.setHex(0xff7e33);
+            sunLight.intensity = 1.55;
+            sunLight.position.set(-22, 11, -14);
+            waterUniforms.uSkyColor.value.setHex(0xfb923c);
+            waterUniforms.uDeepColor.value.setHex(0x1c2838);
+            waterUniforms.uSunColor.value.setHex(0xffedd5);
+            bedUniforms.uCausticIntensity.value = 0.48;
+            bedUniforms.uCausticColor.value.setHex(0xfdba74);
+            lanternLight.intensity = 1.6;
+            pondGlowLight.intensity = 0.75;
+          } else if (mode === 'night') {
+            scene.background.setHex(0x050d14);
+            scene.fog.color.setHex(0x050d14);
+            hemiLight.color.setHex(0x38bdf8);
+            hemiLight.groundColor.setHex(0x08141c);
+            hemiLight.intensity = 0.32;
+            sunLight.color.setHex(0x93c5fd);
+            sunLight.intensity = 0.45;
+            sunLight.position.set(10, 24, -12);
+            waterUniforms.uSkyColor.value.setHex(0x1e3a8a);
+            waterUniforms.uDeepColor.value.setHex(0x041f26);
+            waterUniforms.uSunColor.value.setHex(0xbae6fd);
+            bedUniforms.uCausticIntensity.value = 0.35;
+            bedUniforms.uCausticColor.value.setHex(0x38bdf8);
+            lanternLight.intensity = 2.8;
+            pondGlowLight.intensity = 1.35;
+          }
+          waterUniforms.uSunDir.value.copy(sunLight.position).normalize();
+        });
+      });
+
+      // Camera Viewpoint Preset Buttons
+      document.querySelectorAll('.cam-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const preset = btn.getAttribute('data-cam');
+          if (preset === 'overview') {
+            flyCameraTo([0, 16.5, 21.5], [0, -0.3, 0]);
+          } else if (preset === 'waterfall') {
+            flyCameraTo([4.2, 5.8, 7.5], [PLUNGE_X * 0.85, 1.1, PLUNGE_Z * 0.85]);
+          } else if (preset === 'surface') {
+            flyCameraTo([-8.5, 2.3, 11.2], [1.5, -0.4, -1.5]);
+          }
+        });
+      });
+
+      // Sound Toggle Button
+      const audioBtn = document.getElementById('audio-btn');
+      const iconSoundOn = document.getElementById('icon-sound-on');
+      const iconSoundOff = document.getElementById('icon-sound-off');
+      audioBtn.addEventListener('click', () => {
+        const isOn = sound.toggle();
+        iconSoundOn.classList.toggle('hidden', !isOn);
+        iconSoundOff.classList.toggle('hidden', isOn);
+        showToast(isOn ? 'Zen chimes & water plops enabled.' : 'Audio muted.');
+      });
+
+      // ============================================================================
+      // 14. MAIN ANIMATION LOOP (KOI AI, PHYSICS, WATER & FLORA)
+      // ============================================================================
+      const clock = new THREE.Clock();
+      let waterfallRippleTimer = 0;
+
+      // Helper for shortest angular difference
+      function angleDiff(a, b) {
+        let d = b - a;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        return d;
+      }
+
+      // Pick a new safe random wander target inside the pond
+      function pickRandomWanderTarget() {
+        const ang = Math.random() * Math.PI * 2;
+        const maxR = getPondBoundaryRadius(ang);
+        const r = (0.18 + Math.random() * 0.56) * maxR;
+        return new THREE.Vector3(
+          Math.cos(ang) * r,
+          -0.35 - Math.random() * 0.9,
+          Math.sin(ang) * r
+        );
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const elapsed = clock.getElapsedTime();
+
+        // Update Shader Time Uniforms
+        waterUniforms.uTime.value = elapsed;
+        bedUniforms.uTime.value = elapsed;
+        waterfallUniforms.uTime.value = elapsed;
+
+        // Smooth Camera Preset Transitions
+        if (camTransition) {
+          camTransition.progress += dt * 1.45;
+          const t = THREE.MathUtils.smoothstep(camTransition.progress, 0, 1);
+          camera.position.lerpVectors(camTransition.startPos, camTransition.endPos, t);
+          controls.target.lerpVectors(camTransition.startTarget, camTransition.endTarget, t);
+          if (camTransition.progress >= 1) camTransition = null;
+        }
+        controls.update();
+
+        // Auto-Feeder Check
+        if (autoFeedActive) {
+          autoFeedTimer += dt;
+          if (autoFeedTimer > 5.5 && pellets.length < 8) {
+            autoFeedTimer = 0;
+            feedFromButton();
+          }
+        }
+
+        // 1. Update Waterfall Plunge Mist Particles & Ripples
+        waterfallRippleTimer += dt;
+        if (waterfallRippleTimer > 0.42) {
+          waterfallRippleTimer = 0;
+          spawnWaterRipple(
+            PLUNGE_X + (Math.random() - 0.5) * 0.9,
+            PLUNGE_Z + (Math.random() - 0.5) * 0.9,
+            0.65,
+            2.4
+          );
+        }
+
+        const mPos = mistGeo.attributes.position;
+        for (let i = 0; i < mistCount; i++) {
+          const m = mistData[i];
+          m.age += dt * m.speed;
+          if (m.age > 1.0) m.age -= 1.0;
+
+          const mx = PLUNGE_X + m.vx * m.age * 1.6;
+          const my = 0.05 + m.vy * m.age - 0.5 * m.age * m.age;
+          const mz = PLUNGE_Z + m.vz * m.age * 1.6;
+          mPos.setXYZ(i, mx, my, mz);
+        }
+        mPos.needsUpdate = true;
+
+        // 2. Update Floating Lily Pads, Swaying Reeds & Blossom Petals
+        for (let i = 0; i < lilyPads.length; i++) {
+          const pad = lilyPads[i];
+          pad.group.position.y = 0.025 + Math.sin(elapsed * 1.8 + pad.phase) * 0.014;
+          pad.group.rotation.x = Math.sin(elapsed * 1.3 + pad.phase) * 0.03;
+          pad.group.rotation.z = Math.cos(elapsed * 1.5 + pad.phase) * 0.03;
+          pad.group.rotation.y = pad.baseRotY + Math.sin(elapsed * 0.4 + pad.phase) * 0.04;
+        }
+
+        for (let i = 0; i < swayingPlants.length; i++) {
+          const sp = swayingPlants[i];
+          sp.obj.rotation.x = sp.baseX + Math.sin(elapsed * sp.speed + sp.phase) * sp.amp;
+          sp.obj.rotation.z = sp.baseZ + Math.cos(elapsed * sp.speed * 0.85 + sp.phase) * sp.amp;
+        }
+
+        for (let i = 0; i < floatingPetals.length; i++) {
+          const fp = floatingPetals[i];
+          fp.angle += fp.speed * dt;
+          fp.mesh.position.x = Math.cos(fp.angle) * fp.radius + Math.sin(elapsed + fp.phase) * 0.2;
+          fp.mesh.position.z = Math.sin(fp.angle) * fp.radius + Math.cos(elapsed + fp.phase) * 0.2;
+          fp.mesh.position.y = 0.016 + Math.sin(elapsed * 2.2 + fp.phase) * 0.012;
+          fp.mesh.rotation.y += dt * 0.35;
+        }
+
+        // 3. Update Darting Dragonflies
+        for (let i = 0; i < dragonflies.length; i++) {
+          const df = dragonflies[i];
+          // Rapid wing flutter
+          const wingAngle = Math.sin(elapsed * 48 + i * 2) * 0.45;
+          df.leftWing.rotation.z = wingAngle;
+          df.rightWing.rotation.z = -wingAngle;
+
+          df.waitTimer -= dt;
+          if (df.waitTimer <= 0 && lilyPads.length > 0) {
+            const nextPad = lilyPads[Math.floor(Math.random() * lilyPads.length)];
+            df.targetPos.set(
+              nextPad.x + (Math.random() - 0.5) * 1.2,
+              0.32 + Math.random() * 0.55,
+              nextPad.z + (Math.random() - 0.5) * 1.2
+            );
+            df.waitTimer = 2.8 + Math.random() * 3.5;
+          }
+
+          const toTarget = df.targetPos.clone().sub(df.group.position);
+          if (toTarget.length() > 0.12) {
+            df.group.position.addScaledVector(toTarget, dt * 3.2);
+            const targetYaw = Math.atan2(toTarget.x, toTarget.z);
+            df.group.rotation.y = targetYaw;
+          } else {
+            df.group.position.y += Math.sin(elapsed * 5 + i) * 0.002;
+          }
+        }
+
+        // 4. Update Food Pellets (Falling Arc, Water Landing Ripples & Bobbing)
+        for (let i = pellets.length - 1; i >= 0; i--) {
+          const p = pellets[i];
+          if (p.eaten) {
+            scene.remove(p.mesh);
+            pellets.splice(i, 1);
+            updateFeedingHUD();
+            continue;
+          }
+
+          if (!p.landed) {
+            p.vy -= 9.8 * dt;
+            p.mesh.position.y += p.vy * dt;
+            p.mesh.position.x = THREE.MathUtils.lerp(p.mesh.position.x, p.targetX, dt * 4);
+            p.mesh.position.z = THREE.MathUtils.lerp(p.mesh.position.z, p.targetZ, dt * 4);
+
+            if (p.mesh.position.y <= 0.02) {
+              p.mesh.position.y = 0.02;
+              p.landed = true;
+              spawnWaterRipple(p.mesh.position.x, p.mesh.position.z, 0.9, 2.1);
+              sound.playPlop((Math.random() - 0.5) * 0.6);
+            }
+          } else {
+            // Gently bob and drift on the water surface
+            p.mesh.position.y = 0.015 + Math.sin(elapsed * 3.8 + p.bobPhase) * 0.018;
+            p.mesh.position.x += Math.sin(elapsed * 0.7 + p.bobPhase) * 0.002;
+            p.mesh.position.z += Math.cos(elapsed * 0.6 + p.bobPhase) * 0.002;
+          }
+        }
+
+        // 5. Update Expanding Visual Water Ripples & Splash Droplet Bursts
+        for (let i = visualRipples.length - 1; i >= 0; i--) {
+          const r = visualRipples[i];
+          r.age += dt;
+          if (r.age >= r.maxAge) {
+            scene.remove(r.mesh);
+            r.mesh.material.dispose();
+            visualRipples.splice(i, 1);
+          } else {
+            const prog = r.age / r.maxAge;
+            const scale = 1.0 + Math.pow(prog, 0.75) * r.maxScale * 6.0;
+            r.mesh.scale.setScalar(scale);
+            r.mesh.material.opacity = r.initOpacity * (1.0 - prog);
+          }
+        }
+
+        for (let i = splashBursts.length - 1; i >= 0; i--) {
+          const sb = splashBursts[i];
+          sb.age += dt;
+          if (sb.age > 0.65) {
+            scene.remove(sb.group);
+            sb.mat.dispose();
+            splashBursts.splice(i, 1);
+          } else {
+            sb.mat.opacity = 1.0 - sb.age / 0.65;
+            for (let d of sb.drops) {
+              d.vy -= 9.5 * dt;
+              d.mesh.position.x += d.vx * dt;
+              d.mesh.position.y += d.vy * dt;
+              d.mesh.position.z += d.vz * dt;
+            }
+          }
+        }
+
+        // 6. Update All 16 Living Koi Fish (Active Feeding AI, Steering, Undulation & Shadows)
+        // Count how many fish are targeting each pellet to distribute targets naturally
+        const pelletClaimCount = new Map();
+
+        for (let i = 0; i < koiList.length; i++) {
+          const fish = koiList[i];
+          const pos = fish.group.position;
+
+          // Determine if floating food pellets are available
+          let chosenPellet = null;
+          let bestScore = Infinity;
+
+          for (let p of pellets) {
+            if (p.eaten) continue;
+            const dx = p.mesh.position.x - pos.x;
+            const dz = p.mesh.position.z - pos.z;
+            const dist = Math.hypot(dx, dz);
+            const claims = pelletClaimCount.get(p) || 0;
+            // Score combines distance + slight penalty for already heavily crowded pellets
+            const score = dist + claims * 1.85;
+            if (score < bestScore) {
+              bestScore = score;
+              chosenPellet = p;
+            }
+          }
+
+          let targetPos;
+          let desiredSpeed;
+          let maxTurnRate;
+
+          if (chosenPellet) {
+            fish.state = 'feeding';
+            fish.targetPellet = chosenPellet;
+            pelletClaimCount.set(chosenPellet, (pelletClaimCount.get(chosenPellet) || 0) + 1);
+
+            targetPos = chosenPellet.mesh.position;
+            // Hungry acceleration!
+            desiredSpeed = fish.baseCruiseSpeed * 2.45;
+            maxTurnRate = 4.2;
+
+            // Check if the koi's mouth (at front of head) has reached the pellet!
+            const mouthX = pos.x + Math.sin(fish.heading) * (0.78 * fish.scale);
+            const mouthZ = pos.z + Math.cos(fish.heading) * (0.78 * fish.scale);
+            const distToMouth = Math.hypot(
+              chosenPellet.mesh.position.x - mouthX,
+              chosenPellet.mesh.position.z - mouthZ
+            );
+
+            if (chosenPellet.landed && distToMouth < 0.52 * fish.scale && pos.y > -0.45) {
+              // Gulp the pellet!
+              chosenPellet.eaten = true;
+              totalPelletsEaten++;
+              spawnWaterRipple(chosenPellet.mesh.position.x, chosenPellet.mesh.position.z, 1.35, 3.0);
+              spawnGulpSplash(chosenPellet.mesh.position.x, chosenPellet.mesh.position.z);
+              sound.playPlop(0.5);
+              if (totalPelletsEaten % 4 === 0) {
+                const pentatonic = [523.25, 587.33, 659.25, 783.99, 880.0];
+                sound.playChime(pentatonic[totalPelletsEaten % pentatonic.length], 0.035);
+              }
+              updateFeedingHUD();
+              // Pick a celebratory dive target after eating
+              fish.wanderTarget = pickRandomWanderTarget();
+              fish.wanderTimer = 3.0;
+            }
+          } else {
+            fish.state = 'cruising';
+            fish.targetPellet = null;
+            desiredSpeed = fish.baseCruiseSpeed;
+            maxTurnRate = 1.85;
+
+            fish.wanderTimer -= dt;
+            const distToWander = Math.hypot(fish.wanderTarget.x - pos.x, fish.wanderTarget.z - pos.z);
+            if (fish.wanderTimer <= 0 || distToWander < 1.5) {
+              fish.wanderTarget = pickRandomWanderTarget();
+              fish.wanderTimer = 4.0 + Math.random() * 5.0;
+            }
+            targetPos = fish.wanderTarget;
+          }
+
+          // Smoothly adjust swimming speed
+          fish.speed = THREE.MathUtils.lerp(fish.speed, desiredSpeed, dt * 3.5);
+
+          // Compute steering vector toward target + soft avoidance of pond walls & other koi
+          let steerX = targetPos.x - pos.x;
+          let steerZ = targetPos.z - pos.z;
+          const len = Math.hypot(steerX, steerZ) || 1;
+          steerX /= len;
+          steerZ /= len;
+
+          // Shoreline boundary avoidance force so koi stay gracefully inside the pond
+          const { theta, normDist } = getPondMetrics(pos.x, pos.z);
+          if (normDist > 0.72) {
+            const pushInward = Math.pow((normDist - 0.72) / 0.25, 1.5) * 3.8;
+            steerX -= Math.cos(theta) * pushInward;
+            steerZ -= Math.sin(theta) * pushInward;
+          }
+
+          // Gentle neighbor separation so koi don't overlap each other's bodies
+          for (let j = 0; j < koiList.length; j++) {
+            if (i === j) continue;
+            const other = koiList[j].group.position;
+            const dx = pos.x - other.x;
+            const dz = pos.z - other.z;
+            const dy = Math.abs(pos.y - other.y);
+            const d = Math.hypot(dx, dz);
+            const minSep = fish.state === 'feeding' ? 0.65 : 1.25;
+            if (d < minSep && d > 0.001 && dy < 0.45) {
+              const repulse = ((minSep - d) / minSep) * (fish.state === 'feeding' ? 0.9 : 1.6);
+              steerX += (dx / d) * repulse;
+              steerZ += (dz / d) * repulse;
+            }
+          }
+
+          const desiredHeading = Math.atan2(steerX, steerZ);
+          const diff = angleDiff(fish.heading, desiredHeading);
+          const turnStep = THREE.MathUtils.clamp(diff, -maxTurnRate * dt, maxTurnRate * dt);
+          fish.heading += turnStep;
+
+          // Subtle banking roll into turns
+          const targetRoll = THREE.MathUtils.clamp(-diff * 0.28, -0.32, 0.32);
+          fish.roll = THREE.MathUtils.lerp(fish.roll, targetRoll, dt * 5.0);
+
+          // Vertical depth & pitch control (ascend to surface when feeding!)
+          let targetY = fish.cruiseDepth + Math.sin(elapsed * 0.9 + fish.id) * 0.08;
+          if (fish.state === 'feeding' && chosenPellet) {
+            const distToFood = Math.hypot(chosenPellet.mesh.position.x - pos.x, chosenPellet.mesh.position.z - pos.z);
+            if (distToFood < 4.8) {
+              targetY = -0.09; // Rise right up to the waterline
+            } else {
+              targetY = -0.22;
+            }
+          }
+
+          // Ensure fish stays safely above the sculpted pond floor
+          const floorY = getPondBedHeight(pos.x, pos.z);
+          targetY = Math.max(targetY, floorY + 0.35);
+
+          const dy = targetY - pos.y;
+          pos.y += dy * dt * (fish.state === 'feeding' ? 3.6 : 1.8);
+
+          // Pitch nose upward when ascending to gulp food or downward when diving
+          const targetPitch = THREE.MathUtils.clamp(-dy * 0.85, -0.42, 0.35);
+          fish.pitch = THREE.MathUtils.lerp(fish.pitch, targetPitch, dt * 5.0);
+
+          // Advance forward along heading
+          pos.x += Math.sin(fish.heading) * fish.speed * dt;
+          pos.z += Math.cos(fish.heading) * fish.speed * dt;
+
+          // Hard safety clamp inside pond water
+          const afterMetrics = getPondMetrics(pos.x, pos.z);
+          if (afterMetrics.normDist > 0.86) {
+            pos.x = Math.cos(afterMetrics.theta) * (afterMetrics.maxR * 0.85);
+            pos.z = Math.sin(afterMetrics.theta) * (afterMetrics.maxR * 0.85);
+          }
+
+          // Apply orientation to Koi group
+          fish.group.rotation.order = 'YXZ';
+          fish.group.rotation.y = fish.heading;
+          fish.group.rotation.x = fish.pitch;
+          fish.group.rotation.z = fish.roll;
+
+          // Advance S-curve spine undulation phase proportional to velocity!
+          fish.swimPhase += dt * (4.2 + fish.speed * 5.2);
+          fish.uniforms.uSwimPhase.value = fish.swimPhase;
+          fish.uniforms.uBendAmp.value = fish.state === 'feeding' ? 0.19 : 0.135;
+
+          // Flutter pectoral fins
+          const pecWave = Math.sin(fish.swimPhase * 0.85) * 0.22;
+          fish.leftPec.rotation.z = -0.25 + pecWave;
+          fish.rightPec.rotation.z = 0.25 - pecWave;
+
+          // Spawn occasional gentle surface ripple when koi swims right near the top
+          fish.rippleCooldown -= dt;
+          if (pos.y > -0.18 && fish.rippleCooldown <= 0) {
+            spawnWaterRipple(pos.x, pos.z, 0.45, 1.6);
+            fish.rippleCooldown = 0.65 + Math.random() * 0.6;
+          }
+
+          // Update projected soft drop shadow on the pond bed below the fish
+          const currentFloorY = getPondBedHeight(pos.x, pos.z);
+          fish.shadowMesh.position.set(pos.x, currentFloorY + 0.03, pos.z);
+          fish.shadowMesh.rotation.y = fish.heading;
+          const heightAboveFloor = Math.max(0.1, pos.y - currentFloorY);
+          fish.shadowMesh.material.opacity = THREE.MathUtils.clamp(
+            0.55 - heightAboveFloor * 0.12,
+            0.12,
+            0.52
+          );
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      // Responsive Window Resize Handler
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // Start the living pond simulation
+      animate();
+    };
+  </script>
+</body>
+</html>
