@@ -179,7 +179,7 @@ let pondMounted=false;
 function mountPond(){const sc=$('scene');let f=$('pondframe');if(!f){f=document.createElement('iframe');f.id='pondframe';f.title='小团的池塘';sc.appendChild(f)}
  if(!pondMounted){S.lastSeen=Date.now();localStorage.setItem(K3,JSON.stringify(S));f.src='./koi/?embed=1';pondMounted=true}
  sc.querySelectorAll('.layer').forEach(x=>x.remove())}
-function unloadPond(){if(!pondMounted)return;pullInv();const f=$('pondframe');if(f)f.src='about:blank';pondMounted=false}
+function unloadPond(){if(!pondMounted)return;pullInv();const f=$('pondframe');if(f){f.src='about:blank';f.remove()}pondMounted=false}
 // ---------- activity ----------
 function curAct(t=Date.now()){if(dbgAct&&ACTS[dbgAct])return dbgAct;const h=hourAt(t),d=dayNum(sh(t).day),half=Math.floor(h*2);
  if(weatherAt(t)=='rain'&&h>=9&&h<18&&half%2==0)return 'umbrella';const s=SCHED.find(s=>h>=s[0]&&h<s[1]);return s[2][hash(d*100+half)%s[2].length]}
