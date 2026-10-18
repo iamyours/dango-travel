@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>小团的池塘</title>
   <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -89,6 +89,128 @@
     html.embed .koi-chrome,
     html.embed .koi-back,
     html.embed .koi-legend { display: none !important; }
+    #no-food-msg.hidden { display: none !important; }
+    /* Phone portrait, and any short landscape: keep the water clear. */
+    #food-tray:empty { display: none !important; }
+    @media (max-width: 760px), (max-height: 520px) {
+      .koi-chrome {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 6px;
+        padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0 max(56px, env(safe-area-inset-left)) !important;
+      }
+      .koi-emblem, .koi-sub, #behavior-badge, .koi-lbl, .cam-presets { display: none !important; }
+      .koi-brand { padding: 6px 8px !important; gap: 0; min-width: 0; }
+      .koi-chrome h1 { font-size: 15px; white-space: nowrap; }
+      .koi-tools { flex-wrap: nowrap; margin-left: auto; gap: 4px; }
+      .koi-stats { gap: 6px; padding: 6px 8px !important; }
+      .koi-modes .mode-btn { min-width: 40px; min-height: 40px; padding: 6px; justify-content: center; }
+      #audio-btn { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+      .koi-back {
+        top: max(6px, env(safe-area-inset-top)) !important;
+        bottom: auto !important;
+        left: max(6px, env(safe-area-inset-left)) !important;
+        width: 44px;
+        height: 44px;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .back-label { display: none; }
+      .koi-dock {
+        bottom: max(6px, env(safe-area-inset-bottom)) !important;
+        left: max(6px, env(safe-area-inset-left)) !important;
+        right: max(6px, env(safe-area-inset-right)) !important;
+        transform: none !important;
+        width: auto !important;
+        max-width: none !important;
+        flex-direction: row !important;
+        align-items: center;
+        gap: 6px;
+        padding: 0 !important;
+      }
+      #toast-banner {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 6px);
+        transform: translateX(-50%);
+        max-width: min(92vw, 420px);
+        white-space: nowrap;
+      }
+      #food-tray {
+        flex: 1 1 auto;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        justify-content: flex-start;
+        min-width: 0;
+        max-width: none;
+        padding: 4px !important;
+        gap: 6px;
+      }
+      .food-chip {
+        min-height: 44px;
+        padding: 0 12px;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+      }
+      #feed-koi-btn { min-height: 44px; min-width: 44px; padding: 8px 14px; flex: 0 0 auto; }
+      #no-food-msg:not(.hidden) {
+        display: flex !important;
+        align-items: center;
+        flex: 1 1 auto;
+        min-height: 44px;
+        margin: 0;
+        text-align: left;
+      }
+    }
+    /* Inside the game scene the iframe is short, so the dock is always a single edge bar. */
+    html.embed .koi-dock {
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      transform: none !important;
+      width: auto !important;
+      max-width: none !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px max(4px, env(safe-area-inset-bottom)) !important;
+    }
+    html.embed #toast-banner {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 4px);
+      transform: translateX(-50%);
+      max-width: 92%;
+    }
+    html.embed #food-tray {
+      flex: 1 1 auto;
+      flex-wrap: nowrap !important;
+      overflow-x: auto;
+      justify-content: flex-start;
+      min-width: 0;
+      max-width: none;
+      padding: 4px !important;
+    }
+    html.embed .food-chip {
+      min-height: 44px;
+      padding: 0 12px;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+    }
+    html.embed #feed-koi-btn { min-height: 44px; min-width: 44px; padding: 8px 12px; flex: 0 0 auto; }
+    html.embed #feed-count { display: none; }
+    html.embed #no-food-msg:not(.hidden) {
+      display: flex !important;
+      align-items: center;
+      flex: 1;
+      min-height: 44px;
+      margin: 0;
+    }
     .mode-btn {
       transition: all 0.2s ease;
     }
@@ -123,8 +245,8 @@
   <div class="koi-chrome fixed top-0 left-0 right-0 z-10 pointer-events-none p-3 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
     
     <!-- Brand / Title Card -->
-    <div class="glass-panel rounded-2xl px-4 py-3 pointer-events-auto flex items-center gap-3.5">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-red-600/30 border border-orange-400/40 flex items-center justify-center shadow-inner">
+    <div class="koi-brand glass-panel rounded-2xl px-4 py-3 pointer-events-auto flex items-center gap-3.5">
+      <div class="koi-emblem w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/30 to-red-600/30 border border-orange-400/40 flex items-center justify-center shadow-inner">
         <!-- SVG Koi Emblem -->
         <svg class="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
           <path d="M21.5 3.5c-2.8 0-5.8 1.2-8.2 3.3-1.4-0.3-3.1-0.2-4.6 0.6 0.6 0.8 1 1.7 1.1 2.7-1.6 1.8-2.7 4-3.1 6.3-1.7 0.7-3.5 0.6-5.2-0.2 0.6 2.1 2.4 3.4 4.5 3.6 0.2 1.8 1.2 3.4 2.8 4.2-0.5-1.6-0.4-3.3 0.4-4.8 2.3-0.4 4.5-1.5 6.3-3.1 1 0.1 1.9 0.5 2.7 1.1 0.8-1.5 0.9-3.2 0.6-4.6 2.1-2.4 3.3-5.4 3.3-8.2 0-0.5-0.1-0.9-0.6-0.9z"/>
@@ -137,36 +259,36 @@
             Tranquil Cruise
           </span>
         </div>
-        <p class="text-xs text-slate-300/80 hidden sm:block">
+        <p class="koi-sub text-xs text-slate-300/80 hidden sm:block">
           Koi Pond · 拖动环绕 · 滚轮缩放 · <span class="text-amber-300 font-medium">用商店里的食物投喂</span>
         </p>
       </div>
     </div>
 
     <!-- Live Telemetry & Ambiance Switcher -->
-    <div class="flex flex-wrap items-center gap-2 sm:gap-3 pointer-events-auto">
+    <div class="koi-tools flex flex-wrap items-center gap-2 sm:gap-3 pointer-events-auto">
       <!-- Live Counters -->
-      <div class="glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-4 text-xs sm:text-sm">
+      <div class="koi-stats glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-4 text-xs sm:text-sm">
         <div class="flex items-center gap-1.5" title="Living Koi Varieties">
           <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-          <span class="text-slate-400">Koi:</span>
+          <span class="koi-lbl text-slate-400">Koi:</span>
           <span id="stat-koi" class="font-semibold text-white">16</span>
         </div>
         <div class="h-3.5 w-px bg-white/15"></div>
         <div class="flex items-center gap-1.5" title="Floating Food Pellets">
           <span class="w-2 h-2 rounded-full bg-amber-300"></span>
-          <span class="text-slate-400">Floating:</span>
+          <span class="koi-lbl text-slate-400">Floating:</span>
           <span id="stat-pellets" class="font-semibold text-amber-300">0</span>
         </div>
         <div class="h-3.5 w-px bg-white/15"></div>
         <div class="flex items-center gap-1.5" title="Total Pellets Eaten">
-          <span class="text-slate-400">Fed:</span>
+          <span class="koi-lbl text-slate-400">Fed:</span>
           <span id="stat-eaten" class="font-semibold text-emerald-300">0</span>
         </div>
       </div>
 
       <!-- Lighting / Time of Day Switcher -->
-      <div class="glass-panel rounded-2xl p-1 flex items-center gap-1 text-xs">
+      <div class="koi-modes glass-panel rounded-2xl p-1 flex items-center gap-1 text-xs">
         <button data-mode="day" class="mode-btn active px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
           <span>☀️</span><span class="hidden sm:inline">Day</span>
         </button>
@@ -191,7 +313,7 @@
   </div>
 
   <!-- Bottom Control Bar -->
-  <div class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center gap-2.5 w-full max-w-xl px-4">
+  <div class="koi-dock fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center gap-2.5 w-full max-w-xl px-4">
     
     <!-- Toast / Event Feed Notification -->
     <div id="toast-banner" class="glass-panel rounded-full px-4 py-1.5 text-xs text-amber-200/95 opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2">
@@ -209,7 +331,7 @@
     <div class="glass-panel rounded-full p-2 px-3 pointer-events-auto flex items-center gap-2 sm:gap-3">
       
       <!-- Camera View Presets -->
-      <div class="hidden sm:flex items-center gap-1 pr-1 border-r border-white/15">
+      <div class="cam-presets hidden sm:flex items-center gap-1 pr-1 border-r border-white/15">
         <button data-cam="overview" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
           Overview
         </button>
@@ -231,7 +353,7 @@
   </div>
 
   <!-- Subtle Legend Drawer (Bottom Left on Desktop) -->
-  <a href="../" class="koi-back glass-panel fixed left-3 bottom-5 z-20 pointer-events-auto rounded-full px-3.5 py-2 text-sm font-medium text-white/95 hover:text-white">← 回到团子家</a>
+  <a href="../" class="koi-back glass-panel fixed left-3 bottom-5 z-20 pointer-events-auto rounded-full px-3.5 py-2 text-sm font-medium text-white/95 hover:text-white"><span class="back-ico">←</span><span class="back-label">回到团子家</span></a>
 
   <div class="koi-legend fixed bottom-20 left-5 z-10 hidden xl:block pointer-events-auto">
     <div class="glass-panel rounded-2xl p-3.5 w-60 text-xs space-y-2">

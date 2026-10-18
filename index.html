@@ -22,6 +22,20 @@ button:active{transform:translateY(3px);box-shadow:none}button:disabled{opacity:
 nav{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:12px 10px}
 nav button{padding:9px 1px;font-size:13px}nav button.on,.chips button.on{background:var(--yel)}
 #pondframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:9;background:#0b191e}
+@media (max-width:760px),(max-height:520px){
+ body.pond-tab{overflow:hidden}
+ body.pond-tab #app{height:100dvh;min-height:0;display:flex;flex-direction:column}
+ body.pond-tab header,body.pond-tab nav{flex:none}
+ body.pond-tab .scene{aspect-ratio:auto;flex:1 1 auto;height:auto;min-height:220px}
+ body.pond-tab nav{padding:8px 6px}
+ body.pond-tab .panel{flex:none;max-height:18dvh;overflow:auto;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+}
+@media (max-height:520px){
+ body.pond-tab header{padding:4px 10px;font-size:16px}
+ body.pond-tab nav{padding:4px 4px}
+ body.pond-tab nav button{padding:6px 1px}
+ body.pond-tab .panel{display:none}
+}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.chips button{padding:4px 10px;font-size:13px;box-shadow:0 2px 0 var(--ink)}
 .chips button .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e86a55;margin-left:4px;vertical-align:middle}
 .panel{padding:2px 16px 24px}.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:12px;margin:8px 0}
@@ -356,7 +370,7 @@ function bindPanel(P){
  on('edit',()=>{edit=!edit;selDeco=-1;render(false)});on('unplace',()=>{S.deco.splice(selDeco,1);selDeco=-1;save();render(false)});
  on('unpack',()=>{const tr=S.trip;S.inv[tr.food]=cnt(S.inv,tr.food)+1;if(tr.charm)S.inv[tr.charm]=cnt(S.inv,tr.charm)+1;S.trip=null;save();render(false)})}
 function hdr(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;const h=hourAt(Date.now()),w=weatherAt(Date.now());$('clock').textContent=String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor(h%1*60)).padStart(2,'0')+' '+SEASONS[seasonAt(Date.now())].n+(w=='rain'?'🌧':w=='snow'?'❄':'')}
-function render(fade=true){hdr();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene(fade);renderPanel()}
+function render(fade=true){hdr();document.body.classList.toggle('pond-tab',tab=='pond');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene(fade);renderPanel()}
 function buy(kind,id){if(kind=='seed'){const c=CROPS.find(x=>x.id==id);if(S.clover<c.p)return;S.clover-=c.p;S.seeds[id]=cnt(S.seeds,id)+1;toast(`买到了${c.n}种子`)}
  else if(kind=='furn'){const f=FURN.find(x=>x.id==id);if(S.clover<f.p||(f.sv&&S.souv.length<f.sv))return;S.clover-=f.p;if(f.sv)S.souv.splice(0,f.sv);S.furn[id]=cnt(S.furn,id)+1;toast(`买到了${f.n}，去客厅“开始布置”吧`);diary(Date.now(),`家里多了一件${f.n}。`,1)}
  else{const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=cnt(S.inv,id)+1;toast(`买到了 ${it.ic}${it.n}`)}
