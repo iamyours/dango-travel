@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Serene Nishikigoi — Living 3D Koi Pond</title>
+  <title>小团的池塘</title>
+  <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,6 +62,33 @@
     .feed-btn:active {
       transform: translateY(1px) scale(0.97);
     }
+    .feed-btn:disabled,
+    .feed-btn:disabled:hover,
+    .feed-btn:disabled:active {
+      background: #64748b;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+      filter: grayscale(0.35);
+      opacity: 0.72;
+    }
+    .food-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .food-chip.on {
+      border-color: rgba(251, 191, 36, 0.85);
+      background: rgba(251, 191, 36, 0.22);
+      color: #fde68a;
+    }
+    html.embed .koi-chrome,
+    html.embed .koi-back,
+    html.embed .koi-legend { display: none !important; }
     .mode-btn {
       transition: all 0.2s ease;
     }
@@ -92,7 +120,7 @@
   <div id="canvas-container"></div>
 
   <!-- Top Header & Live Stats Overlay -->
-  <div class="fixed top-0 left-0 right-0 z-10 pointer-events-none p-3 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+  <div class="koi-chrome fixed top-0 left-0 right-0 z-10 pointer-events-none p-3 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
     
     <!-- Brand / Title Card -->
     <div class="glass-panel rounded-2xl px-4 py-3 pointer-events-auto flex items-center gap-3.5">
@@ -104,13 +132,13 @@
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="serif-jp font-bold text-base sm:text-lg tracking-wide text-white">錦鯉の庭 • Nishikigoi Sanctuary</h1>
+          <h1 class="serif-jp font-bold text-base sm:text-lg tracking-wide text-white">小团的池塘</h1>
           <span id="behavior-badge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
             Tranquil Cruise
           </span>
         </div>
         <p class="text-xs text-slate-300/80 hidden sm:block">
-          Drag to orbit • Scroll/Pinch to zoom • <span class="text-amber-300 font-medium">Click water to toss pellets</span>
+          Koi Pond · 拖动环绕 · 滚轮缩放 · <span class="text-amber-300 font-medium">用商店里的食物投喂</span>
         </p>
       </div>
     </div>
@@ -171,6 +199,12 @@
       <span id="toast-text">Tossed floating koi pellets into the pond!</span>
     </div>
 
+    <div id="food-tray" class="glass-panel rounded-2xl px-3 py-2 pointer-events-auto flex flex-wrap gap-1.5 justify-center max-w-xl"></div>
+    <p id="no-food-msg" class="hidden glass-panel rounded-full px-4 py-1.5 text-xs text-amber-100 pointer-events-auto">
+      食物不够啦，去商店买一点吧
+      <a id="shop-link" href="../?tab=shop" class="underline decoration-amber-200 font-semibold ml-1">去商店</a>
+    </p>
+
     <!-- Main Interactive Controls -->
     <div class="glass-panel rounded-full p-2 px-3 pointer-events-auto flex items-center gap-2 sm:gap-3">
       
@@ -190,20 +224,16 @@
       <!-- Primary Action: Feed the Koi Button -->
       <button id="feed-koi-btn" class="feed-btn pulse-ring relative rounded-full px-6 py-3 font-semibold text-sm sm:text-base text-white flex items-center gap-2.5 cursor-pointer">
         <span class="text-lg leading-none">🌾</span>
-        <span>Feed the Koi</span>
-        <span class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100">+12 Pellets</span>
-      </button>
-
-      <!-- Auto-Feeder Toggle -->
-      <button id="autofeed-btn" class="px-3.5 py-2.5 rounded-full text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 transition flex items-center gap-1.5" title="Automatically toss pellets every few seconds">
-        <span id="autofeed-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-        <span>Auto-Feed</span>
+        <span>喂锦鲤</span>
+        <span id="feed-count" class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100">一把</span>
       </button>
     </div>
   </div>
 
   <!-- Subtle Legend Drawer (Bottom Left on Desktop) -->
-  <div class="fixed bottom-6 left-5 z-10 hidden xl:block pointer-events-auto">
+  <a href="../" class="koi-back glass-panel fixed left-3 bottom-5 z-20 pointer-events-auto rounded-full px-3.5 py-2 text-sm font-medium text-white/95 hover:text-white">← 回到团子家</a>
+
+  <div class="koi-legend fixed bottom-20 left-5 z-10 hidden xl:block pointer-events-auto">
     <div class="glass-panel rounded-2xl p-3.5 w-60 text-xs space-y-2">
       <div class="font-semibold text-slate-200 flex items-center justify-between">
         <span>Nishikigoi Varieties</span>
@@ -289,7 +319,7 @@
       scene.fog = new THREE.FogExp2(0x0d2229, 0.014);
 
       const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 160);
-      camera.position.set(0, 16.5, 21.5);
+      camera.position.set(7.2, 10.6, 15.4);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -303,7 +333,7 @@
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.target.set(0, -0.3, 0);
+      controls.target.set(-4.2, 0.55, 0.4);
       controls.minDistance = 5.5;
       controls.maxDistance = 38;
       controls.maxPolarAngle = Math.PI * 0.475; // Keep camera above the water surface
@@ -1798,6 +1828,128 @@
       });
 
       // ============================================================================
+      // 11C. 小团 — a simple blob sitting on the near bank, facing the pond
+      // ============================================================================
+      const xiaotuan = { toss: 0, tossDur: 0.55, baseY: 0 };
+      (function buildXiaotuan() {
+        const theta = Math.PI * 0.96;
+        const edge = getPondBoundaryRadius(theta);
+        const bankR = edge * 1.08;
+        const x = Math.cos(theta) * bankR;
+        const z = Math.sin(theta) * bankR;
+        const y = getPondBedHeight(x, z);
+        const g = new THREE.Group();
+        g.position.set(x, y, z);
+        g.lookAt(0, y, 0);
+        g.scale.setScalar(1.85);
+
+        const cream = new THREE.MeshStandardMaterial({ color: 0xf6e2c4, roughness: 0.72 });
+        const ink = new THREE.MeshStandardMaterial({ color: 0x3a2e24, roughness: 0.45 });
+        const blush = new THREE.MeshStandardMaterial({ color: 0xf2b2a6, roughness: 0.6 });
+        const leafM = new THREE.MeshStandardMaterial({ color: 0x7fae55, roughness: 0.55 });
+
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.64, 28, 20), cream);
+        body.scale.set(1.08, 0.9, 1);
+        body.position.y = 0.66;
+        body.castShadow = true;
+        g.add(body);
+
+        const belly = new THREE.Mesh(
+          new THREE.SphereGeometry(0.36, 16, 12),
+          new THREE.MeshStandardMaterial({ color: 0xfff6e8, roughness: 0.68 })
+        );
+        belly.position.set(0, 0.5, -0.32);
+        g.add(belly);
+
+        function makeEye(px) {
+          const e = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), ink);
+          e.position.set(px, 0.8, -0.54);
+          g.add(e);
+          const hi = new THREE.Mesh(
+            new THREE.SphereGeometry(0.028, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xfffaf0 })
+          );
+          hi.position.set(px + 0.02, 0.83, -0.6);
+          g.add(hi);
+          return e;
+        }
+        const eyeL = makeEye(-0.18);
+        const eyeR = makeEye(0.18);
+
+        const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), blush);
+        cheekL.position.set(-0.34, 0.66, -0.48);
+        const cheekR = cheekL.clone();
+        cheekR.position.x = 0.34;
+        g.add(cheekL);
+        g.add(cheekR);
+
+        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.016, 6, 12, Math.PI), ink);
+        smile.position.set(0, 0.62, -0.58);
+        smile.rotation.z = Math.PI;
+        g.add(smile);
+
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), leafM);
+        leaf.scale.set(0.65, 1.35, 0.32);
+        leaf.position.set(0.14, 1.22, 0.02);
+        leaf.rotation.z = -0.55;
+        g.add(leaf);
+
+        function makeArm(side) {
+          const pivot = new THREE.Group();
+          pivot.position.set(side * 0.5, 0.72, -0.06);
+          const a = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), cream);
+          a.scale.set(0.82, 1.2, 0.82);
+          a.position.set(side * 0.06, -0.14, -0.1);
+          a.castShadow = true;
+          pivot.add(a);
+          g.add(pivot);
+          return pivot;
+        }
+
+        const footGeo = new THREE.SphereGeometry(0.15, 10, 8);
+        const footL = new THREE.Mesh(footGeo, cream);
+        footL.scale.set(1.25, 0.65, 1.35);
+        footL.position.set(-0.24, 0.12, -0.18);
+        const footR = footL.clone();
+        footR.position.x = 0.24;
+        g.add(footL);
+        g.add(footR);
+
+        scene.add(g);
+        xiaotuan.group = g;
+        xiaotuan.body = body;
+        xiaotuan.eyeL = eyeL;
+        xiaotuan.eyeR = eyeR;
+        xiaotuan.armL = makeArm(-1);
+        xiaotuan.armR = makeArm(1);
+        xiaotuan.baseY = y;
+        xiaotuan.handLocal = new THREE.Vector3(0.62, 0.86, -0.42);
+      })();
+
+      function xiaotuanHandPos() {
+        return xiaotuan.group.localToWorld(xiaotuan.handLocal.clone());
+      }
+
+      function updateXiaotuan(elapsed, dt) {
+        const bob = Math.sin(elapsed * 2.1) * 0.04;
+        let swing = 0;
+        let hop = 0;
+        if (xiaotuan.toss > 0) {
+          xiaotuan.toss = Math.max(0, xiaotuan.toss - dt);
+          const u = 1 - xiaotuan.toss / xiaotuan.tossDur;
+          swing = Math.sin(Math.min(u, 1) * Math.PI);
+          hop = swing * 0.18;
+        }
+        xiaotuan.group.position.y = xiaotuan.baseY + bob + hop;
+        xiaotuan.armR.rotation.x = -1.75 * swing;
+        xiaotuan.armL.rotation.x = -0.4 * swing;
+        xiaotuan.body.rotation.x = -0.22 * swing;
+        const blink = Math.sin(elapsed * 0.52) > 0.965 ? 0.12 : 1;
+        xiaotuan.eyeL.scale.y = blink;
+        xiaotuan.eyeR.scale.y = blink;
+      }
+
+      // ============================================================================
       // 12. INTERACTIVE KOI FEEDING SYSTEM (PELLETS, SPLASH BURSTS & AI)
       // ============================================================================
       const pellets = [];
@@ -1834,11 +1986,11 @@
         statEatenEl.textContent = totalPelletsEaten;
 
         if (pellets.length > 0) {
-          behaviorBadgeEl.textContent = 'Feeding Frenzy!';
+          behaviorBadgeEl.textContent = '抢食中';
           behaviorBadgeEl.className =
             'text-[11px] font-medium px-2 py-0.5 rounded-full bg-orange-500/25 text-orange-300 border border-orange-400/40 animate-pulse';
         } else {
-          behaviorBadgeEl.textContent = 'Tranquil Cruise';
+          behaviorBadgeEl.textContent = '悠闲游动';
           behaviorBadgeEl.className =
             'text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
         }
@@ -1872,82 +2024,163 @@
         splashBursts.push({ group, drops, mat: dropMat, age: 0 });
       }
 
-      // Drop a cluster of food pellets around target (x, z)
-      function tossFoodPellets(centerX, centerZ, count = 12) {
+      // Shop foods share the game's cozy-tabi-v3 inventory. One item = one handful.
+      const SAVE_KEY = 'cozy-tabi-v3';
+      const SHOP_FOODS = [
+        { id: 'bun', n: '艾草团子', ic: '🍡', color: 0xc5e6a0, emissive: 0x3f6b32, size: 1.05, pellets: 8 },
+        { id: 'onigiri', n: '海苔饭团', ic: '🍙', color: 0xf7f1e3, emissive: 0x6b5b45, size: 1.2, pellets: 9 },
+        { id: 'bento', n: '森林便当', ic: '🍱', color: 0xf3d77a, emissive: 0x8a5a10, size: 1.28, pellets: 12 },
+        { id: 'vbento', n: '番茄罗勒便当', ic: '🍅', color: 0xe85d4c, emissive: 0x7a2218, size: 1.22, pellets: 12 },
+        { id: 'cbento', n: '胡萝卜饭团盒', ic: '🥕', color: 0xf08a2a, emissive: 0x8a3e00, size: 1.16, pellets: 10 },
+        { id: 'jam', n: '草莓果酱面包', ic: '🍓', color: 0xec6b8a, emissive: 0x8a2040, size: 0.92, pellets: 8 }
+      ];
+      const pelletMats = {};
+      let selectedFood = null;
+      const EMBED = document.documentElement.classList.contains('embed');
+      const foodTray = document.getElementById('food-tray');
+      const noFoodMsg = document.getElementById('no-food-msg');
+      const feedBtn = document.getElementById('feed-koi-btn');
+      const feedCountEl = document.getElementById('feed-count');
+
+      function readGameSave() {
+        try { return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); }
+        catch (e) { return null; }
+      }
+      function stockList() {
+        const save = readGameSave();
+        const inv = save && save.inv && typeof save.inv === 'object' ? save.inv : {};
+        return SHOP_FOODS
+          .map((f) => ({ ...f, count: typeof inv[f.id] === 'number' ? inv[f.id] : 0 }))
+          .filter((f) => f.count > 0);
+      }
+      function currentFood() {
+        const stock = stockList();
+        if (!stock.length) return null;
+        if (!stock.some((f) => f.id === selectedFood)) selectedFood = stock[0].id;
+        return stock.find((f) => f.id === selectedFood);
+      }
+      function matFor(food) {
+        if (!pelletMats[food.id]) {
+          pelletMats[food.id] = new THREE.MeshStandardMaterial({
+            color: food.color,
+            roughness: 0.55,
+            emissive: food.emissive,
+            emissiveIntensity: 0.32
+          });
+        }
+        return pelletMats[food.id];
+      }
+      function consumeFood(id) {
+        const save = readGameSave();
+        if (!save || !save.inv || typeof save.inv[id] !== 'number' || save.inv[id] <= 0) return null;
+        save.inv[id] -= 1;
+        localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+        try { parent.postMessage({ type: 'dango-inv', inv: save.inv }, location.origin); } catch (e) {}
+        return save.inv;
+      }
+      function refreshFoodUI() {
+        const stock = stockList();
+        const food = currentFood();
+        feedBtn.disabled = !food;
+        feedBtn.classList.toggle('pulse-ring', !!food);
+        noFoodMsg.classList.toggle('hidden', !!food);
+        feedCountEl.textContent = food ? food.pellets + ' 粒' : '没有食物';
+        foodTray.innerHTML = stock.map((f) =>
+          `<button type="button" class="food-chip${f.id === selectedFood ? ' on' : ''}" data-food="${f.id}">${f.ic} ${f.n} ×${f.count}</button>`
+        ).join('');
+        foodTray.querySelectorAll('[data-food]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedFood = btn.getAttribute('data-food');
+            refreshFoodUI();
+          });
+        });
+      }
+      function spotInFront() {
+        const p = xiaotuan.group.position;
+        let tx = p.x * 0.28 + (Math.random() - 0.5) * 2.2;
+        let tz = p.z * 0.34 + (Math.random() - 0.5) * 1.5;
+        const m = getPondMetrics(tx, tz);
+        if (m.normDist > 0.7) {
+          tx = Math.cos(m.theta) * m.maxR * 0.48;
+          tz = Math.sin(m.theta) * m.maxR * 0.48;
+        }
+        return { x: tx, z: tz };
+      }
+
+      // Pellets leave 小团's hand and arc onto the water.
+      function tossFoodPellets(centerX, centerZ, count, food) {
+        const origin = xiaotuanHandPos();
+        const mat = matFor(food);
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const spread = Math.sqrt(Math.random()) * (count > 5 ? 2.8 : 1.3);
+          const spread = Math.sqrt(Math.random()) * (count > 6 ? 1.7 : 1.05);
           let px = centerX + Math.cos(angle) * spread;
           let pz = centerZ + Math.sin(angle) * spread;
-
-          // Keep pellets well inside the water boundary so fish can comfortably reach them
-          const { theta, maxR, normDist } = getPondMetrics(px, pz);
-          if (normDist > 0.78) {
-            px = Math.cos(theta) * (maxR * 0.72);
-            pz = Math.sin(theta) * (maxR * 0.72);
+          const metrics = getPondMetrics(px, pz);
+          if (metrics.normDist > 0.74) {
+            px = Math.cos(metrics.theta) * (metrics.maxR * 0.62);
+            pz = Math.sin(metrics.theta) * (metrics.maxR * 0.62);
           }
-
-          const mesh = new THREE.Mesh(pelletGeo, pelletMat);
-          // Start above the water and arc down with gravity
-          const startHeight = 2.6 + Math.random() * 1.6;
-          mesh.position.set(
-            px + (Math.random() - 0.5) * 0.6,
-            startHeight,
-            pz + (Math.random() - 0.5) * 0.6
-          );
+          const mesh = new THREE.Mesh(pelletGeo, mat);
+          mesh.scale.setScalar(food.size * (0.85 + Math.random() * 0.3));
+          mesh.position.copy(origin);
+          mesh.position.x += (Math.random() - 0.5) * 0.12;
+          mesh.position.z += (Math.random() - 0.5) * 0.12;
           mesh.castShadow = true;
           scene.add(mesh);
-
+          const flight = 0.78 + Math.random() * 0.22;
+          const g = 9.8;
           pellets.push({
             mesh,
             targetX: px,
             targetZ: pz,
-            vy: -2.2 - Math.random() * 1.5,
+            vx: (px - mesh.position.x) / flight,
+            vz: (pz - mesh.position.z) / flight,
+            vy: (0.02 - mesh.position.y + 0.5 * g * flight * flight) / flight,
             landed: false,
             eaten: false,
             bobPhase: Math.random() * Math.PI * 2
           });
         }
+        xiaotuan.toss = xiaotuan.tossDur;
         updateFeedingHUD();
       }
 
-      // Pick a random scenic spot inside the pond to toss food when clicking the button
-      function feedFromButton() {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 1.2 + Math.random() * 4.2;
-        const tx = Math.cos(angle) * dist;
-        const tz = Math.sin(angle) * dist;
-        tossFoodPellets(tx, tz, 12);
-        showToast('Tossed 12 floating pellets! Watch the koi race to the surface.');
+      function beginFeed(tx, tz) {
+        const food = currentFood();
+        if (!food) {
+          refreshFoodUI();
+          showToast('食物不够啦，去商店买一点吧');
+          return false;
+        }
+        if (!consumeFood(food.id)) {
+          refreshFoodUI();
+          showToast('食物不够啦，去商店买一点吧');
+          return false;
+        }
+        tossFoodPellets(tx, tz, food.pellets, food);
+        refreshFoodUI();
+        showToast(`小团投下了${food.ic}${food.n}`);
+        return true;
       }
 
-      document.getElementById('feed-koi-btn').addEventListener('click', (e) => {
+      feedBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        feedFromButton();
+        const spot = spotInFront();
+        beginFeed(spot.x, spot.z);
       });
 
-      // Auto-Feeder Toggle
-      let autoFeedActive = false;
-      let autoFeedTimer = 0;
-      const autoFeedBtn = document.getElementById('autofeed-btn');
-      const autoFeedDot = document.getElementById('autofeed-dot');
+      const shopLink = document.getElementById('shop-link');
+      if (EMBED && shopLink) {
+        shopLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          try { parent.postMessage({ type: 'dango-goto', tab: 'shop' }, location.origin); } catch (err) {}
+        });
+      }
+      refreshFoodUI();
 
-      autoFeedBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        autoFeedActive = !autoFeedActive;
-        if (autoFeedActive) {
-          autoFeedDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
-          autoFeedBtn.classList.add('border-emerald-400/50', 'text-emerald-200');
-          if (pellets.length < 4) feedFromButton();
-          showToast('Auto-Feeder enabled: pellets will drop periodically.');
-        } else {
-          autoFeedDot.className = 'w-2 h-2 rounded-full bg-slate-500';
-          autoFeedBtn.classList.remove('border-emerald-400/50', 'text-emerald-200');
-          showToast('Auto-Feeder paused.');
-        }
-      });
-
-      // Direct Raycasting on Water Surface to Toss Pellets Where User Clicks/Taps
+      // Clicking the water spends the same shop food and tosses from 小团.
       const raycaster = new THREE.Raycaster();
       const pointerDownPos = new THREE.Vector2();
       const pointerUpPos = new THREE.Vector2();
@@ -1958,7 +2191,6 @@
 
       renderer.domElement.addEventListener('pointerup', (e) => {
         pointerUpPos.set(e.clientX, e.clientY);
-        // Only trigger water click if user didn't drag to orbit the camera
         if (pointerDownPos.distanceTo(pointerUpPos) < 6) {
           const ndc = new THREE.Vector2(
             (e.clientX / window.innerWidth) * 2 - 1,
@@ -1969,11 +2201,7 @@
           if (hits.length > 0) {
             const pt = hits[0].point;
             const { normDist } = getPondMetrics(pt.x, pt.z);
-            if (normDist < 0.92) {
-              tossFoodPellets(pt.x, pt.z, 6);
-              spawnWaterRipple(pt.x, pt.z, 0.85, 2.2);
-              showToast('Dropped 6 pellets right at your cursor!');
-            }
+            if (normDist < 0.92) beginFeed(pt.x, pt.z);
           }
         }
       });
@@ -2046,7 +2274,7 @@
         btn.addEventListener('click', () => {
           const preset = btn.getAttribute('data-cam');
           if (preset === 'overview') {
-            flyCameraTo([0, 16.5, 21.5], [0, -0.3, 0]);
+            flyCameraTo([7.2, 10.6, 15.4], [-4.2, 0.55, 0.4]);
           } else if (preset === 'waterfall') {
             flyCameraTo([4.2, 5.8, 7.5], [PLUNGE_X * 0.85, 1.1, PLUNGE_Z * 0.85]);
           } else if (preset === 'surface') {
@@ -2112,15 +2340,7 @@
           if (camTransition.progress >= 1) camTransition = null;
         }
         controls.update();
-
-        // Auto-Feeder Check
-        if (autoFeedActive) {
-          autoFeedTimer += dt;
-          if (autoFeedTimer > 5.5 && pellets.length < 8) {
-            autoFeedTimer = 0;
-            feedFromButton();
-          }
-        }
+        updateXiaotuan(elapsed, dt);
 
         // 1. Update Waterfall Plunge Mist Particles & Ripples
         waterfallRippleTimer += dt;
@@ -2213,10 +2433,15 @@
           if (!p.landed) {
             p.vy -= 9.8 * dt;
             p.mesh.position.y += p.vy * dt;
-            p.mesh.position.x = THREE.MathUtils.lerp(p.mesh.position.x, p.targetX, dt * 4);
-            p.mesh.position.z = THREE.MathUtils.lerp(p.mesh.position.z, p.targetZ, dt * 4);
+            if (p.vx != null) {
+              p.mesh.position.x += p.vx * dt;
+              p.mesh.position.z += p.vz * dt;
+            } else {
+              p.mesh.position.x = THREE.MathUtils.lerp(p.mesh.position.x, p.targetX, dt * 4);
+              p.mesh.position.z = THREE.MathUtils.lerp(p.mesh.position.z, p.targetZ, dt * 4);
+            }
 
-            if (p.mesh.position.y <= 0.02) {
+            if (p.mesh.position.y <= 0.02 && p.vy < 0) {
               p.mesh.position.y = 0.02;
               p.landed = true;
               spawnWaterRipple(p.mesh.position.x, p.mesh.position.z, 0.9, 2.1);

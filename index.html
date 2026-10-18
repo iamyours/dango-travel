@@ -6,7 +6,8 @@
 #app{width:min(760px,100vw);min-height:100vh;background:var(--cream);position:relative;overflow:hidden;box-shadow:0 0 0 2px var(--ink)}
 header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:linear-gradient(#a6cc7a,#8cbc63);border-bottom:2px solid var(--ink);font-weight:700;font-size:18px;gap:6px}
 .pill{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:3px 12px;font-size:15px}
-button{font:inherit;cursor:pointer;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:7px 14px;box-shadow:0 3px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink)}
+button,a.hb,a.pondgo{font:inherit;cursor:pointer;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:7px 14px;box-shadow:0 3px 0 var(--ink);transition:transform .1s,box-shadow .1s;color:var(--ink);text-decoration:none}
+a.hb,a.pondgo{display:inline-block}a.pondgo:active,a.hb:active{transform:translateY(3px);box-shadow:none}
 button:active{transform:translateY(3px);box-shadow:none}button:disabled{opacity:.45;cursor:default}
 .hb{padding:2px 10px;font-size:14px}
 .scene{position:relative;width:100%;aspect-ratio:1600/893;border-bottom:2px solid var(--ink);overflow:hidden;background:#cfe0b8}
@@ -18,8 +19,9 @@ button:active{transform:translateY(3px);box-shadow:none}button:disabled{opacity:
 .arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:8;width:38px;height:38px;border-radius:50%;padding:0;font-size:18px;opacity:.85;background:#fffaf0d0}
 .arrow.l{left:8px}.arrow.r{right:8px}.arrow:active{transform:translateY(calc(-50% + 3px))}
 .roomname{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:8;background:#fffaf0e0;border:2px solid var(--ink);border-radius:14px;padding:2px 12px;font-size:14px;font-weight:700}
-nav{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:12px 14px}
-nav button{padding:9px 2px;font-size:14px}nav button.on,.chips button.on{background:var(--yel)}
+nav{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:12px 10px}
+nav button{padding:9px 1px;font-size:13px}nav button.on,.chips button.on{background:var(--yel)}
+#pondframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:9;background:#0b191e}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.chips button{padding:4px 10px;font-size:13px;box-shadow:0 2px 0 var(--ink)}
 .chips button .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e86a55;margin-left:4px;vertical-align:middle}
 .panel{padding:2px 16px 24px}.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:12px;margin:8px 0}
@@ -96,9 +98,9 @@ nav button{padding:9px 2px;font-size:14px}nav button.on,.chips button.on{backgro
 .dbg{position:fixed;right:6px;bottom:6px;z-index:40;background:#fffaf0;border:2px solid var(--ink);border-radius:12px;padding:6px;display:flex;flex-wrap:wrap;gap:4px;max-width:300px;font-size:12px}.dbg button{padding:2px 6px;font-size:12px;box-shadow:none}
 .plot{display:flex;flex-direction:column;align-items:center;gap:4px}.bar{height:6px;width:100%;background:#eadfc6;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:#7fae55}
 </style></head><body><div id="app">
-<header><span>🍃 团子去旅行</span><span><span class="pill" id="clock">--:--</span> <span class="pill">🍀 <b id="cl">0</b></span> <button id="snd" class="hb" title="环境音">🔈</button> <button id="spd" class="hb" title="时间倍速">×1</button></span></header>
+<header><span>🍃 团子去旅行</span><span><span class="pill" id="clock">--:--</span> <span class="pill">🍀 <b id="cl">0</b></span> <button type="button" id="openpond" class="hb" title="小团的池塘">🐟</button> <button id="snd" class="hb" title="环境音">🔈</button> <button id="spd" class="hb" title="时间倍速">×1</button></span></header>
 <div class="scene" id="scene"><canvas id="fx"></canvas><div class="tint" id="tint"></div></div>
-<nav><button data-t="home">小屋</button><button data-t="garden">庭院</button><button data-t="shop">商店</button><button data-t="bag">行囊</button><button data-t="diary">日记</button><button data-t="album">相册</button></nav>
+<nav><button data-t="home">小屋</button><button data-t="pond">池塘</button><button data-t="garden">庭院</button><button data-t="shop">商店</button><button data-t="bag">行囊</button><button data-t="diary">日记</button><button data-t="album">相册</button></nav>
 <div class="panel" id="panel"></div></div>
 <script>const HAVE=new Set(["bg_balcony.jpg", "bg_kitchen.jpg", "bg_living_autumn.jpg", "bg_living_spring.jpg", "bg_living_winter.jpg", "bg_pond.jpg", "bg_rain.jpg", "bg_reading.jpg", "blob_home.png", "blob_walk.png", "c_basil.png", "c_basket.png", "c_bento.png", "c_carrot.png", "c_jam.png", "c_seed.png", "c_sprout.png", "c_strawberry.png", "c_tomato.png", "f_cushion.png", "f_hanging.png", "f_lamp.png", "f_monstera.png", "f_painting.png", "f_radio.png", "f_rocker.png", "f_rug.png", "f_shelf.png", "garden.jpg", "home.jpg", "home_empty.jpg", "p_fish.png", "p_lantern.png", "p_read.png", "p_rest.png", "p_sleep.png", "p_stir.png", "p_stretch.png", "p_tea.png", "p_umbrella.png", "p_walkside.png", "p_water.png", "p_wave.png", "pc_camper.jpg", "pc_dome.jpg", "pc_field.jpg", "pc_lighthouse.jpg", "pc_market.jpg", "pc_snow.jpg", "pc_train.jpg", "pc_village.jpg", "v_cat.png", "v_chick.png", "v_fox.png", "v_frog.png", "v_hedgehog.png", "v_rabbit.png"]);
 const K3='cozy-tabi-v3',K2='cozy-tabi-v2',A='assets/',Q=new URLSearchParams(location.search),DEBUG=Q.has('debug');
@@ -125,6 +127,7 @@ const FURN=[{id:'rug',n:'圆地毯',ic:'🧶',p:20,w:14},{id:'shelf',n:'小书�
 const VIS=[{id:'cat',n:'小白猫',ic:'🐈',gift:'🧶 毛线球'},{id:'chick',n:'小黄鸡',ic:'🐤',gift:'🌼 小黄花'},{id:'hedgehog',n:'小刺猬',ic:'🦔',gift:'🍎 小苹果'},{id:'rabbit',n:'灰兔子',ic:'🐇',gift:'🍀 四叶草书签'},{id:'frog',n:'戴帽子的青蛙',ic:'🐸',gift:'🍃 荷叶伞'},{id:'fox',n:'小狐狸',ic:'🦊',gift:'🍂 红叶'}];
 const PHOTO_AT=3;
 const PLACES=[
+ {id:'xiaotuan',n:'小团的池塘',r:1,w:28,tags:['town','forest'],ic:'🐟',c:'#8ecfc8',pond:true,notes:['池边的石头暖暖的，锦鲤游得好慢，我看了它们好久。','我把一点食物轻轻抛进水里，锦鲤都围了过来。','又来到小团的池塘，水面闪闪的，它们好像还记得我。']},
  {id:'train',n:'被藤蔓覆盖的旧车厢',r:1,tags:['forest'],ic:'🚃',c:'#f2d6a6',notes:['车厢里长满了蕨类，我在红色座椅上晒了一下午太阳。','又来到了旧车厢，座椅上多了一只打盹的小鸟。','站长爷爷说，这列车很久以前会开到海边。下次想去看看海。']},
  {id:'camper',n:'森林里的露营车',r:1,tags:['forest'],ic:'🚐',c:'#cfe6d8',notes:['在露营车里弹了吉他，听了一整夜虫鸣。','露营车的主人回来了，请我喝了热可可。','我们约好了，下次一起在车顶看流星。']},
  {id:'village',n:'树荫下的小镇',r:1,tags:['town'],ic:'🏘️',c:'#f3dcc8',notes:['小镇的房顶都长着青苔，面包店老板送了我一块面包。','面包店老板记得我啦，多给了我一个牛角包。','我帮面包店贴了新海报，上面画着我。']},
@@ -170,7 +173,13 @@ function load(){let s=null;try{s=JSON.parse(localStorage.getItem(K3)||'null')}ca
    if(o.away)s.trip={phase:'away',remain:Math.max(MIN,o.away.remain||HR),food:o.away.food,charm:o.away.charm,total:o.away.remain||HR};s.migrated=true}}
  const d=def();for(const k in d)if(s[k]===undefined)s[k]=d[k];if(!s.vis.photos)s.vis.photos=[];return s}
 let S=load();
-const save=()=>{S.lastSeen=Date.now();localStorage.setItem(K3,JSON.stringify(S))};
+function pullInv(){try{const n=JSON.parse(localStorage.getItem(K3)||'null');if(n&&n.inv)S.inv=n.inv}catch(e){}}
+const save=()=>{if(tab=='pond')pullInv();S.lastSeen=Date.now();localStorage.setItem(K3,JSON.stringify(S))};
+let pondMounted=false;
+function mountPond(){const sc=$('scene');let f=$('pondframe');if(!f){f=document.createElement('iframe');f.id='pondframe';f.title='小团的池塘';sc.appendChild(f)}
+ if(!pondMounted){S.lastSeen=Date.now();localStorage.setItem(K3,JSON.stringify(S));f.src='./koi/?embed=1';pondMounted=true}
+ sc.querySelectorAll('.layer').forEach(x=>x.remove())}
+function unloadPond(){if(!pondMounted)return;pullInv();const f=$('pondframe');if(f)f.src='about:blank';pondMounted=false}
 // ---------- activity ----------
 function curAct(t=Date.now()){if(dbgAct&&ACTS[dbgAct])return dbgAct;const h=hourAt(t),d=dayNum(sh(t).day),half=Math.floor(h*2);
  if(weatherAt(t)=='rain'&&h>=9&&h<18&&half%2==0)return 'umbrella';const s=SCHED.find(s=>h>=s[0]&&h<s[1]);return s[2][hash(d*100+half)%s[2].length]}
@@ -201,8 +210,8 @@ function visitorLeaves(t){const c=S.vis.cur,v=VIS.find(x=>x.id==c.id);S.vis.cur=
  diary(t,`${v.n}回家前留下了${g}。`,2);log(`${v.n}留下了${g}`);
  if(m==PHOTO_AT&&!S.vis.photos.includes(v.id)){S.vis.photos.push(v.id);S.vis.photoRoom=S.vis.photoRoom||{};S.vis.photoRoom[v.id]=c.room;diary(t,`和${v.n}拍了一张合照！我们是好朋友了。`,4);log(`和${v.n}拍了合照 📷`)}
  if(!LOG&&tab=='home')toast(`${v.n}回家了，留下了${g}`)}
-function chooseDest(food,charm,t){const s=seasonAt(t),f=FOODS.find(x=>x.id==food)||FOODS[0];const tags=[...f.tags];if(charm=='acorn')tags.push('forest');if(charm=='shell')tags.push('far');
- const pool=PLACES.filter(p=>!p.season||p.season==s).map(p=>{let w={1:10,2:4,3:1.2}[p.r];for(const g of tags){if(g=='rare'&&p.r==3)w*=3;else if(p.tags.includes(g))w*=3}if(p.season)w*=2;return[p,w]});
+function chooseDest(food,charm,t){const forced=Q.get('place');if(forced&&PLACES.some(p=>p.id==forced))return forced;const s=seasonAt(t),f=FOODS.find(x=>x.id==food)||FOODS[0];const tags=[...f.tags];if(charm=='acorn')tags.push('forest');if(charm=='shell')tags.push('far');
+ const pool=PLACES.filter(p=>!p.season||p.season==s).map(p=>{let w=p.w||{1:10,2:4,3:1.2}[p.r];for(const g of tags){if(g=='rare'&&p.r==3)w*=3;else if(p.tags.includes(g))w*=3}if(p.season)w*=2;return[p,w]});
  let x=Math.random()*pool.reduce((a,b)=>a+b[1],0);for(const[p,w]of pool){x-=w;if(x<=0)return p.id}return pool[0][0].id}
 function departNow(t){const tr=S.trip,f=FOODS.find(x=>x.id==tr.food);const total=rnd(f.dur[0],f.dur[1])*HR;S.trip={phase:'away',food:tr.food,charm:tr.charm,remain:total,total,left:t};
  if(S.vis.cur)visitorLeaves(t);diary(t,`背上${f.n}出门旅行了，不知道会走到哪里。`,3);log('团子背上行囊出门旅行了');
@@ -269,7 +278,7 @@ function sceneHTML(){if(tab=='garden'){let h=`<img class="bg" src="${A}garden.jp
  if(walker&&walker.room==r&&Date.now()<walker.until)o+=`<div class="walker" style="left:${walker.x}%;bottom:${walker.b}%;width:9%;--dx:${walker.dx}"><img src="${A}p_walkside.png"></div>`;
  o+=`<button class="arrow l" data-go="-1">‹</button><button class="arrow r" data-go="1">›</button><div class="roomname">${R.n}${home()&&ACTS[curAct()].room==r?' · 团子在这里':''}${edit?' · 布置中':''}</div>`;
  if(S.mail.length)o+=`<div class="badge" style="left:2%;top:12px">📮 ${S.mail.length}</div>`;return o}
-function renderScene(fade=true){const sc=$('scene');const L=document.createElement('div');L.className='layer'+(edit?' edit':'');L.innerHTML=sceneHTML();sc.insertBefore(L,$('fx'));
+function renderScene(fade=true){const sc=$('scene');if(tab=='pond'){mountPond();return}unloadPond();const L=document.createElement('div');L.className='layer'+(edit?' edit':'');L.innerHTML=sceneHTML();sc.insertBefore(L,$('fx'));
  const old=[...sc.querySelectorAll('.layer')].filter(x=>x!==L);
  if(fade&&!RM){requestAnimationFrame(()=>requestAnimationFrame(()=>L.classList.add('show')));setTimeout(()=>old.forEach(x=>x.remove()),950)}else{L.classList.add('show');old.forEach(x=>x.remove())}
  L.querySelectorAll('.clover').forEach(c=>c.onclick=()=>pickClover(+c.dataset.i));
@@ -313,6 +322,7 @@ if(tab=='bag'){const tr=S.trip;if(tr)h=`<div class="card row"><img src="${A}p_wa
  <h4>食物</h4><div class="grid">${FOODS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.food==f.id?'sel':''}" data-pick="food:${f.id}">${f.img?ico(f.img,f.ic):`<div class="ic">${f.ic}</div>`}<br>${f.n} ×${inv[f.id]}<br><small>${f.dur[0]}～${f.dur[1]} 小时${f.d?'<br>'+f.d:''}</small></div>`).join('')||'<small>没有食物，去商店买，或者用阳台的收获做饭吧</small>'}</div>
  <h4>护身符</h4><div class="grid">${CHARMS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.charm==f.id?'sel':''}" data-pick="charm:${f.id}"><div class="ic">${f.ic}</div>${f.n}</div>`).join('')||'<small>暂无</small>'}</div>
  <p><button id="go" ${S.bag.food&&inv[S.bag.food]>0?'':'disabled'}>🎒 整理好了</button></p>`}}
+if(tab=='pond'){const foods=FOODS.filter(f=>(S.inv[f.id]||0)>0);h=`<div class="card"><b>🐟 小团的池塘</b><br>池塘就嵌在上面的画面里。小团坐在岸边，投喂会用掉商店里买的食物，一份食物撒出一把饵料。<br><small>${foods.length?foods.map(f=>`${f.ic}${f.n} ×${S.inv[f.id]}`).join('　'):'食物不够啦，去商店买一点吧'}</small><br><a class="pondgo" href="./koi/" target="_blank" rel="noopener" style="margin-top:8px">全屏打开</a></div>`}
 if(tab=='diary')h=diaryHTML();
 if(tab=='album')h=albumHTML();
 const P=$('panel');P.innerHTML=h;bindPanel(P)}
@@ -321,7 +331,8 @@ function diaryHTML(){const today=sh(Date.now()).day;const days=[...new Set([...O
  if(!L.length)L=[{t:isToday?'今天才刚刚开始，还没有什么要写的……':fillerFor(diaryDay)}];const [y,m,d]=diaryDay.split('-');const t0=Date.parse(diaryDay+'T12:00:00+08:00');
  return `<div class="tabs"><button data-dd="-1" ${i<=0?'disabled':''}>‹ 前一页</button><button data-dd="1" ${i>=days.length-1?'disabled':''}>后一页 ›</button><small style="align-self:center">共 ${days.length} 页</small></div>
  <div class="book"><h3>📔 ${+m}月${+d}日 · ${SEASONS[seasonAt(t0)].n} · ${WN[weatherAt(t0)]}${isToday?' <span class="tag">今天</span>':''}</h3>${L.map(e=>`<p>${e.t}</p>`).join('')}<img class="doodle" src="${A}${['p_read','p_tea','p_rest','p_wave'][dayNum(diaryDay)%4]}.png"></div>`}
-function pcArt(id){const p=PLACES.find(x=>x.id==id);return HAVE.has('pc_'+id+'.jpg')?`<img src="${A}pc_${id}.jpg" loading="lazy">`:`<div class="ph" style="background:linear-gradient(160deg,${p.c},#fffaf0)">${p.ic}<span>${p.n}</span></div>`}
+function pondCard(){return `<div class="ph" style="background:linear-gradient(#d7efc8,#7fccc4 46%,#2f7f78);padding:0"><svg viewBox="0 0 320 240" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0" aria-hidden="true"><ellipse cx="176" cy="156" rx="118" ry="52" fill="#3aa7a0" stroke="#3a2e24" stroke-width="4"/><ellipse cx="160" cy="150" rx="72" ry="28" fill="#b7ebe4" opacity=".75"/><ellipse cx="214" cy="128" rx="26" ry="11" fill="#6fb04d" stroke="#3a2e24" stroke-width="2.5" transform="rotate(-16 214 128)"/><ellipse cx="132" cy="176" rx="20" ry="9" fill="#8cbc63" stroke="#3a2e24" stroke-width="2.5"/><path d="M248 154c22-10 36-2 42 8-20 4-32 2-42-8z" fill="#f08a4a" stroke="#3a2e24" stroke-width="2.5"/><circle cx="284" cy="156" r="3.2" fill="#3a2e24"/><path d="M108 164c-20 8-32 2-40-10 18-2 28 0 40 10z" fill="#f4f7f5" stroke="#3a2e24" stroke-width="2.5"/><circle cx="74" cy="148" r="2.6" fill="#3a2e24"/><circle cx="86" cy="108" r="24" fill="#f6e2c4" stroke="#3a2e24" stroke-width="3"/><circle cx="77" cy="104" r="2.4" fill="#3a2e24"/><circle cx="95" cy="104" r="2.4" fill="#3a2e24"/><path d="M80 114q6 6 12 0" fill="none" stroke="#3a2e24" stroke-width="2"/><circle cx="72" cy="110" r="3.4" fill="#f2b2a6"/><circle cx="100" cy="110" r="3.4" fill="#f2b2a6"/><path d="M90 84c6-12 16-8 12 2" fill="#7fae55" stroke="#3a2e24" stroke-width="2"/><circle cx="112" cy="120" r="7" fill="#f6e2c4" stroke="#3a2e24" stroke-width="2.5"/></svg><span style="position:absolute;left:8px;bottom:8px;z-index:1">小团的池塘</span></div>`}
+function pcArt(id){const p=PLACES.find(x=>x.id==id);if(p&&p.pond)return pondCard();return HAVE.has('pc_'+id+'.jpg')?`<img src="${A}pc_${id}.jpg" loading="lazy">`:`<div class="ph" style="background:linear-gradient(160deg,${p.c},#fffaf0)">${p.ic}<span>${p.n}</span></div>`}
 const stars=r=>'★'.repeat(r);
 function albumHTML(){let h=`<div class="tabs"><button data-at="pc" class="${albumTab=='pc'?'on':''}">明信片</button><button data-at="photo" class="${albumTab=='photo'?'on':''}">合照</button></div>`;
  if(albumTab=='pc'){const got=PLACES.filter(p=>S.visits[p.id]);h+=`<div class="card">已去过 ${got.length}/${PLACES.length} 个地方 · 明信片 ${S.album.length} 张 <small>★普通 ★★少见 ★★★稀有</small></div><div class="grid album" style="grid-template-columns:1fr 1fr">${PLACES.map(p=>S.visits[p.id]?`<div class="card pc" data-pc="${p.id}">${pcArt(p.id)}<small>${p.n} <span class="stars">${stars(p.r)}</span>${p.season?`<span class="tag">${SEASONS[p.season].n}季限定</span>`:''} · ${S.visits[p.id]} 次</small></div>`:`<div class="card"><div class="lock">？</div><small>${p.season?SEASONS[p.season].n+'季限定 · ':''}<span class="stars">${stars(p.r)}</span></small></div>`).join('')}</div>`}
@@ -354,7 +365,7 @@ function pack(){const f=FOODS.find(x=>x.id==S.bag.food);if(!f||!(S.inv[f.id]>0))
  S.trip={phase:'packed',food:f.id,charm:c,leaveIn:rnd(10,45)*MIN};S.bag={food:null,charm:null};save();beep(440);toast('行囊整理好了，团子会自己挑时候出门～');render(false)}
 function openMail(){const m=S.mail.shift();if(!m)return;S.album.push({id:m.id,t:m.t});S.souv.push(m.sv);S.clover+=m.cl;save();render(false);showPc(m.id,m)}
 function showPc(id,m){const p=PLACES.find(x=>x.id==id),n=m?m.n:S.visits[id]||1;const note=p.notes[Math.min(n,p.notes.length)-1];
- const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc">${pcArt(id)}<p><b>${p.n}</b> <span class="stars">${stars(p.r)}</span>${p.season?`<span class="tag">${SEASONS[p.season].n}季限定</span>`:''}<br><small>第 ${n} 次来到这里</small><br>${note}</p>${m?`<p>带回了：${m.sv}，还有 🍀${m.cl}</p>`:''}${n<p.notes.length?`<small>再来 ${p.notes.length-n} 次，故事会继续……</small><br>`:''}<button id="keep">${m?'收进相册':'关闭'}</button></div>`;d.querySelector('button').onclick=()=>d.remove();document.body.appendChild(d)}
+ const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="card pc">${pcArt(id)}<p><b>${p.n}</b> <span class="stars">${stars(p.r)}</span>${p.season?`<span class="tag">${SEASONS[p.season].n}季限定</span>`:''}<br><small>第 ${n} 次来到这里</small><br>${note}</p>${m?`<p>带回了：${m.sv}，还有 🍀${m.cl}</p>`:''}${p.pond?`<p><button type="button" id="gopond">去池塘看看 🐟</button></p>`:''}${n<p.notes.length?`<small>再来 ${p.notes.length-n} 次，故事会继续……</small><br>`:''}<button id="keep">${m?'收进相册':'关闭'}</button></div>`;d.querySelector('#keep').onclick=()=>d.remove();const go=d.querySelector('#gopond');if(go)go.onclick=()=>{d.remove();tab='pond';edit=false;render()};document.body.appendChild(d)}
 // ---------- canvas fx + main loop ----------
 const cv=$('fx'),cx=cv.getContext('2d');let drops=[],flies=[],wdrops=[];
 function sizeCv(){const r=cv.getBoundingClientRect();cv.width=r.width*devicePixelRatio;cv.height=r.height*devicePixelRatio}
@@ -377,6 +388,9 @@ function loop(t){const dt=Math.min(200,t-last);last=t;step(dt*S.speed,Date.now()
  if(t-lastBlink>3500+Math.random()*3000){lastBlink=t;const b=document.querySelector('.layer.show .actor .blk');if(b){b.classList.add('blink');setTimeout(()=>b.classList.remove('blink'),140)}}
  drawFx(t,dt);requestAnimationFrame(loop)}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;if(tab!='home')edit=false;render()});
+$('openpond').onclick=()=>{tab='pond';edit=false;render()};
+addEventListener('message',e=>{if(e.origin!==location.origin||!e.data)return;if(e.data.type=='dango-inv'&&e.data.inv){S.inv=e.data.inv;if(tab=='pond'||tab=='shop'||tab=='bag')renderPanel()}if(e.data.type=='dango-goto'){pullInv();tab=e.data.tab||'shop';edit=false;render()}});
+addEventListener('storage',e=>{if(e.key!==K3||!e.newValue)return;try{const n=JSON.parse(e.newValue);if(n&&n.inv){S.inv=n.inv;if(tab=='pond'||tab=='shop'||tab=='bag')renderPanel()}}catch(err){}});
 $('spd').onclick=()=>{S.speed={1:10,10:60,60:1}[S.speed]||1;save();render(false)};
 $('snd').onclick=()=>{const on=!amb;ambient(on);$('snd').textContent=on?'🔊':'🔈'};
 window.dango={S:()=>S,setHour:h=>{dbgHour=h;room=null;render(false)},setRain:v=>{dbgRain=v==null?null:v?'1':'0';render(false)},setAct:k=>{dbgAct=k;room=null;render(false)},setSeason:s=>{dbgSeason=s;render(false)},
