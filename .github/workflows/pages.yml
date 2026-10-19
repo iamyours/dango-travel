@@ -3,6 +3,9 @@ name: Deploy static content to Pages
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "screenshots/**"
+      - "README.md"
   workflow_dispatch:
 
 permissions:
@@ -27,10 +30,15 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp -a index.html .nojekyll _site/
+          cp -a assets koi _site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
