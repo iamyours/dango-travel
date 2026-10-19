@@ -4,6 +4,8 @@
 
 在线游玩：https://iamyours.github.io/dango-travel/
 
+商店里的三叶草不够时，可以自愿看一段奖励广告，让团子再去草地里找一些。除此之外页面上没有横幅、插屏或自动广告。测试模式默认打开：`index.html` 里 AdSense 脚本的 `data-adbreak-test="on"`。审核通过、要请求正式广告时，删掉这一个属性即可。
+
 ## 画面
 
 <table>

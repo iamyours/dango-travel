@@ -33,7 +33,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp -a index.html .nojekyll _site/
+          cp -a index.html .nojekyll ads.txt _site/
           cp -a assets koi _site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -1,4 +1,8 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google-adsense-account" content="ca-pub-5372826685368538">
+<script async data-ad-client="ca-pub-5372826685368538" data-adbreak-test="on" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" crossorigin="anonymous"></script>
+<script>window.adsbygoogle = window.adsbygoogle || []; var adBreak = adConfig = function(o) {adsbygoogle.push(o);}</script>
+<script>/* 测试开关就是上面脚本的 data-adbreak-test="on"。删掉该属性即请求正式广告。 */window.AD_TEST=document.querySelector('script[data-ad-client]').getAttribute('data-adbreak-test')==='on';document.querySelector('script[data-ad-client]').onerror=function(){window.__adsFailed=true};</script>
 <link rel="icon" href="data:,"><title>团子去旅行</title>
 <style>
 :root{--ink:#3a2e24;--cream:#fbf4e2;--card:#fffaf0;--yel:#f3d77a;--gd:#4f7f3a}
@@ -179,7 +183,7 @@ const LIVING={summer:{bg:'home_empty',blanket:true,steam:[52.4,62.5]},
 function livingCfg(t){const s=seasonAt(t),k='bg_living_'+s;if(s!='summer'&&HAVE.has(k+'.jpg'))return LIVING[s];return LIVING.summer}
 // ---------- state & migration ----------
 const def=()=>({v:3,clover:20,inv:{bun:1},seeds:{basil:1},produce:{},furn:{},deco:[],bag:{food:null,charm:null},trip:null,album:[],souv:[],grow:Array(8).fill(0),speed:1,mail:[],visits:{},
- plots:[null,null,null,null],vis:{cur:null,next:2*HR,meets:{},photos:[]},diary:{},lastDay:null,lastSeen:Date.now(),letterSeen:true});
+ plots:[null,null,null,null],vis:{cur:null,next:2*HR,meets:{},photos:[]},diary:{},lastDay:null,lastSeen:Date.now(),letterSeen:true,ads:{day:null,n:0}});
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(K3)||'null')}catch(e){}
  if(!s){let o=null;try{o=JSON.parse(localStorage.getItem(K2)||'null')}catch(e){}s=def();
   if(o){s.clover=o.clover??20;s.inv=o.inv||s.inv;s.album=o.album||[];s.souv=o.souv||[];s.mail=(o.mail||[]).map(m=>({...m,n:1}));s.grow=(o.grow||[]).map(x=>Math.min(x,REGROW));while(s.grow.length<8)s.grow.push(0);
@@ -246,7 +250,9 @@ function toast(m){const d=document.createElement('div');d.className='toast';d.te
 function spr(name,emo,w=1,style=''){return HAVE.has(name+'.png')?`<img src="${A}${name}.png" style="${style}" alt="">`:`<div class="emo" style="--w:${w*10};${style}">${emo}</div>`}
 function ico(name,emo){return HAVE.has(name+'.png')?`<img src="${A}${name}.png" style="height:34px;vertical-align:middle">`:`<span style="font-size:28px">${emo}</span>`}
 let ac,amb=null;function actx(){return ac=ac||new (window.AudioContext||window.webkitAudioContext)()}
-function beep(f=660,v=.1,d=.35){try{const a=actx(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+let adSilent=false;
+function beep(f=660,v=.1,d=.35){if(adSilent)return;try{const a=actx(),o=a.createOscillator(),g=a.createGain();o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+d)}catch(e){}}
+function silenceForAd(on){adSilent=on;if(!amb||!amb.g)return;try{if(on){amb._prev=amb.g.gain.value;amb.g.gain.setTargetAtTime(.0001,actx().currentTime,.03)}else if(amb._prev!=null){amb.g.gain.setTargetAtTime(amb._prev,actx().currentTime,.05);amb._prev=null}}catch(e){}}
 function ambient(on){const a=actx();if(!on){if(amb){amb.src.stop();clearInterval(amb.iv);amb=null}return}
  const len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);let l=0;for(let i=0;i<len;i++){l=(l+.02*(Math.random()*2-1))/1.02;d[i]=l*3.5}
  const src=a.createBufferSource();src.buffer=buf;src.loop=true;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=a.createGain();g.gain.value=0;src.connect(f).connect(g).connect(a.destination);src.start();
@@ -327,10 +333,10 @@ if(tab=='home'){const k=curAct(),a=ACTS[k],vr=viewRoom();
  h+=`<div class="card"><b>收藏的纪念品</b> <small>${SEASONS[seasonAt(Date.now())].n}天 · ${WN[weatherAt(Date.now())]}</small><br>${S.souv.length?S.souv.join('　'):'<small>还没有，等团子带回来吧</small>'}</div>`}
 if(tab=='garden'){const g=S.grow.filter(x=>x>0).length;h=`<div class="card">点一点草地上的三叶草来收集 🍀。摘下后大约 ${dur(REGROW)} 长回来（${8-g}/8 可摘），偶尔会有幸运四叶草。<br><small>点信箱可以收明信片。</small></div>`}
 if(tab=='shop'){const sec=(t,items)=>`<h4>${t}</h4><div class="grid">${items}</div>`;
- h=sec('食物',FOODS.filter(f=>f.p).map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="food:${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join(''))
- +sec('种子',CROPS.map(c=>`<div class="card item">${ico('c_seed','🌰')}<br>${c.ic}${c.n}种子<br><small>约 ${c.h} 小时成熟 · 🍀${c.p} · 持有 ${cnt(S.seeds,c.id)}</small><br><button data-buy="seed:${c.id}" ${S.clover<c.p?'disabled':''}>购买</button></div>`).join(''))
- +sec('护身符',CHARMS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>${f.d}<br>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="charm:${f.id}" ${S.clover<f.p?'disabled':''}>购买</button></div>`).join(''))
- +sec('家具',FURN.map(f=>`<div class="card item">${ico('f_'+f.id,f.ic)}<br>${f.n}<br><small>🍀${f.p}${f.sv?` + 纪念品×${f.sv}`:''} · 拥有 ${cnt(S.furn,f.id)}</small><br><button data-buy="furn:${f.id}" ${S.clover<f.p||(f.sv&&S.souv.length<f.sv)?'disabled':''}>购买</button></div>`).join(''))}
+ h=sec('食物',FOODS.filter(f=>f.p).map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="food:${f.id}">购买</button></div>`).join(''))
+ +sec('种子',CROPS.map(c=>`<div class="card item">${ico('c_seed','🌰')}<br>${c.ic}${c.n}种子<br><small>约 ${c.h} 小时成熟 · 🍀${c.p} · 持有 ${cnt(S.seeds,c.id)}</small><br><button data-buy="seed:${c.id}">购买</button></div>`).join(''))
+ +sec('护身符',CHARMS.map(f=>`<div class="card item"><div class="ic">${f.ic}</div>${f.n}<br><small>${f.d}<br>🍀${f.p} · 持有 ${cnt(inv,f.id)}</small><br><button data-buy="charm:${f.id}">购买</button></div>`).join(''))
+ +sec('家具',FURN.map(f=>`<div class="card item">${ico('f_'+f.id,f.ic)}<br>${f.n}<br><small>🍀${f.p}${f.sv?` + 纪念品×${f.sv}`:''} · 拥有 ${cnt(S.furn,f.id)}</small><br><button data-buy="furn:${f.id}" ${(f.sv&&S.souv.length<f.sv)?'disabled':''}>购买</button></div>`).join(''))}
 if(tab=='bag'){const tr=S.trip;if(tr)h=`<div class="card row"><img src="${A}p_walkside.png"><div>${tr.phase=='away'?'团子已经背着行囊出发啦～':'行囊已经整理好了。团子会在它觉得合适的时候自己出门（不会在夜里走哦）。'}</div></div>${tr.phase=='packed'?'<button id="unpack">把行囊拿出来</button>':''}`;else{
  h=`<div class="card row"><img src="${A}blob_walk.png"><div>选 <b>一份食物</b>（必选）和 <b>一个护身符</b>（可选）。整理好后，团子会<b>自己决定</b>什么时候出门，旅行要 1～6 小时。<br><small>自己做的便当和果酱会影响它想去的地方。</small></div></div>
  <h4>食物</h4><div class="grid">${FOODS.filter(f=>inv[f.id]>0).map(f=>`<div class="card item ${S.bag.food==f.id?'sel':''}" data-pick="food:${f.id}">${f.img?ico(f.img,f.ic):`<div class="ic">${f.ic}</div>`}<br>${f.n} ×${inv[f.id]}<br><small>${f.dur[0]}～${f.dur[1]} 小时${f.d?'<br>'+f.d:''}</small></div>`).join('')||'<small>没有食物，去商店买，或者用阳台的收获做饭吧</small>'}</div>
@@ -370,9 +376,25 @@ function bindPanel(P){
  on('unpack',()=>{const tr=S.trip;S.inv[tr.food]=cnt(S.inv,tr.food)+1;if(tr.charm)S.inv[tr.charm]=cnt(S.inv,tr.charm)+1;S.trip=null;save();render(false)})}
 function hdr(){$('cl').textContent=S.clover;$('spd').textContent='×'+S.speed;const h=hourAt(Date.now()),w=weatherAt(Date.now());$('clock').textContent=String(Math.floor(h)).padStart(2,'0')+':'+String(Math.floor(h%1*60)).padStart(2,'0')+' '+SEASONS[seasonAt(Date.now())].n+(w=='rain'?'🌧':w=='snow'?'❄':'')}
 function render(fade=true){hdr();document.body.classList.toggle('pond-tab',tab=='pond');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab));renderScene(fade);renderPanel()}
-function buy(kind,id){if(kind=='seed'){const c=CROPS.find(x=>x.id==id);if(S.clover<c.p)return;S.clover-=c.p;S.seeds[id]=cnt(S.seeds,id)+1;toast(`买到了${c.n}种子`)}
- else if(kind=='furn'){const f=FURN.find(x=>x.id==id);if(S.clover<f.p||(f.sv&&S.souv.length<f.sv))return;S.clover-=f.p;if(f.sv)S.souv.splice(0,f.sv);S.furn[id]=cnt(S.furn,id)+1;toast(`买到了${f.n}，去客厅“开始布置”吧`);diary(Date.now(),`家里多了一件${f.n}。`,1)}
- else{const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(S.clover<it.p)return;S.clover-=it.p;S.inv[id]=cnt(S.inv,id)+1;toast(`买到了 ${it.ic}${it.n}`)}
+const AD_DAILY=5;
+function adToday(){const day=sh(Date.now()).day;if(!S.ads||S.ads.day!==day)S.ads={day,n:0};return S.ads}
+function adReward(short){return Math.max(5,Math.min(10,short))}
+function adsUnavailable(){return !!window.__adsFailed||typeof adBreak!=='function'}
+function grantClover(n){const st=adToday();st.n+=1;S.clover+=n;save();hdr();renderPanel();toast(`团子捡到了 ${n} 枚三叶草！`)}
+function watchCloverAd(n){if(adsUnavailable()){toast('现在暂时没有可以看的广告，稍后再试试吧');return}if(adToday().n>=AD_DAILY){toast('团子今天已经在草地里找了好多趟，明天再看广告吧');return}
+ let rewarded=false,dismissed=false,done=false,timer;
+ const finish=()=>{if(done)return;done=true;clearTimeout(timer);silenceForAd(false)};
+ timer=setTimeout(()=>{if(done||rewarded)return;finish();toast('现在暂时没有可以看的广告，稍后再试试吧')},8000);
+ try{adBreak({type:'reward',name:'shop_clover',beforeAd(){silenceForAd(true);clearTimeout(timer)},afterAd(){silenceForAd(false)},beforeReward(showAdFn){showAdFn()},adViewed(){if(rewarded)return;rewarded=true;grantClover(n)},adDismissed(){dismissed=true;toast('先不看也没关系，三叶草还是原来的数量。')},adBreakDone(info){if(done)return;finish();if(!rewarded&&!dismissed&&(!info||info.breakStatus!=='viewed'))toast('现在暂时没有可以看的广告，稍后再试试吧')}})}
+ catch(e){finish();toast('现在暂时没有可以看的广告，稍后再试试吧')}}
+function offerCloverAd(price){const short=price-S.clover;if(short<=0)return false;const n=adReward(short),st=adToday(),capped=st.n>=AD_DAILY,down=adsUnavailable();
+ const d=document.createElement('div');d.className='modal';
+ const msg=capped?'团子今天已经在草地里找了好多趟，明天再看广告吧。':down?'现在暂时没有可以看的广告，稍后再试试吧':'要不要看一小段广告，让团子去草地里再找一些？';
+ d.innerHTML=`<div class="card"><p>三叶草还差 ${short} 枚呢 🍀<br>${msg}</p>${capped||down?'':`<p><button type="button" id="adyes">🎬 看广告领 +${n} 🍀</button></p>`}<button type="button" id="adno">下次再说</button></div>`;
+ d.querySelector('#adno').onclick=()=>d.remove();const yes=d.querySelector('#adyes');if(yes)yes.onclick=()=>{d.remove();watchCloverAd(n)};document.body.appendChild(d);return true}
+function buy(kind,id){if(kind=='seed'){const c=CROPS.find(x=>x.id==id);if(offerCloverAd(c.p))return;S.clover-=c.p;S.seeds[id]=cnt(S.seeds,id)+1;toast(`买到了${c.n}种子`)}
+ else if(kind=='furn'){const f=FURN.find(x=>x.id==id);if(f.sv&&S.souv.length<f.sv)return;if(offerCloverAd(f.p))return;S.clover-=f.p;if(f.sv)S.souv.splice(0,f.sv);S.furn[id]=cnt(S.furn,id)+1;toast(`买到了${f.n}，去客厅“开始布置”吧`);diary(Date.now(),`家里多了一件${f.n}。`,1)}
+ else{const it=[...FOODS,...CHARMS].find(x=>x.id==id);if(offerCloverAd(it.p))return;S.clover-=it.p;S.inv[id]=cnt(S.inv,id)+1;toast(`买到了 ${it.ic}${it.n}`)}
  beep(520);save();hdr();renderPanel()}
 function pack(){const f=FOODS.find(x=>x.id==S.bag.food);if(!f||!(S.inv[f.id]>0))return;S.inv[f.id]--;const c=S.bag.charm&&S.inv[S.bag.charm]>0?S.bag.charm:null;if(c)S.inv[c]--;
  S.trip={phase:'packed',food:f.id,charm:c,leaveIn:rnd(10,45)*MIN};S.bag={food:null,charm:null};save();beep(440);toast('行囊整理好了，团子会自己挑时候出门～');render(false)}
@@ -416,4 +438,5 @@ let noSave=false;const _save=save;
 // boot
 S.lastSeen0=S.lastSeen;if(!S.lastDay)S.lastDay=sh(Date.now()).day;
 sizeCv();offlineCatchUp();if(S.migrated){delete S.migrated;toast('已继承之前的存档 🍃')}save();render(false);sceneKey=keyNow();requestAnimationFrame(loop);
+addEventListener('load',()=>{try{adConfig({preloadAdBreaks:'on',sound:'on'})}catch(e){}});
 </script></body></html>
