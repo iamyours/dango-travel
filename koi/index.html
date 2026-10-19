@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>小团的池塘</title>
   <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KOI_LOADING_V3 -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet">
-  
-  <!-- Three.js & OrbitControls -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
   <style>
     * {
@@ -254,9 +256,110 @@
       animation: pulse-ring 2.2s infinite;
       pointer-events: none;
     }
+    /* KOI_LOADING_V3 */
+    #koi-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background-color: #fbf4e2;
+      color: #3a2e24;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      transition: opacity 0.4s ease;
+    }
+    #koi-loading.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #koi-loading .kl-card {
+      background: #fffaf0;
+      border: 2px solid #3a2e24;
+      border-radius: 18px;
+      padding: 18px 28px;
+      box-shadow: 0 4px 0 #3a2e24;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      max-width: 88vw;
+    }
+    #koi-loading .kl-blob {
+      width: 52px;
+      height: 42px;
+      background: #f6e2c4;
+      border: 2.5px solid #3a2e24;
+      border-radius: 50% 50% 45% 45%;
+      position: relative;
+      animation: kl-bounce 0.85s ease-in-out infinite;
+    }
+    #koi-loading .kl-blob::before,
+    #koi-loading .kl-blob::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #3a2e24;
+    }
+    #koi-loading .kl-blob::before { left: 13px; }
+    #koi-loading .kl-blob::after { right: 13px; }
+    #koi-loading .kl-clover {
+      font-size: 20px;
+      line-height: 1;
+      margin-bottom: -6px;
+      animation: kl-spin 2.2s ease-in-out infinite;
+    }
+    #koi-loading-text {
+      font-weight: 700;
+      font-size: 15px;
+      color: #3a2e24;
+    }
+    #koi-loading-sub {
+      display: none;
+      font-size: 12px;
+      color: #7a6a58;
+      margin-top: 2px;
+    }
+    @keyframes kl-bounce {
+      0%, 100% { transform: translateY(0) scale(1, 1); }
+      50% { transform: translateY(-8px) scale(0.96, 1.05); }
+    }
+    @keyframes kl-spin {
+      0%, 100% { transform: rotate(-12deg); }
+      50% { transform: rotate(14deg); }
+    }
   </style>
 </head>
 <body class="text-slate-100 antialiased">
+
+  <!-- KOI_LOADING_V3: Full-screen loading overlay painted before scripts -->
+  <div id="koi-loading" role="status" aria-live="polite">
+    <div class="kl-card">
+      <div class="kl-clover">🍀</div>
+      <div class="kl-blob"></div>
+      <div id="koi-loading-text">池塘加载中…</div>
+      <div id="koi-loading-sub"></div>
+    </div>
+  </div>
+  <script>
+    window.__koiFirstFrame = false;
+    window.__koiLoadTimer = setTimeout(function () {
+      if (!window.__koiFirstFrame) {
+        var t = document.getElementById('koi-loading-text');
+        var s = document.getElementById('koi-loading-sub');
+        if (t) t.textContent = (typeof THREE === 'undefined') ? '池塘组件加载失败 (CDN)' : '池塘加载较慢，请稍候…';
+        if (s) {
+          s.textContent = '请检查网络连接后刷新页面重试 🍃';
+          s.style.display = 'block';
+        }
+      }
+    }, 12000);
+  </script>
 
   <!-- 3D Viewport Container -->
   <div id="canvas-container"></div>
@@ -399,8 +502,23 @@
     </div>
   </div>
 
+  <!-- External Scripts (placed after #koi-loading so overlay paints on frame 1) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
   <script>
-    window.onload = function () {
+    (function startKoiPond() {
+      if (typeof THREE === 'undefined') {
+        var tEl = document.getElementById('koi-loading-text');
+        var sEl = document.getElementById('koi-loading-sub');
+        if (tEl) tEl.textContent = '池塘组件加载失败 (CDN)';
+        if (sEl) {
+          sEl.textContent = '请检查网络连接后刷新页面重试 🍃';
+          sEl.style.display = 'block';
+        }
+        return;
+      }
       // ============================================================================
       // 1. AUDIO SYNTHESIZER (GENTLE WATER PLOPS & ZEN CHIMES ON FEEDING)
       // ============================================================================
@@ -463,14 +581,16 @@
       // ============================================================================
       const container = document.getElementById('canvas-container');
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0d2229);
-      scene.fog = new THREE.FogExp2(0x0d2229, 0.014);
+      scene.background = new THREE.Color(0xb0d8ea);
+      scene.fog = new THREE.FogExp2(0x8aa161, 0.008);
 
-      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 160);
-      camera.position.set(7.2, 10.6, 15.4);
+      const initW = container.clientWidth || window.innerWidth || 760;
+      const initH = container.clientHeight || window.innerHeight || 420;
+      const camera = new THREE.PerspectiveCamera(45, initW / initH, 0.1, 240);
+      camera.position.set(7.2, 10.8, 16.0);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(initW, initH);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -481,7 +601,7 @@
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.target.set(-4.2, 0.55, 0.4);
+      controls.target.set(-2.6, 0.25, 0.3);
       controls.minDistance = 3.0;
       controls.maxDistance = 38;
       controls.maxPolarAngle = Math.PI * 0.475; // Keep camera above the water surface
@@ -578,25 +698,48 @@
       const PLUNGE_Z = WF_DIR_Z * (WF_MAX_R - 1.15);
 
       // ============================================================================
-      // 5. SCULPTED POND BED WITH ANIMATED UNDERWATER CAUSTICS SHADER
+      // 5. SCULPTED POND BED WITH ANIMATED UNDERWATER CAUSTICS SHADER & GROUND RING
       // ============================================================================
+      const BACKDROP_R = 70;
+      const OUTER_GROUND_Y = 0.15 + Math.sin(0.8 * Math.PI * 0.8) * 0.65; // ~0.7381 flat outer bank height
+      let maxPondBoundaryR = 0;
+      for (let a = 0; a < 360; a++) {
+        const rBound = getPondBoundaryRadius((a * Math.PI) / 180);
+        if (rBound > maxPondBoundaryR) maxPondBoundaryR = rBound;
+      }
+      // Inner radius of outer ground ring: > max pond boundary + ~4 margin (~20.4) and < 24 (bedHalf)
+      const GROUND_RING_INNER_R = Math.min(22.0, Math.max(19.5, maxPondBoundaryR + 4.0));
       const bedSize = 48;
+      const bedHalf = bedSize * 0.5;
       const bedSegments = 160;
       const bedGeo = new THREE.PlaneGeometry(bedSize, bedSize, bedSegments, bedSegments);
       bedGeo.rotateX(-Math.PI / 2);
 
       const bedPos = bedGeo.attributes.position;
       const bedColors = new Float32Array(bedPos.count * 3);
+      const bedBaseColors = new Float32Array(bedPos.count * 3);
+      const bedGrassWeights = new Float32Array(bedPos.count);
+      const initBedGrassCol = new THREE.Color(0x657d42);
 
       for (let i = 0; i < bedPos.count; i++) {
         const vx = bedPos.getX(i);
         const vz = bedPos.getZ(i);
-        const vy = getPondBedHeight(vx, vz);
+        const rawY = getPondBedHeight(vx, vz);
+        const edgeDist = Math.max(Math.abs(vx), Math.abs(vz));
+        const radialDist = Math.hypot(vx, vz);
+        // Smoothly flatten the outer ~6 units and ring overlap to OUTER_GROUND_Y so the bed sits cleanly above the ring's inner edge
+        const squareEdgeT = THREE.MathUtils.smoothstep(edgeDist, bedHalf - 6.0, bedHalf);
+        const ringOverlapT = THREE.MathUtils.smoothstep(radialDist, GROUND_RING_INNER_R - 4.5, GROUND_RING_INNER_R);
+        const outerFlatT = Math.max(squareEdgeT, ringOverlapT);
+        const vy = THREE.MathUtils.lerp(rawY, OUTER_GROUND_Y, outerFlatT);
         bedPos.setY(i, vy);
 
         const { normDist } = getPondMetrics(vx, vz);
         const c = new THREE.Color();
-        const grain = 0.92 + 0.16 * Math.sin(vx * 7.3 + vz * 5.9);
+        const rawGrain = 0.94 + 0.12 * Math.sin(vx * 7.3 + vz * 5.9);
+        // Cancel the striped grain look across the outer bank so there is no hard seam with the ground ring
+        const grain = THREE.MathUtils.lerp(rawGrain, 1.0, outerFlatT);
+        let grassW = 0.0;
 
         if (normDist < 0.98) {
           // Underwater sand & river silt gradient from warm golden shallow sand to deep teal-olive basin
@@ -607,32 +750,42 @@
             THREE.MathUtils.lerp(0.41, 0.24, depthT) * grain
           );
         } else {
-          // Rich mossy garden soil & forest floor around the pond
-          c.setRGB(0.16 * grain, 0.25 * grain, 0.14 * grain);
+          // Rich mossy garden soil near the shoreline blending out into the darker bed grass colour
+          c.setRGB(0.20 * grain, 0.29 * grain, 0.15 * grain);
+          const radialGrassT = THREE.MathUtils.smoothstep(normDist, 1.01, 1.28);
+          grassW = Math.max(radialGrassT * 0.92, outerFlatT);
         }
-        bedColors[i * 3] = c.r;
-        bedColors[i * 3 + 1] = c.g;
-        bedColors[i * 3 + 2] = c.b;
+        bedBaseColors[i * 3] = c.r;
+        bedBaseColors[i * 3 + 1] = c.g;
+        bedBaseColors[i * 3 + 2] = c.b;
+        bedGrassWeights[i] = grassW;
+
+        bedColors[i * 3] = THREE.MathUtils.lerp(c.r, initBedGrassCol.r * grain, grassW);
+        bedColors[i * 3 + 1] = THREE.MathUtils.lerp(c.g, initBedGrassCol.g * grain, grassW);
+        bedColors[i * 3 + 2] = THREE.MathUtils.lerp(c.b, initBedGrassCol.b * grain, grassW);
       }
-      bedGeo.setAttribute('color', new THREE.BufferAttribute(bedColors, 3));
+      const bedColorAttr = new THREE.BufferAttribute(bedColors, 3);
+      bedGeo.setAttribute('color', bedColorAttr);
       bedGeo.computeVertexNormals();
 
       const bedUniforms = {
         uTime: { value: 0 },
         uCausticIntensity: { value: 0.55 },
-        uCausticColor: { value: new THREE.Color(0x99f6e4) }
+        uCausticColor: { value: new THREE.Color(0x99f6e4) },
+        uPlateGrassColor: { value: new THREE.Color(0x8aa161) }
       };
 
       const bedMat = new THREE.MeshStandardMaterial({
         vertexColors: true,
-        roughness: 0.88,
-        metalness: 0.05
+        roughness: 0.98,
+        metalness: 0.0
       });
 
       bedMat.onBeforeCompile = (shader) => {
         shader.uniforms.uTime = bedUniforms.uTime;
         shader.uniforms.uCausticIntensity = bedUniforms.uCausticIntensity;
         shader.uniforms.uCausticColor = bedUniforms.uCausticColor;
+        shader.uniforms.uPlateGrassColor = bedUniforms.uPlateGrassColor;
 
         shader.vertexShader =
           `varying vec3 vWorldPos;\n` +
@@ -645,6 +798,7 @@
           `uniform float uTime;
            uniform float uCausticIntensity;
            uniform vec3 uCausticColor;
+           uniform vec3 uPlateGrassColor;
            varying vec3 vWorldPos;
            
            // Procedural overlapping water caustic network
@@ -665,6 +819,11 @@
                float c2 = causticPattern(vWorldPos.xz * 1.35 + vec2(4.2, -3.1), -uTime * 0.85);
                float caustics = (c1 + c2 * 0.7) * depthFade * uCausticIntensity;
                gl_FragColor.rgb += uCausticColor * caustics;
+             } else {
+               float sqDist = max(abs(vWorldPos.x), abs(vWorldPos.z));
+               float radDist = length(vWorldPos.xz);
+               float ringBlend = max(smoothstep(18.0, 24.0, sqDist), smoothstep(14.5, 20.4, radDist));
+               gl_FragColor.rgb = mix(gl_FragColor.rgb, uPlateGrassColor, ringBlend);
              }`
           );
       };
@@ -672,6 +831,36 @@
       const pondBedMesh = new THREE.Mesh(bedGeo, bedMat);
       pondBedMesh.receiveShadow = true;
       scene.add(pondBedMesh);
+
+      // BG_BACKDROP_V3: Flat grass continuation ring (innerRadius ~20.4 outside pond & bank rocks, outerRadius R+2=72) slightly below bed's outer height
+      const groundDiscGeo = new THREE.RingGeometry(GROUND_RING_INNER_R, BACKDROP_R + 2, 96, 2);
+      groundDiscGeo.rotateX(-Math.PI / 2);
+      const groundDiscMat = new THREE.MeshBasicMaterial({
+        color: 0x8aa161,
+        toneMapped: false,
+        fog: true,
+        polygonOffset: true,
+        polygonOffsetFactor: 2,
+        polygonOffsetUnits: 2
+      });
+      const groundDiscMesh = new THREE.Mesh(groundDiscGeo, groundDiscMat);
+      groundDiscMesh.position.y = OUTER_GROUND_Y - 0.02;
+      scene.add(groundDiscMesh);
+
+      function updateGroundGrassColor(plateGrassHex, bedGrassHex) {
+        groundDiscMat.color.setHex(plateGrassHex);
+        bedUniforms.uPlateGrassColor.value.setHex(plateGrassHex);
+        const gc = new THREE.Color(bedGrassHex !== undefined ? bedGrassHex : plateGrassHex);
+        for (let i = 0; i < bedPos.count; i++) {
+          const w = bedGrassWeights[i];
+          if (w <= 0) continue;
+          const idx = i * 3;
+          bedColors[idx] = THREE.MathUtils.lerp(bedBaseColors[idx], gc.r, w);
+          bedColors[idx + 1] = THREE.MathUtils.lerp(bedBaseColors[idx + 1], gc.g, w);
+          bedColors[idx + 2] = THREE.MathUtils.lerp(bedBaseColors[idx + 2], gc.b, w);
+        }
+        bedColorAttr.needsUpdate = true;
+      }
 
       // ============================================================================
       // 6. SUBMERGED RIVER PEBBLES, SHORELINE BOULDERS & WATERFALL CLIFF
@@ -1141,7 +1330,8 @@
             vec3 finalColor = baseColor + uSunColor * spec + vec3(0.92, 0.98, 1.0) * (plungeFoam * 0.65 + ringHighlight);
 
             float shoreFade = smoothstep(maxR + 0.2, maxR - 0.35, r);
-            float alpha = clamp(0.32 + fresnel * 0.42 + spec * 0.5 + plungeFoam * 0.5 + ringHighlight * 0.4, 0.0, 0.88) * shoreFade;
+            // KOI_VIS_V3: Keep water translucent so koi stay clearly visible under the surface in all modes
+            float alpha = clamp(0.18 + fresnel * 0.26 + spec * 0.45 + plungeFoam * 0.45 + ringHighlight * 0.38, 0.0, 0.72) * shoreFade;
 
             gl_FragColor = vec4(finalColor, alpha);
           }
@@ -1666,26 +1856,27 @@
 
         const rows = 24;
         const cols = 18;
+        ctx.beginPath();
         for (let r = 3; r < rows - 5; r++) {
           const y = (r / rows) * 512;
           for (let c = 0; c < cols; c++) {
             const x = ((c + (r % 2) * 0.5) / cols) * 512;
-            ctx.beginPath();
+            ctx.moveTo(x + 14, y);
             ctx.arc(x, y, 14, 0, Math.PI);
-            ctx.stroke();
           }
         }
+        ctx.stroke();
 
         // Delicate fin ray striations in the tail region (v > 0.74)
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth = 1.5;
+        ctx.beginPath();
         for (let i = 0; i < 32; i++) {
           const x = (i / 32) * 512;
-          ctx.beginPath();
           ctx.moveTo(256 + (x - 256) * 0.4, 375);
           ctx.lineTo(x, 512);
-          ctx.stroke();
         }
+        ctx.stroke();
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.anisotropy = 4;
@@ -1821,6 +2012,9 @@
 
         const bodyMat = new THREE.MeshStandardMaterial({
           map: tex,
+          emissive: 0xffffff,
+          emissiveMap: tex,
+          emissiveIntensity: 0.0,
           roughness: isMetallic ? 0.22 : 0.32,
           metalness: isMetallic ? 0.55 : 0.08
         });
@@ -1867,6 +2061,8 @@
 
         const finMat = new THREE.MeshStandardMaterial({
           color: finTint,
+          emissive: finTint,
+          emissiveIntensity: 0.0,
           transparent: true,
           opacity: 0.78,
           roughness: 0.4,
@@ -1951,6 +2147,8 @@
           id: idx,
           variety,
           group: koiGroup,
+          bodyMat,
+          finMat,
           shadowMesh,
           uniforms: fishUniforms,
           leftPec,
@@ -2771,65 +2969,221 @@
       });
 
       // ============================================================================
-      // 13. UI CONTROLS: AMBIANCE MODES, CAMERA PRESETS & SOUND
+      // 13. UI CONTROLS: AMBIANCE MODES, PAINTED BACKDROP, CAMERA PRESETS & SOUND
       // ============================================================================
+      // BG_BACKDROP_V3: Realistic-3D panorama cylinder backdrop (2048x914 aspect 2.24; lazy-loads assets/bg_day.jpg & assets/bg_night.jpg after first frame)
+      const BACKDROP_TILES = 6;
+      const BACKDROP_ASPECT = 2048 / 914;
+      const BACKDROP_H = ((2 * Math.PI * BACKDROP_R) / BACKDROP_TILES) / BACKDROP_ASPECT; // ~32.707
+      let currentAmbianceMode = 'day';
+      const backdropState = {
+        started: false,
+        dayTex: null,
+        nightTex: null,
+        mesh: null,
+        mat: null,
+        geo: null
+      };
+
+      function updateBackdropBottomBlend(grassHex) {
+        if (!backdropState.geo) return;
+        const pos = backdropState.geo.attributes.position;
+        let colAttr = backdropState.geo.attributes.color;
+        if (!colAttr) {
+          colAttr = new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3);
+          backdropState.geo.setAttribute('color', colAttr);
+        }
+        // Keep backdrop untinted (1.0) so source image grass & sky render at exact source colours
+        for (let i = 0; i < pos.count; i++) {
+          colAttr.setXYZ(i, 1.0, 1.0, 1.0);
+        }
+        colAttr.needsUpdate = true;
+      }
+
+      function ensureBackdropMesh() {
+        if (backdropState.mesh) return backdropState.mesh;
+        // Open cylinder, radius R=70, height=(2πR/6)/2.24 ≈ 32.7, BackSide, opaque, fog:false, toneMapped:false, depthWrite:false, low renderOrder
+        const geo = new THREE.CylinderGeometry(BACKDROP_R, BACKDROP_R, BACKDROP_H, 96, 24, true);
+        const mat = new THREE.MeshBasicMaterial({
+          side: THREE.BackSide,
+          fog: false,
+          toneMapped: false,
+          depthWrite: false,
+          transparent: false,
+          vertexColors: false,
+          color: 0xffffff
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        // Bottom edge at outer ground height minus 0.05 so the plate's bottom grass strip meets the 3D ground
+        mesh.position.set(0, OUTER_GROUND_Y - 0.05 + BACKDROP_H * 0.5, 0);
+        mesh.renderOrder = -2;
+        scene.add(mesh);
+        backdropState.geo = geo;
+        backdropState.mat = mat;
+        backdropState.mesh = mesh;
+        return mesh;
+      }
+
+      function configureBackdropTexture(tex) {
+        tex.wrapS = THREE.MirroredRepeatWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.repeat.set(BACKDROP_TILES, 1);
+        tex.needsUpdate = true;
+      }
+
+      function syncBackdropToAmbiance(mode, grassHex) {
+        const hasDay = !!backdropState.dayTex;
+        const hasNight = !!backdropState.nightTex;
+        if (!hasDay && !hasNight) return false;
+        const mesh = ensureBackdropMesh();
+        const mat = backdropState.mat;
+        let tex = null;
+        let tintHex = 0xffffff;
+
+        if (mode === 'day') {
+          tex = backdropState.dayTex || backdropState.nightTex;
+          tintHex = 0xffffff;
+        } else if (mode === 'sunset') {
+          tex = backdropState.dayTex || backdropState.nightTex;
+          // Warm multiply tint for golden hour so backdrop grass (~#8aa161) shifts to ~#9a9258
+          tintHex = 0xf4dca8;
+        } else {
+          if (backdropState.nightTex) {
+            tex = backdropState.nightTex;
+            tintHex = 0xffffff;
+          } else {
+            tex = backdropState.dayTex;
+            tintHex = 0x3a4a7a;
+          }
+        }
+
+        if (!tex) {
+          mesh.visible = false;
+          return false;
+        }
+        mesh.visible = true;
+        if (mat.map !== tex) {
+          mat.map = tex;
+          mat.needsUpdate = true;
+        }
+        mat.color.setHex(tintHex);
+        updateBackdropBottomBlend(grassHex);
+        return true;
+      }
+
+      function startBackdropLazyLoad() {
+        if (backdropState.started) return;
+        backdropState.started = true;
+        try {
+          const loader = new THREE.TextureLoader();
+          const noopErr = function () {};
+          loader.load(
+            'assets/bg_day.jpg',
+            function (tex) {
+              configureBackdropTexture(tex);
+              backdropState.dayTex = tex;
+              applyAmbianceMode(currentAmbianceMode);
+            },
+            undefined,
+            noopErr
+          );
+          loader.load(
+            'assets/bg_night.jpg',
+            function (tex) {
+              configureBackdropTexture(tex);
+              backdropState.nightTex = tex;
+              applyAmbianceMode(currentAmbianceMode);
+            },
+            undefined,
+            noopErr
+          );
+        } catch (e) {}
+      }
+
       // TOD_DEFAULT_V2: Apply lighting mode and sync .mode-btn active state; default from local clock (or ?tod= override)
       const modeButtons = document.querySelectorAll('.mode-btn');
       function applyAmbianceMode(mode) {
         const validMode = mode === 'sunset' || mode === 'night' || mode === 'day' ? mode : 'day';
+        currentAmbianceMode = validMode;
         modeButtons.forEach((b) => {
           b.classList.toggle('active', b.getAttribute('data-mode') === validMode);
         });
 
+        let koiEmissive = 0.0;
+        let finEmissive = 0.0;
+        let plateGrassHex = 0x8aa161;
+        let bedGrassHex = 0x657d42;
+
         if (validMode === 'day') {
-          scene.background.setHex(0x0d2229);
-          scene.fog.color.setHex(0x0d2229);
+          scene.background.setHex(0xb0d8ea);
+          scene.fog.color.setHex(0x8aa161);
+          plateGrassHex = 0x8aa161;
+          bedGrassHex = 0x657d42;
           hemiLight.color.setHex(0xdff4ff);
-          hemiLight.groundColor.setHex(0x1a362b);
-          hemiLight.intensity = 0.75;
+          hemiLight.groundColor.setHex(0x2a4834);
+          hemiLight.intensity = 0.78;
           sunLight.color.setHex(0xfff5e0);
           sunLight.intensity = 1.35;
           sunLight.position.set(16, 26, 14);
           waterUniforms.uSkyColor.value.setHex(0x7dd3fc);
-          waterUniforms.uDeepColor.value.setHex(0x0b3b42);
+          waterUniforms.uDeepColor.value.setHex(0x0d444d);
           waterUniforms.uSunColor.value.setHex(0xfff6e5);
           bedUniforms.uCausticIntensity.value = 0.55;
           bedUniforms.uCausticColor.value.setHex(0x99f6e4);
           lanternLight.intensity = 0.5;
-          pondGlowLight.intensity = 0.65;
+          pondGlowLight.intensity = 0.7;
+          koiEmissive = 0.04;
+          finEmissive = 0.02;
         } else if (validMode === 'sunset') {
-          scene.background.setHex(0x1f1624);
-          scene.fog.color.setHex(0x1f1624);
+          scene.background.setHex(0xe9b08a);
+          scene.fog.color.setHex(0x9a9258);
+          // Day grass (#8aa161) warm-tinted
+          plateGrassHex = 0x9a9258;
+          bedGrassHex = 0x6c683a;
           hemiLight.color.setHex(0xfdba74);
-          hemiLight.groundColor.setHex(0x27171c);
-          hemiLight.intensity = 0.65;
+          hemiLight.groundColor.setHex(0x3a2d24);
+          hemiLight.intensity = 0.7;
           sunLight.color.setHex(0xff7e33);
           sunLight.intensity = 1.55;
           sunLight.position.set(-22, 11, -14);
           waterUniforms.uSkyColor.value.setHex(0xfb923c);
-          waterUniforms.uDeepColor.value.setHex(0x1c2838);
+          waterUniforms.uDeepColor.value.setHex(0x1c2d3f);
           waterUniforms.uSunColor.value.setHex(0xffedd5);
           bedUniforms.uCausticIntensity.value = 0.48;
           bedUniforms.uCausticColor.value.setHex(0xfdba74);
           lanternLight.intensity = 1.6;
-          pondGlowLight.intensity = 0.75;
+          pondGlowLight.intensity = 0.85;
+          koiEmissive = 0.1;
+          finEmissive = 0.06;
         } else if (validMode === 'night') {
-          scene.background.setHex(0x050d14);
-          scene.fog.color.setHex(0x050d14);
-          hemiLight.color.setHex(0x38bdf8);
-          hemiLight.groundColor.setHex(0x08141c);
-          hemiLight.intensity = 0.32;
-          sunLight.color.setHex(0x93c5fd);
-          sunLight.intensity = 0.45;
+          // KOI_VIS_V3: Raised night hemisphere/moonlight + underwater fill + gentle koi emissive so koi stay clearly readable at night
+          scene.background.setHex(0x182946);
+          scene.fog.color.setHex(0x4a653f);
+          plateGrassHex = 0x4a653f;
+          // Warm-olive compensated base grass so cyan night lights (0x7dd3fc / 0xbae6fd) light the bank toward #4a653f instead of teal
+          bedGrassHex = 0x465d28;
+          hemiLight.color.setHex(0x7dd3fc);
+          hemiLight.groundColor.setHex(0x1a332d);
+          hemiLight.intensity = 0.62;
+          sunLight.color.setHex(0xbae6fd);
+          sunLight.intensity = 0.72;
           sunLight.position.set(10, 24, -12);
           waterUniforms.uSkyColor.value.setHex(0x1e3a8a);
-          waterUniforms.uDeepColor.value.setHex(0x041f26);
+          waterUniforms.uDeepColor.value.setHex(0x082c36);
           waterUniforms.uSunColor.value.setHex(0xbae6fd);
-          bedUniforms.uCausticIntensity.value = 0.35;
+          bedUniforms.uCausticIntensity.value = 0.42;
           bedUniforms.uCausticColor.value.setHex(0x38bdf8);
           lanternLight.intensity = 2.8;
-          pondGlowLight.intensity = 1.35;
+          pondGlowLight.intensity = 1.65;
+          koiEmissive = 0.28;
+          finEmissive = 0.18;
         }
+        for (let i = 0; i < koiList.length; i++) {
+          if (koiList[i].bodyMat) koiList[i].bodyMat.emissiveIntensity = koiEmissive;
+          if (koiList[i].finMat) koiList[i].finMat.emissiveIntensity = finEmissive;
+        }
+        updateGroundGrassColor(plateGrassHex, bedGrassHex);
+        syncBackdropToAmbiance(validMode, plateGrassHex);
         waterUniforms.uSunDir.value.copy(sunLight.position).normalize();
       }
 
@@ -2859,71 +3213,338 @@
         applyAmbianceMode(autoMode);
       })();
 
-      // CAM_CYCLE_V2: Compute aspect-aware 小团视角 from xiaotuan.group position P and facing direction F, and wire view cycle button
+      // KOI_VIS_V3 & CAM_CYCLE_V2: Front-facing oblique view from out over the pond / far side looking back toward 小团 and down onto the water.
+      // Hard constraint: let H = horizontal (camPos - P) normalized; require dot(H, F) >= cos(55°) so 小团 faces the viewer (face, eyes, smile visible).
+      // Searches candidate camera positions/targets with a temporary PerspectiveCamera so 小团 (incl. +1.2 above head),
+      // the food landing centre (spotInFront), the pond centre (0,-0.3,0) and 4 points at radius 4 around the pond centre
+      // project inside NDC safe box x in [-0.9, 0.9], y in [-0.55, 0.85] with 小团 as large as possible.
+      // If no candidate satisfies all points, relaxes the ring-point requirement first (keeping 小团 + landing centre + pond centre).
       function computeXiaotuanCameraView(aspect = camera.aspect) {
         xiaotuan.group.updateMatrixWorld(true);
         const P = xiaotuan.group.position.clone();
         const up = new THREE.Vector3(0, 1, 0);
-        // Local +Z in world space (horizontal facing direction toward pond/camera)
         const F = new THREE.Vector3(0, 0, 1).applyQuaternion(xiaotuan.group.quaternion);
         F.y = 0;
-        if (F.lengthSq() < 1e-6) F.set(0.87, 0, 0.49);
+        if (F.lengthSq() < 1e-6) F.set(0.864, 0, 0.503);
         else F.normalize();
-        // Horizontal perpendicular vector R = cross(up, F) (points toward local +X / right-arm side)
         const R = new THREE.Vector3().crossVectors(up, F).normalize();
 
-        // Aspect-aware pullback for portrait screens (aspect < 1): distance *= 1/aspect clamped to 1.9
         const safeAspect = Math.max(0.35, Number.isFinite(aspect) && aspect > 0 ? aspect : 1.0);
-        const portraitPull = safeAspect < 1 ? Math.min(1.9, 1 / safeAspect) : 1.0;
-        const portraitT = THREE.MathUtils.clamp((portraitPull - 1.0) / 0.44, 0, 1);
+        const tmpCam = new THREE.PerspectiveCamera(camera.fov, safeAspect, camera.near, camera.far);
+        tmpCam.up.set(0, 1, 0);
 
-        // 3/4 front-side view on the +R (right-arm) side: horizDist = 10.5 * portraitPull, angle +38° (desktop) to +55° (portrait), height cy = 5.2 + (portraitPull - 1) * 3
-        const horizDist = 10.5 * portraitPull;
-        const angleDeg = THREE.MathUtils.lerp(38, 55, portraitT);
-        const angleRad = THREE.MathUtils.degToRad(angleDeg);
-        const cf = Math.cos(angleRad) * horizDist;
-        const cr = Math.sin(angleRad) * horizDist;
-        const cy = 5.2 + (portraitPull - 1.0) * 3.0;
+        // 1. 小团 bbox corners (at rest baseY) including +1.2 above its head
+        const savedY = xiaotuan.group.position.y;
+        const savedRotY = xiaotuan.group.rotation.y;
+        xiaotuan.group.position.y = xiaotuan.baseY;
+        xiaotuan.group.rotation.y = xiaotuan.baseYaw;
+        xiaotuan.group.updateMatrixWorld(true);
+        const xtBox = new THREE.Box3().setFromObject(xiaotuan.group);
+        xiaotuan.group.position.y = savedY;
+        xiaotuan.group.rotation.y = savedRotY;
+        xiaotuan.group.updateMatrixWorld(true);
 
-        const camPos = P.clone()
-          .addScaledVector(F, cf)
-          .addScaledVector(R, cr)
-          .addScaledVector(up, cy);
+        const xtMinX = xtBox.min.x;
+        const xtMaxX = xtBox.max.x;
+        const xtMinY = xtBox.min.y;
+        const xtMaxY = xtBox.max.y + 1.2; // include +1.2 above head for raised arm & toss arc
+        const xtMinZ = xtBox.min.z;
+        const xtMaxZ = xtBox.max.z;
 
-        // Target: P + F*2.4 + R*-0.3 + up*0.7 (desktop) -> P + F*3.0 + R*-0.1 + up*0.8 (portrait)
-        const tf = THREE.MathUtils.lerp(2.4, 3.0, portraitT);
-        const tr = THREE.MathUtils.lerp(-0.3, -0.1, portraitT);
-        const ty = THREE.MathUtils.lerp(0.7, 0.8, portraitT);
-        const camTarget = P.clone()
-          .addScaledVector(F, tf)
-          .addScaledVector(R, tr)
-          .addScaledVector(up, ty);
+        const xtCorners = [
+          new THREE.Vector3(xtMinX, xtMinY, xtMinZ),
+          new THREE.Vector3(xtMaxX, xtMinY, xtMinZ),
+          new THREE.Vector3(xtMinX, xtMaxY, xtMinZ),
+          new THREE.Vector3(xtMaxX, xtMaxY, xtMinZ),
+          new THREE.Vector3(xtMinX, xtMinY, xtMaxZ),
+          new THREE.Vector3(xtMaxX, xtMinY, xtMaxZ),
+          new THREE.Vector3(xtMinX, xtMaxY, xtMaxZ),
+          new THREE.Vector3(xtMaxX, xtMaxY, xtMaxZ)
+        ];
 
-        // Ensure camera-to-target distance stays within controls.minDistance (3.0) and controls.maxDistance (38)
-        const offset = camPos.clone().sub(camTarget);
-        const dist = offset.length();
-        const clampedDist = THREE.MathUtils.clamp(dist, controls.minDistance + 0.2, controls.maxDistance - 0.5);
-        if (Math.abs(dist - clampedDist) > 1e-4 && dist > 1e-6) {
-          camPos.copy(camTarget).addScaledVector(offset.normalize(), clampedDist);
+        // 2. Landing centre (centre of spotInFront region)
+        let lx = P.x * 0.28;
+        let lz = P.z * 0.34;
+        const lm = getPondMetrics(lx, lz);
+        if (lm.normDist > 0.7) {
+          lx = Math.cos(lm.theta) * lm.maxR * 0.48;
+          lz = Math.sin(lm.theta) * lm.maxR * 0.48;
         }
-        camPos.y = Math.max(1.2, camPos.y);
+        const landingCenter = new THREE.Vector3(lx, 0.02, lz);
+
+        // 3. Pond centre (0, -0.3, 0) and 4 ring points at radius 4 around pond centre
+        const pondCenter = new THREE.Vector3(0, -0.3, 0);
+        const ringPts = [
+          new THREE.Vector3(4, -0.3, 0),
+          new THREE.Vector3(-4, -0.3, 0),
+          new THREE.Vector3(0, -0.3, 4),
+          new THREE.Vector3(0, -0.3, -4)
+        ];
+        const corePts = [...xtCorners, landingCenter, pondCenter];
+        const allPts = [...corePts, ...ringPts];
+
+        const minD = controls.minDistance + 0.2;
+        const maxD = controls.maxDistance - 0.5;
+        const cos55 = Math.cos(THREE.MathUtils.degToRad(55));
+        const tanHalfFov = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+        const projTmp = new THREE.Vector3();
+        const candPos = new THREE.Vector3();
+        const candTarget = new THREE.Vector3();
+        const dirVec = new THREE.Vector3();
+        const hVec = new THREE.Vector3();
+
+        // Helper: compute a water-level lookAt target that centers a point set inside the safe box (0, +0.15)
+        function solveCenteredTarget(camPos, pts, targetDist) {
+          let ux = P.x - camPos.x, uy = (P.y + 1.5) - camPos.y, uz = P.z - camPos.z;
+          const ul = Math.hypot(ux, uy, uz) || 1;
+          ux /= ul; uy /= ul; uz /= ul;
+          let vx = pondCenter.x - camPos.x, vy = pondCenter.y - camPos.y, vz = pondCenter.z - camPos.z;
+          const vl = Math.hypot(vx, vy, vz) || 1;
+          vx /= vl; vy /= vl; vz /= vl;
+          let mx = ux + vx, my = uy + vy, mz = uz + vz;
+          const ml = Math.hypot(mx, my, mz) || 1;
+          mx /= ml; my /= ml; mz /= ml;
+          const out = new THREE.Vector3(
+            camPos.x + mx * targetDist,
+            camPos.y + my * targetDist,
+            camPos.z + mz * targetDist
+          );
+          tmpCam.position.copy(camPos);
+          for (let iter = 0; iter < 6; iter++) {
+            tmpCam.lookAt(out);
+            tmpCam.updateMatrixWorld(true);
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (let k = 0; k < pts.length; k++) {
+              projTmp.copy(pts[k]).project(tmpCam);
+              if (projTmp.z > 1) return out;
+              minX = Math.min(minX, projTmp.x);
+              maxX = Math.max(maxX, projTmp.x);
+              minY = Math.min(minY, projTmp.y);
+              maxY = Math.max(maxY, projTmp.y);
+            }
+            const cx = 0.5 * (minX + maxX);
+            const cy = 0.5 * (minY + maxY) - 0.15;
+            let zx = camPos.x - out.x, zy = camPos.y - out.y, zz = camPos.z - out.z;
+            const zl = Math.hypot(zx, zy, zz) || 1;
+            zx /= zl; zy /= zl; zz /= zl;
+            let xx = zz, xy = 0, xz = -zx;
+            const xl = Math.hypot(xx, xy, xz) || 1;
+            xx /= xl; xy /= xl; xz /= xl;
+            const yx = zy * xz - zz * xy;
+            const yy = zz * xx - zx * xz;
+            const yz = zx * xy - zy * xx;
+            const shiftX = cx * safeAspect * tanHalfFov * targetDist * 0.85;
+            const shiftY = cy * tanHalfFov * targetDist * 0.85;
+            out.x += xx * shiftX + yx * shiftY;
+            out.y += xy * shiftX + yy * shiftY;
+            out.z += xz * shiftX + yz * shiftY;
+            const dx = out.x - camPos.x, dy = out.y - camPos.y, dz = out.z - camPos.z;
+            const dl = Math.hypot(dx, dy, dz) || 1;
+            out.set(
+              camPos.x + (dx / dl) * targetDist,
+              camPos.y + (dy / dl) * targetDist,
+              camPos.z + (dz / dl) * targetDist
+            );
+          }
+          const rayY = out.y - camPos.y;
+          if (rayY < -0.05) {
+            const tWater = (0.1 - camPos.y) / rayY;
+            const d = tWater * camPos.distanceTo(out);
+            if (d >= minD && d <= maxD) {
+              out.set(
+                camPos.x + (out.x - camPos.x) * tWater,
+                0.1,
+                camPos.z + (out.z - camPos.z) * tWater
+              );
+            }
+          }
+          return out;
+        }
+
+        let bestFullPos = null;
+        let bestFullTarget = null;
+        let bestFullScore = -Infinity;
+        let bestCorePos = null;
+        let bestCoreTarget = null;
+        let bestCoreScore = -Infinity;
+        let fallbackPos = null;
+        let fallbackTarget = null;
+        let fallbackPenalty = Infinity;
+
+        // Candidate angles within ±55° of F, distances 6–16 over the pond (plus 18–23 on the far side for narrow aspects), and heights 4–11 (>= 3 units above water)
+        const angDegs = [-52, -45, -38, -32, -26, -22, -18, -14, -10, -6, -2, 2, 8, 15, 22, 28, 36, 44, 52];
+        const distPs = [6.0, 7.5, 9.0, 10.5, 12.0, 13.5, 15.0, 16.0, 18.0, 20.0, 22.0, 23.0];
+        const camYs = [4.0, 5.0, 6.0, 7.2, 8.5, 9.8, 11.0];
+        const tLerps = [0.25, 0.4, 0.55, 0.7];
+        const tRs = [-2.0, -0.8, 0.0, 0.8, 2.0];
+        const tys = [-0.2, 0.1, 0.4];
+
+        for (let ai = 0; ai < angDegs.length; ai++) {
+          const ang = THREE.MathUtils.degToRad(angDegs[ai]);
+          dirVec.set(
+            F.x * Math.cos(ang) + R.x * Math.sin(ang),
+            0,
+            F.z * Math.cos(ang) + R.z * Math.sin(ang)
+          ).normalize();
+
+          for (let di = 0; di < distPs.length; di++) {
+            const distP = distPs[di];
+            const cx = P.x + dirVec.x * distP;
+            const cz = P.z + dirVec.z * distP;
+
+            // Hard constraint: H = horizontal (camPos - P) normalized; require dot(H, F) >= cos(55°)
+            hVec.set(cx - P.x, 0, cz - P.z);
+            if (hVec.lengthSq() < 1e-6) continue;
+            hVec.normalize();
+            if (hVec.dot(F) < cos55 - 1e-6) continue;
+
+            // Keep camera over the pond / far side (closer to pond centre than the outer bank)
+            const distToPondCenter = Math.hypot(cx - pondCenter.x, cz - pondCenter.z);
+            if (distToPondCenter > 16.0) continue;
+
+            for (let hi = 0; hi < camYs.length; hi++) {
+              const camY = camYs[hi];
+              if (camY < 3.0) continue; // at least ~3 units above water surface
+              candPos.set(cx, camY, cz);
+
+              const targetCandidates = [
+                solveCenteredTarget(candPos, allPts, 11),
+                solveCenteredTarget(candPos, corePts, 11)
+              ];
+              for (let ti = 0; ti < tLerps.length; ti++) {
+                const tLerp = tLerps[ti];
+                for (let ri = 0; ri < tRs.length; ri++) {
+                  const tR = tRs[ri];
+                  for (let yi = 0; yi < tys.length; yi++) {
+                    targetCandidates.push(new THREE.Vector3(
+                      P.x * (1 - tLerp) + pondCenter.x * tLerp + R.x * tR,
+                      tys[yi],
+                      P.z * (1 - tLerp) + pondCenter.z * tLerp + R.z * tR
+                    ));
+                  }
+                }
+              }
+
+              for (let tIdx = 0; tIdx < targetCandidates.length; tIdx++) {
+                candTarget.copy(targetCandidates[tIdx]);
+                const dTarget = candPos.distanceTo(candTarget);
+                if (dTarget < minD || dTarget > maxD) continue;
+
+                tmpCam.position.copy(candPos);
+                tmpCam.lookAt(candTarget);
+                tmpCam.updateMatrixWorld(true);
+
+                let coreInside = true;
+                let corePenalty = 0;
+                let minXtX = Infinity, maxXtX = -Infinity;
+                let minXtY = Infinity, maxXtY = -Infinity;
+
+                for (let k = 0; k < xtCorners.length; k++) {
+                  projTmp.copy(xtCorners[k]).project(tmpCam);
+                  if (projTmp.z < -1 || projTmp.z > 1) {
+                    coreInside = false;
+                    corePenalty = 999;
+                    break;
+                  }
+                  const px = projTmp.x;
+                  const py = projTmp.y;
+                  minXtX = Math.min(minXtX, px);
+                  maxXtX = Math.max(maxXtX, px);
+                  minXtY = Math.min(minXtY, py);
+                  maxXtY = Math.max(maxXtY, py);
+                  const overX = Math.max(0, Math.abs(px) - 0.9);
+                  const overY = Math.max(0, -0.55 - py, py - 0.85);
+                  if (overX > 0 || overY > 0) {
+                    coreInside = false;
+                    corePenalty = Math.max(corePenalty, overX + overY);
+                  }
+                }
+                if (corePenalty >= 999) continue;
+
+                // Project landing centre and pond centre
+                projTmp.copy(landingCenter).project(tmpCam);
+                if (projTmp.z < -1 || projTmp.z > 1) continue;
+                const landOver = Math.max(0, Math.abs(projTmp.x) - 0.9) + Math.max(0, -0.55 - projTmp.y, projTmp.y - 0.85);
+                if (landOver > 0) {
+                  coreInside = false;
+                  corePenalty = Math.max(corePenalty, landOver);
+                }
+
+                projTmp.copy(pondCenter).project(tmpCam);
+                if (projTmp.z < -1 || projTmp.z > 1) continue;
+                const pondNdcY = projTmp.y;
+                const pondOver = Math.max(0, Math.abs(projTmp.x) - 0.9) + Math.max(0, -0.55 - projTmp.y, projTmp.y - 0.85);
+                if (pondOver > 0) {
+                  coreInside = false;
+                  corePenalty = Math.max(corePenalty, pondOver);
+                }
+
+                // Ensure pond with koi is in the lower/middle of the frame and 小团 sits on the bank in the upper/middle part
+                const xtCenterY = 0.5 * (minXtY + maxXtY);
+                if (xtCenterY <= pondNdcY + 0.15 || pondNdcY > 0.10) continue;
+
+                // Check 4 ring points at radius 4 around pond centre
+                let ringsInside = true;
+                for (let k = 0; k < ringPts.length; k++) {
+                  projTmp.copy(ringPts[k]).project(tmpCam);
+                  if (projTmp.z < -1 || projTmp.z > 1 || Math.abs(projTmp.x) > 0.9 || projTmp.y < -0.55 || projTmp.y > 0.85) {
+                    ringsInside = false;
+                    break;
+                  }
+                }
+
+                const xtSize = Math.max(0, maxXtX - minXtX) * Math.max(0, maxXtY - minXtY);
+                if (coreInside && ringsInside) {
+                  if (xtSize > bestFullScore) {
+                    bestFullScore = xtSize;
+                    bestFullPos = candPos.clone();
+                    bestFullTarget = candTarget.clone();
+                  }
+                } else if (coreInside) {
+                  if (xtSize > bestCoreScore) {
+                    bestCoreScore = xtSize;
+                    bestCorePos = candPos.clone();
+                    bestCoreTarget = candTarget.clone();
+                  }
+                } else if (corePenalty < fallbackPenalty) {
+                  fallbackPenalty = corePenalty;
+                  fallbackPos = candPos.clone();
+                  fallbackTarget = candTarget.clone();
+                }
+              }
+            }
+          }
+        }
+
+        const chosenPos = bestFullPos || bestCorePos || fallbackPos || new THREE.Vector3(-6.0, 11.0, 14.65);
+        const chosenTarget = bestFullTarget || bestCoreTarget || fallbackTarget || new THREE.Vector3(-7.5, -0.2, 1.6);
 
         return {
-          pos: [camPos.x, camPos.y, camPos.z],
-          target: [camTarget.x, camTarget.y, camTarget.z]
+          pos: [chosenPos.x, chosenPos.y, chosenPos.z],
+          target: [chosenTarget.x, chosenTarget.y, chosenTarget.z]
         };
       }
 
       const initialXiaotuanView = computeXiaotuanCameraView(camera.aspect);
       const CAM_VIEWS = [
-        { id: 'overview', label: '全景', pos: [7.2, 10.6, 15.4], target: [-4.2, 0.55, 0.4] },
+        { id: 'overview', label: '全景', pos: [7.2, 10.8, 16.0], target: [-2.6, 0.25, 0.3] },
         { id: 'xiaotuan', label: '小团视角', pos: initialXiaotuanView.pos, target: initialXiaotuanView.target },
-        { id: 'waterfall', label: '瀑布', pos: [4.2, 5.8, 7.5], target: [PLUNGE_X * 0.85, 1.1, PLUNGE_Z * 0.85] },
-        { id: 'surface', label: '水面', pos: [-8.5, 2.3, 11.2], target: [1.5, -0.4, -1.5] }
+        { id: 'waterfall', label: '瀑布', pos: [5.4, 7.6, 11.2], target: [PLUNGE_X * 0.45, 0.0, PLUNGE_Z * 0.45] },
+        { id: 'surface', label: '水面', pos: [-8.2, 3.1, 11.0], target: [0.8, -0.35, -0.8] }
       ];
       let currentCamIndex = 0;
       const camCycleBtn = document.getElementById('cam-cycle-btn');
       const camCycleLabel = document.getElementById('cam-cycle-label');
+
+      // KOI_VIS_V3: Expose debug hook only when URL has ?debug=1
+      if (new URLSearchParams(location.search).get('debug') === '1') {
+        window.__koi = {
+          camera,
+          controls,
+          fishCount: () => koiList.length,
+          views: CAM_VIEWS
+        };
+      }
 
       function applyCameraViewByIndex(idx) {
         currentCamIndex = ((idx % CAM_VIEWS.length) + CAM_VIEWS.length) % CAM_VIEWS.length;
@@ -3367,13 +3988,38 @@
         }
 
         renderer.render(scene, camera);
+
+        // KOI_LOADING_V3: Fade out loading overlay after first rendered frame and notify parent iframe host
+        if (!window.__koiFirstFrame) {
+          window.__koiFirstFrame = true;
+          if (window.__koiLoadTimer) {
+            clearTimeout(window.__koiLoadTimer);
+            window.__koiLoadTimer = null;
+          }
+          const loaderEl = document.getElementById('koi-loading');
+          if (loaderEl) {
+            loaderEl.classList.add('hide');
+            setTimeout(() => {
+              if (loaderEl.parentNode) loaderEl.parentNode.removeChild(loaderEl);
+            }, 450);
+          }
+          if (EMBED) {
+            try {
+              parent.postMessage({ type: 'koi-ready' }, location.origin);
+            } catch (e) {}
+          }
+          setTimeout(startBackdropLazyLoad, 0);
+        }
       }
 
-      // Responsive Window Resize Handler
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+      // Responsive Window & Iframe Resize Handler
+      function handleResize() {
+        const w = container.clientWidth || window.innerWidth;
+        const h = container.clientHeight || window.innerHeight;
+        if (!w || !h) return;
+        camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(w, h);
         const activeView = CAM_VIEWS[currentCamIndex];
         if (activeView && activeView.id === 'xiaotuan') {
           const fresh = computeXiaotuanCameraView(camera.aspect);
@@ -3388,11 +4034,26 @@
             controls.update();
           }
         }
+      }
+
+      window.addEventListener('resize', handleResize);
+      if (typeof ResizeObserver !== 'undefined') {
+        try {
+          new ResizeObserver(handleResize).observe(container);
+        } catch (e) {}
+      }
+      window.addEventListener('message', (e) => {
+        if (e.origin === location.origin && e.data && e.data.type === 'pond-resize') {
+          handleResize();
+        }
+      });
+      window.addEventListener('storage', (e) => {
+        if (!e.key || e.key === SAVE_KEY) refreshFoodUI();
       });
 
       // Start the living pond simulation
       animate();
-    };
+    })();
   </script>
 </body>
 </html>
