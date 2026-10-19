@@ -157,6 +157,8 @@
         align-items: center;
       }
       #feed-koi-btn { min-height: 44px; min-width: 44px; padding: 8px 14px; flex: 0 0 auto; }
+      #cam-cycle-btn { min-height: 44px; min-width: 44px; padding: 8px 12px; flex: 0 0 auto; }
+      .koi-main-bar { flex: 0 0 auto; }
       #no-food-msg:not(.hidden) {
         display: flex !important;
         align-items: center;
@@ -165,6 +167,22 @@
         margin: 0;
         text-align: left;
       }
+    }
+    #cam-cycle-btn {
+      opacity: 1 !important;
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.34);
+    }
+    #cam-cycle-btn:hover {
+      background: rgba(255, 255, 255, 0.26);
+    }
+    #cam-cycle-btn .cam-cycle-ico {
+      opacity: 1 !important;
+      filter: brightness(1.35) saturate(1.2) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+    }
+    @media (max-width: 359px) {
+      .cam-cycle-lbl { display: none; }
     }
     /* Inside the game scene the iframe is short, so the dock is always a single edge bar. */
     html.embed .koi-dock {
@@ -202,7 +220,9 @@
       display: inline-flex;
       align-items: center;
     }
+    html.embed .koi-main-bar { flex: 0 0 auto; }
     html.embed #feed-koi-btn { min-height: 44px; min-width: 44px; padding: 8px 12px; flex: 0 0 auto; }
+    html.embed #cam-cycle-btn { min-height: 44px; min-width: 44px; padding: 8px 10px; flex: 0 0 auto; }
     html.embed #feed-count { display: none; }
     html.embed #no-food-msg:not(.hidden) {
       display: flex !important;
@@ -328,7 +348,7 @@
     </p>
 
     <!-- Main Interactive Controls -->
-    <div class="glass-panel rounded-full p-2 px-3 pointer-events-auto flex items-center gap-2 sm:gap-3">
+    <div class="koi-main-bar glass-panel rounded-full p-2 px-3 pointer-events-auto flex items-center gap-2 sm:gap-3">
       
       <!-- Camera View Presets -->
       <div class="cam-presets hidden sm:flex items-center gap-1 pr-1 border-r border-white/15">
@@ -343,8 +363,14 @@
         </button>
       </div>
 
+      <!-- Camera View Cycle Toggle Button (visible in desktop, mobile, and embed mode) -->
+      <button id="cam-cycle-btn" type="button" aria-label="切换视角" title="切换视角" class="rounded-full px-3.5 py-2.5 min-h-[44px] min-w-[44px] bg-white/20 hover:bg-white/30 active:scale-95 border border-white/35 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer flex-shrink-0">
+        <span class="cam-cycle-ico text-base leading-none">🎥</span>
+        <span id="cam-cycle-label" class="cam-cycle-lbl whitespace-nowrap">全景</span>
+      </button>
+
       <!-- Primary Action: Feed the Koi Button -->
-      <button id="feed-koi-btn" class="feed-btn pulse-ring relative rounded-full px-6 py-3 font-semibold text-sm sm:text-base text-white flex items-center gap-2.5 cursor-pointer">
+      <button id="feed-koi-btn" class="feed-btn pulse-ring relative rounded-full px-6 py-3 font-semibold text-sm sm:text-base text-white flex items-center gap-2.5 cursor-pointer flex-shrink-0">
         <span class="text-lg leading-none">🌾</span>
         <span>喂锦鲤</span>
         <span id="feed-count" class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100">一把</span>
@@ -456,7 +482,7 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.target.set(-4.2, 0.55, 0.4);
-      controls.minDistance = 5.5;
+      controls.minDistance = 3.0;
       controls.maxDistance = 38;
       controls.maxPolarAngle = Math.PI * 0.475; // Keep camera above the water surface
       controls.minPolarAngle = 0.12;
@@ -1952,7 +1978,14 @@
       // ============================================================================
       // 11C. 小团 — a simple blob sitting on the near bank, facing the pond
       // ============================================================================
-      const xiaotuan = { toss: 0, tossDur: 0.55, baseY: 0 };
+      const xiaotuan = {
+        toss: 0,
+        tossDur: 0.9,
+        baseY: 0,
+        baseYaw: 0,
+        pendingThrows: [],
+        handWorldTmp: new THREE.Vector3()
+      };
       (function buildXiaotuan() {
         const theta = Math.PI * 0.96;
         const edge = getPondBoundaryRadius(theta);
@@ -1962,52 +1995,62 @@
         const y = getPondBedHeight(x, z);
         const g = new THREE.Group();
         g.position.set(x, y, z);
-        g.lookAt(0, y, 0);
+        // Orient horizontally toward the default camera position (7.2, *, 15.4) so local +Z faces viewer/pond
+        g.lookAt(7.2, y, 15.4);
         g.scale.setScalar(1.85);
+        xiaotuan.baseYaw = g.rotation.y;
 
         const cream = new THREE.MeshStandardMaterial({ color: 0xf6e2c4, roughness: 0.72 });
         const ink = new THREE.MeshStandardMaterial({ color: 0x3a2e24, roughness: 0.45 });
         const blush = new THREE.MeshStandardMaterial({ color: 0xf2b2a6, roughness: 0.6 });
         const leafM = new THREE.MeshStandardMaterial({ color: 0x7fae55, roughness: 0.55 });
 
+        // Body ellipsoid: r=0.64 scaled (1.08, 0.9, 1) -> semi-axes Rx=0.6912, Ry=0.576, Rz=0.64 centered at y=0.66
         const body = new THREE.Mesh(new THREE.SphereGeometry(0.64, 28, 20), cream);
         body.scale.set(1.08, 0.9, 1);
         body.position.y = 0.66;
         body.castShadow = true;
         g.add(body);
 
+        // Flatter, lower belly patch so it sits cleanly on the lower front and never covers the smile
         const belly = new THREE.Mesh(
-          new THREE.SphereGeometry(0.36, 16, 12),
+          new THREE.SphereGeometry(0.35, 16, 12),
           new THREE.MeshStandardMaterial({ color: 0xfff6e8, roughness: 0.68 })
         );
-        belly.position.set(0, 0.5, -0.32);
+        belly.scale.set(1.04, 0.78, 0.52);
+        belly.position.set(0, 0.41, 0.43);
+        belly.rotation.x = 0.28;
         g.add(belly);
 
+        // Eyes & highlights placed cleanly outside the ellipsoid surface (surface at (±0.18, 0.80) is z≈0.598)
         function makeEye(px) {
-          const e = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), ink);
-          e.position.set(px, 0.8, -0.54);
+          const e = new THREE.Mesh(new THREE.SphereGeometry(0.076, 12, 10), ink);
+          e.position.set(px, 0.8, 0.585);
           g.add(e);
           const hi = new THREE.Mesh(
-            new THREE.SphereGeometry(0.028, 8, 8),
+            new THREE.SphereGeometry(0.03, 8, 8),
             new THREE.MeshBasicMaterial({ color: 0xfffaf0 })
           );
-          hi.position.set(px + 0.02, 0.83, -0.6);
+          hi.position.set(px + 0.022, 0.832, 0.655);
           g.add(hi);
           return e;
         }
         const eyeL = makeEye(-0.18);
         const eyeR = makeEye(0.18);
 
-        const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), blush);
-        cheekL.position.set(-0.34, 0.66, -0.48);
+        // Cheeks on/outside ellipsoid surface (surface at (±0.35, 0.65) is z≈0.55)
+        const cheekL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), blush);
+        cheekL.scale.set(1.1, 0.85, 0.75);
+        cheekL.position.set(-0.35, 0.65, 0.545);
         const cheekR = cheekL.clone();
-        cheekR.position.x = 0.34;
+        cheekR.position.x = 0.35;
         g.add(cheekL);
         g.add(cheekR);
 
-        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.016, 6, 12, Math.PI), ink);
-        smile.position.set(0, 0.62, -0.58);
-        smile.rotation.z = Math.PI;
+        // Smile placed outside body surface (surface at (0, 0.62) is z≈0.638) and tilted to follow surface curvature
+        const smile = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.019, 8, 16, Math.PI), ink);
+        smile.position.set(0, 0.62, 0.648);
+        smile.rotation.set(-0.14, 0, Math.PI);
         g.add(smile);
 
         const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), leafM);
@@ -2016,12 +2059,16 @@
         leaf.rotation.z = -0.55;
         g.add(leaf);
 
+        // Arms placed on the outer sides of the body ellipsoid so stubby nub arms clearly stick out in silhouette
         function makeArm(side) {
           const pivot = new THREE.Group();
-          pivot.position.set(side * 0.5, 0.72, -0.06);
-          const a = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), cream);
-          a.scale.set(0.82, 1.2, 0.82);
-          a.position.set(side * 0.06, -0.14, -0.1);
+          pivot.position.set(side * 0.61, 0.7, 0.12);
+          pivot.rotation.order = 'ZXY';
+          const a = new THREE.Mesh(new THREE.SphereGeometry(0.175, 12, 10), cream);
+          a.scale.set(0.88, 1.38, 0.88);
+          a.position.set(side * 0.13, -0.13, 0.09);
+          a.rotation.z = side * 0.42;
+          a.rotation.x = -0.22;
           a.castShadow = true;
           pivot.add(a);
           g.add(pivot);
@@ -2031,7 +2078,7 @@
         const footGeo = new THREE.SphereGeometry(0.15, 10, 8);
         const footL = new THREE.Mesh(footGeo, cream);
         footL.scale.set(1.25, 0.65, 1.35);
-        footL.position.set(-0.24, 0.12, -0.18);
+        footL.position.set(-0.24, 0.12, 0.18);
         const footR = footL.clone();
         footR.position.x = 0.24;
         g.add(footL);
@@ -2044,28 +2091,130 @@
         xiaotuan.eyeR = eyeR;
         xiaotuan.armL = makeArm(-1);
         xiaotuan.armR = makeArm(1);
+
+        // Hand attachment point at the outer tip of the right arm (for visible held food & world release pos)
+        const handNode = new THREE.Group();
+        handNode.position.set(0.24, -0.3, 0.15);
+        handNode.visible = false;
+        xiaotuan.armR.add(handNode);
+        xiaotuan.handNode = handNode;
+        xiaotuan.heldByFood = {};
+
         xiaotuan.baseY = y;
-        xiaotuan.handLocal = new THREE.Vector3(0.62, 0.86, -0.42);
+        xiaotuan.handLocal = new THREE.Vector3(0.82, 0.88, 0.44);
       })();
 
       function xiaotuanHandPos() {
+        xiaotuan.group.updateMatrixWorld(true);
+        if (xiaotuan.handNode) {
+          return xiaotuan.handNode.getWorldPosition(xiaotuan.handWorldTmp).clone();
+        }
         return xiaotuan.group.localToWorld(xiaotuan.handLocal.clone());
+      }
+
+      function showHeldFoodInHand(foodId) {
+        if (!xiaotuan.handNode) return;
+        const map = xiaotuan.heldByFood;
+        if (!map[foodId]) {
+          const piece = createFoodPieceMesh(foodId, 0);
+          // Scale so the held piece is ~0.20-0.25 world units across and clearly visible in the raised hand
+          piece.scale.setScalar(1.15);
+          map[foodId] = piece;
+          xiaotuan.handNode.add(piece);
+        }
+        for (const k in map) {
+          map[k].visible = k === foodId;
+        }
+        xiaotuan.handNode.visible = true;
+      }
+
+      function hideHeldFoodInHand() {
+        if (xiaotuan.handNode) xiaotuan.handNode.visible = false;
       }
 
       function updateXiaotuan(elapsed, dt) {
         const bob = Math.sin(elapsed * 2.1) * 0.04;
-        let swing = 0;
+        let armRx = 0;
+        let armRy = 0;
+        let armRz = 0;
+        let leftArmRx = 0;
+        let leftArmRz = 0;
+        let bodyRx = 0;
+        let bodyYawOffset = 0;
         let hop = 0;
+
         if (xiaotuan.toss > 0) {
           xiaotuan.toss = Math.max(0, xiaotuan.toss - dt);
           const u = 1 - xiaotuan.toss / xiaotuan.tossDur;
-          swing = Math.sin(Math.min(u, 1) * Math.PI);
-          hop = swing * 0.18;
+
+          if (u < 0.35) {
+            // Phase 1 (0–35%): wind-up — right arm swings UP, OUT to the side (+rz raises arm high out to +X/+Y), and slightly forward so it's never hidden behind the body
+            const p = THREE.MathUtils.smoothstep(u / 0.35, 0, 1);
+            armRz = 1.95 * p;
+            armRx = -0.35 * p;
+            armRy = 0.2 * p;
+            leftArmRz = -0.75 * p;
+            leftArmRx = -0.35 * p;
+            bodyRx = -0.18 * p;
+            bodyYawOffset = -0.15 * p;
+            hop = -0.04 * p;
+          } else if (u < 0.55) {
+            // Phase 2 (35–55%): quick throw — arm whips across/forward and down toward +Z (pond), body twists & leans forward with a hop
+            const p = THREE.MathUtils.smoothstep((u - 0.35) / 0.2, 0, 1);
+            armRz = THREE.MathUtils.lerp(1.95, 0.32, p);
+            armRx = THREE.MathUtils.lerp(-0.35, -1.25, p);
+            armRy = THREE.MathUtils.lerp(0.2, 0.55, p);
+            leftArmRz = THREE.MathUtils.lerp(-0.75, -0.2, p);
+            leftArmRx = THREE.MathUtils.lerp(-0.35, 0.48, p);
+            bodyRx = THREE.MathUtils.lerp(-0.18, 0.24, p);
+            bodyYawOffset = THREE.MathUtils.lerp(-0.15, 0.22, p);
+            hop = THREE.MathUtils.lerp(-0.04, 0.22, Math.sin(p * Math.PI * 0.7));
+          } else {
+            // Phase 3 (55–100%): follow-through and settle back to rest
+            const p = THREE.MathUtils.smoothstep((u - 0.55) / 0.45, 0, 1);
+            armRz = THREE.MathUtils.lerp(0.32, 0, p);
+            armRx = THREE.MathUtils.lerp(-1.25, 0, p);
+            armRy = THREE.MathUtils.lerp(0.55, 0, p);
+            leftArmRz = THREE.MathUtils.lerp(-0.2, 0, p);
+            leftArmRx = THREE.MathUtils.lerp(0.48, 0, p);
+            bodyRx = THREE.MathUtils.lerp(0.24, 0, p);
+            bodyYawOffset = THREE.MathUtils.lerp(0.22, 0, p);
+            hop = 0.22 * (1 - p) * (1 - p);
+          }
+
+          xiaotuan.group.position.y = xiaotuan.baseY + bob + hop;
+          xiaotuan.group.rotation.y = xiaotuan.baseYaw + bodyYawOffset;
+          xiaotuan.armR.rotation.set(armRx, armRy, armRz);
+          xiaotuan.armL.rotation.set(leftArmRx, 0, leftArmRz);
+          xiaotuan.body.rotation.x = bodyRx;
+
+          // Release food from the hand at ~45% of tossDur
+          if (u >= 0.45 && xiaotuan.pendingThrows.length > 0) {
+            const origin = xiaotuanHandPos();
+            hideHeldFoodInHand();
+            for (let q = 0; q < xiaotuan.pendingThrows.length; q++) {
+              spawnQueuedThrowPellets(xiaotuan.pendingThrows[q], origin);
+            }
+            xiaotuan.pendingThrows.length = 0;
+            updateFeedingHUD();
+          }
+        } else {
+          xiaotuan.group.position.y = xiaotuan.baseY + bob;
+          xiaotuan.group.rotation.y = xiaotuan.baseYaw;
+          xiaotuan.armR.rotation.set(0, 0, 0);
+          xiaotuan.armL.rotation.set(0, 0, 0);
+          xiaotuan.body.rotation.x = 0;
+          if (xiaotuan.pendingThrows.length > 0) {
+            const origin = xiaotuanHandPos();
+            hideHeldFoodInHand();
+            for (let q = 0; q < xiaotuan.pendingThrows.length; q++) {
+              spawnQueuedThrowPellets(xiaotuan.pendingThrows[q], origin);
+            }
+            xiaotuan.pendingThrows.length = 0;
+            updateFeedingHUD();
+          }
         }
-        xiaotuan.group.position.y = xiaotuan.baseY + bob + hop;
-        xiaotuan.armR.rotation.x = -1.75 * swing;
-        xiaotuan.armL.rotation.x = -0.4 * swing;
-        xiaotuan.body.rotation.x = -0.22 * swing;
+
         const blink = Math.sin(elapsed * 0.52) > 0.965 ? 0.12 : 1;
         xiaotuan.eyeL.scale.y = blink;
         xiaotuan.eyeR.scale.y = blink;
@@ -2078,14 +2227,299 @@
       const splashBursts = [];
       let totalPelletsEaten = 0;
 
-      const pelletGeo = new THREE.SphereGeometry(0.075, 10, 8);
-      pelletGeo.scale(1.1, 0.78, 1.1);
-      const pelletMat = new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        roughness: 0.65,
-        emissive: 0x78350f,
-        emissiveIntensity: 0.25
-      });
+      // FOOD_MODELS_V2: Cached low-poly geometries and MeshStandardMaterials per shop food
+      const FOOD_MODEL_CACHE = (function buildFoodModelCache() {
+        const mats = {
+          // bun 艾草团子
+          mugwort1: new THREE.MeshStandardMaterial({ color: 0x8fbf5a, roughness: 0.55, emissive: 0x264214, emissiveIntensity: 0.18 }),
+          mugwort2: new THREE.MeshStandardMaterial({ color: 0x7cb048, roughness: 0.58, emissive: 0x223b12, emissiveIntensity: 0.18 }),
+          mugwort3: new THREE.MeshStandardMaterial({ color: 0x9ecc68, roughness: 0.52, emissive: 0x2b4a18, emissiveIntensity: 0.18 }),
+          skewerStick: new THREE.MeshStandardMaterial({ color: 0xc9a36b, roughness: 0.68 }),
+          // onigiri 海苔饭团
+          rice: new THREE.MeshStandardMaterial({ color: 0xf8f5ec, roughness: 0.65, emissive: 0x3b3629, emissiveIntensity: 0.14 }),
+          nori: new THREE.MeshStandardMaterial({ color: 0x1f2a1c, roughness: 0.72 }),
+          // bento 森林便当
+          tamago: new THREE.MeshStandardMaterial({ color: 0xf2cf4a, roughness: 0.5, emissive: 0x4d3808, emissiveIntensity: 0.16 }),
+          tamagoBand: new THREE.MeshStandardMaterial({ color: 0xc99722, roughness: 0.58 }),
+          mushroomCap: new THREE.MeshStandardMaterial({ color: 0x6e472b, roughness: 0.62, emissive: 0x26150a, emissiveIntensity: 0.15 }),
+          mushroomStem: new THREE.MeshStandardMaterial({ color: 0xe8dcc8, roughness: 0.68 }),
+          broccoliTop: new THREE.MeshStandardMaterial({ color: 0x3b7d34, roughness: 0.62, emissive: 0x143311, emissiveIntensity: 0.15 }),
+          broccoliStem: new THREE.MeshStandardMaterial({ color: 0x86ba52, roughness: 0.6 }),
+          // vbento 番茄罗勒便当
+          tomatoSkin: new THREE.MeshStandardMaterial({ color: 0xe0402f, roughness: 0.38, emissive: 0x4a110a, emissiveIntensity: 0.18 }),
+          tomatoFlesh: new THREE.MeshStandardMaterial({ color: 0xf27d6d, roughness: 0.48, emissive: 0x401510, emissiveIntensity: 0.14 }),
+          basil: new THREE.MeshStandardMaterial({ color: 0x3f8f3a, roughness: 0.5, emissive: 0x123311, emissiveIntensity: 0.16 }),
+          // cbento 胡萝卜饭团盒
+          carrot: new THREE.MeshStandardMaterial({ color: 0xf07a1e, roughness: 0.48, emissive: 0x4f2104, emissiveIntensity: 0.18 }),
+          carrotCore: new THREE.MeshStandardMaterial({ color: 0xf79d4d, roughness: 0.52 }),
+          // jam 草莓果酱面包
+          breadCrust: new THREE.MeshStandardMaterial({ color: 0xd9a35b, roughness: 0.68, emissive: 0x3d280e, emissiveIntensity: 0.14 }),
+          breadCrumb: new THREE.MeshStandardMaterial({ color: 0xf3dcae, roughness: 0.72, emissive: 0x3b301a, emissiveIntensity: 0.12 }),
+          jamGloss: new THREE.MeshStandardMaterial({ color: 0xd6334f, roughness: 0.2, metalness: 0.08, emissive: 0x4d0b18, emissiveIntensity: 0.22 }),
+          berryLeaf: new THREE.MeshStandardMaterial({ color: 0x489c3b, roughness: 0.55 })
+        };
+
+        // Low-poly rounded triangular prism for onigiri
+        const triShape = new THREE.Shape();
+        triShape.moveTo(0, 0.085);
+        triShape.quadraticCurveTo(0.088, 0.075, 0.082, -0.052);
+        triShape.quadraticCurveTo(0, -0.075, -0.082, -0.052);
+        triShape.quadraticCurveTo(-0.088, 0.075, 0, 0.085);
+        const onigiriGeo = new THREE.ExtrudeGeometry(triShape, {
+          depth: 0.036,
+          bevelEnabled: true,
+          bevelSegments: 2,
+          steps: 1,
+          bevelSize: 0.016,
+          bevelThickness: 0.016
+        });
+        onigiriGeo.center();
+        onigiriGeo.rotateX(Math.PI / 2);
+
+        const dangoBallGeo = new THREE.SphereGeometry(0.068, 8, 7);
+        dangoBallGeo.scale(1.06, 0.84, 1.06);
+
+        const skewerBallGeo = new THREE.SphereGeometry(0.04, 8, 6);
+        skewerBallGeo.scale(1.04, 0.88, 1.04);
+
+        const skewerStickGeo = new THREE.CylinderGeometry(0.007, 0.006, 0.23, 6);
+        skewerStickGeo.rotateZ(Math.PI / 2);
+
+        const noriStripGeo = new THREE.BoxGeometry(0.076, 0.062, 0.064);
+
+        const riceGrainGeo = new THREE.SphereGeometry(0.032, 7, 6);
+        riceGrainGeo.scale(1.75, 0.72, 0.8);
+
+        const ricePuffGeo = new THREE.SphereGeometry(0.045, 7, 6);
+        ricePuffGeo.scale(1.15, 0.82, 0.95);
+
+        const tamagoCubeGeo = new THREE.BoxGeometry(0.145, 0.078, 0.105);
+        const tamagoBandGeo = new THREE.BoxGeometry(0.032, 0.082, 0.109);
+
+        const mushroomCapGeo = new THREE.SphereGeometry(0.078, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.58);
+        const mushroomStemGeo = new THREE.CylinderGeometry(0.025, 0.032, 0.072, 6);
+
+        const floretGeo = new THREE.SphereGeometry(0.042, 7, 6);
+        const broccoliStemGeo = new THREE.CylinderGeometry(0.024, 0.018, 0.068, 6);
+
+        const tomatoOuterGeo = new THREE.SphereGeometry(0.084, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.54);
+        tomatoOuterGeo.rotateX(Math.PI);
+        const tomatoInnerGeo = new THREE.CylinderGeometry(0.078, 0.072, 0.016, 8);
+
+        const basilLeafGeo = new THREE.SphereGeometry(0.076, 8, 6);
+        basilLeafGeo.scale(1.38, 0.24, 0.82);
+
+        const carrotCoinGeo = new THREE.CylinderGeometry(0.076, 0.076, 0.034, 8);
+        const carrotCoreGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.037, 8);
+        const carrotStickGeo = new THREE.BoxGeometry(0.165, 0.044, 0.048);
+
+        const breadCrustGeo = new THREE.BoxGeometry(0.155, 0.068, 0.155);
+        const breadCrumbGeo = new THREE.BoxGeometry(0.138, 0.076, 0.138);
+        const jamTopGeo = new THREE.BoxGeometry(0.116, 0.024, 0.116);
+        const jamDropGeo = new THREE.SphereGeometry(0.048, 7, 6);
+        jamDropGeo.scale(1.25, 0.45, 1.15);
+
+        const strawberryGeo = new THREE.ConeGeometry(0.056, 0.11, 7);
+        strawberryGeo.rotateZ(Math.PI * 0.45);
+        const berryLeafGeo = new THREE.SphereGeometry(0.036, 6, 5);
+        berryLeafGeo.scale(1.4, 0.35, 1.4);
+
+        return {
+          mats,
+          geos: {
+            onigiriGeo,
+            dangoBallGeo,
+            skewerBallGeo,
+            skewerStickGeo,
+            noriStripGeo,
+            riceGrainGeo,
+            ricePuffGeo,
+            tamagoCubeGeo,
+            tamagoBandGeo,
+            mushroomCapGeo,
+            mushroomStemGeo,
+            floretGeo,
+            broccoliStemGeo,
+            tomatoOuterGeo,
+            tomatoInnerGeo,
+            basilLeafGeo,
+            carrotCoinGeo,
+            carrotCoreGeo,
+            carrotStickGeo,
+            breadCrustGeo,
+            breadCrumbGeo,
+            jamTopGeo,
+            jamDropGeo,
+            strawberryGeo,
+            berryLeafGeo
+          }
+        };
+      })();
+
+      function createFoodPieceMesh(foodId, index) {
+        const { mats, geos } = FOOD_MODEL_CACHE;
+        const g = new THREE.Group();
+        const mugworts = [mats.mugwort1, mats.mugwort2, mats.mugwort3];
+
+        if (foodId === 'bun') {
+          if (index % 3 === 0) {
+            // Mini skewer of 3 green mugwort balls on a thin light-brown stick
+            const stick = new THREE.Mesh(geos.skewerStickGeo, mats.skewerStick);
+            stick.castShadow = true;
+            g.add(stick);
+            for (let k = -1; k <= 1; k++) {
+              const b = new THREE.Mesh(geos.skewerBallGeo, mugworts[(index + k + 1) % 3]);
+              b.position.x = k * 0.064;
+              b.castShadow = true;
+              g.add(b);
+            }
+          } else {
+            // Single mugwort-green ball
+            const b = new THREE.Mesh(geos.dangoBallGeo, mugworts[index % 3]);
+            b.castShadow = true;
+            g.add(b);
+          }
+        } else if (foodId === 'onigiri') {
+          if (index % 3 !== 2) {
+            // White rice triangle with black-green nori strip wrapped on bottom
+            const rice = new THREE.Mesh(geos.onigiriGeo, mats.rice);
+            rice.castShadow = true;
+            const nori = new THREE.Mesh(geos.noriStripGeo, mats.nori);
+            nori.position.set(0, 0, 0.048);
+            nori.castShadow = true;
+            g.add(rice, nori);
+          } else {
+            // Loose white rice grains (elongated ellipsoids)
+            const g1 = new THREE.Mesh(geos.riceGrainGeo, mats.rice);
+            g1.position.set(-0.025, 0, -0.015);
+            g1.rotation.y = 0.35;
+            const g2 = new THREE.Mesh(geos.riceGrainGeo, mats.rice);
+            g2.position.set(0.028, 0.008, 0.018);
+            g2.rotation.y = -0.5;
+            g1.castShadow = true;
+            g2.castShadow = true;
+            g.add(g1, g2);
+          }
+        } else if (foodId === 'bento') {
+          const kind = index % 4;
+          if (kind === 0) {
+            // Yellow tamagoyaki cube
+            const cube = new THREE.Mesh(geos.tamagoCubeGeo, mats.tamago);
+            const band = new THREE.Mesh(geos.tamagoBandGeo, mats.tamagoBand);
+            cube.castShadow = true;
+            g.add(cube, band);
+          } else if (kind === 1) {
+            // Brown mushroom piece (cap + stem)
+            const cap = new THREE.Mesh(geos.mushroomCapGeo, mats.mushroomCap);
+            cap.position.y = 0.012;
+            const stem = new THREE.Mesh(geos.mushroomStemGeo, mats.mushroomStem);
+            stem.position.y = -0.022;
+            cap.castShadow = true;
+            stem.castShadow = true;
+            g.add(cap, stem);
+          } else if (kind === 2) {
+            // Green broccoli / leaf bit
+            const stem = new THREE.Mesh(geos.broccoliStemGeo, mats.broccoliStem);
+            stem.position.y = -0.022;
+            const f1 = new THREE.Mesh(geos.floretGeo, mats.broccoliTop);
+            f1.position.set(-0.026, 0.018, 0.015);
+            const f2 = new THREE.Mesh(geos.floretGeo, mats.broccoliTop);
+            f2.position.set(0.026, 0.022, 0.012);
+            const f3 = new THREE.Mesh(geos.floretGeo, mats.mugwort2);
+            f3.position.set(0, 0.028, -0.024);
+            f1.castShadow = true;
+            f2.castShadow = true;
+            g.add(stem, f1, f2, f3);
+          } else {
+            // White rice clump
+            const r1 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r1.position.set(-0.024, 0, -0.012);
+            const r2 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r2.position.set(0.026, 0.008, 0.014);
+            const r3 = new THREE.Mesh(geos.riceGrainGeo, mats.rice);
+            r3.position.set(0, 0.024, -0.004);
+            r1.castShadow = true;
+            r2.castShadow = true;
+            g.add(r1, r2, r3);
+          }
+        } else if (foodId === 'vbento') {
+          const kind = index % 3;
+          if (kind === 0) {
+            // Red tomato wedge/half with lighter inside
+            const skin = new THREE.Mesh(geos.tomatoOuterGeo, mats.tomatoSkin);
+            skin.position.y = 0.02;
+            const flesh = new THREE.Mesh(geos.tomatoInnerGeo, mats.tomatoFlesh);
+            flesh.position.y = 0.02;
+            skin.castShadow = true;
+            g.add(skin, flesh);
+          } else if (kind === 1) {
+            // Green basil leaf (flattened ellipsoid)
+            const leaf1 = new THREE.Mesh(geos.basilLeafGeo, mats.basil);
+            leaf1.castShadow = true;
+            const leaf2 = new THREE.Mesh(geos.basilLeafGeo, mats.mugwort2);
+            leaf2.scale.set(0.65, 0.7, 0.65);
+            leaf2.position.set(0.02, 0.01, 0.015);
+            leaf2.rotation.y = 0.55;
+            g.add(leaf1, leaf2);
+          } else {
+            // Rice clump
+            const r1 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r1.position.set(-0.022, 0, 0);
+            const r2 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r2.position.set(0.024, 0.006, 0.014);
+            r1.castShadow = true;
+            g.add(r1, r2);
+          }
+        } else if (foodId === 'cbento') {
+          const kind = index % 3;
+          if (kind === 0) {
+            // Orange carrot round coin slice
+            const coin = new THREE.Mesh(geos.carrotCoinGeo, mats.carrot);
+            const core = new THREE.Mesh(geos.carrotCoreGeo, mats.carrotCore);
+            coin.castShadow = true;
+            g.add(coin, core);
+          } else if (kind === 1) {
+            // Orange carrot small stick
+            const stick = new THREE.Mesh(geos.carrotStickGeo, mats.carrot);
+            stick.castShadow = true;
+            g.add(stick);
+          } else {
+            // White rice clump with tiny carrot bit
+            const r1 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r1.position.set(-0.022, 0, -0.01);
+            const r2 = new THREE.Mesh(geos.ricePuffGeo, mats.rice);
+            r2.position.set(0.024, 0.005, 0.014);
+            const speck = new THREE.Mesh(geos.riceGrainGeo, mats.carrot);
+            speck.position.set(0, 0.026, 0);
+            r1.castShadow = true;
+            r2.castShadow = true;
+            g.add(r1, r2, speck);
+          }
+        } else {
+          // jam 草莓果酱面包
+          if (index % 3 !== 2) {
+            // Bread cube (golden crust around lighter crumb) with glossy pink-red jam layer on top
+            const crust = new THREE.Mesh(geos.breadCrustGeo, mats.breadCrust);
+            const crumb = new THREE.Mesh(geos.breadCrumbGeo, mats.breadCrumb);
+            const jam = new THREE.Mesh(geos.jamTopGeo, mats.jamGloss);
+            jam.position.y = 0.042;
+            const jamDrop = new THREE.Mesh(geos.jamDropGeo, mats.jamGloss);
+            jamDrop.position.y = 0.048;
+            crust.castShadow = true;
+            crumb.castShadow = true;
+            g.add(crust, crumb, jam, jamDrop);
+          } else {
+            // Small strawberry piece
+            const berry = new THREE.Mesh(geos.strawberryGeo, mats.jamGloss);
+            berry.castShadow = true;
+            const calyx = new THREE.Mesh(geos.berryLeafGeo, mats.berryLeaf);
+            calyx.position.set(-0.048, 0.008, 0);
+            calyx.rotation.z = 0.4;
+            g.add(berry, calyx);
+          }
+        }
+        return g;
+      }
 
       const statPelletsEl = document.getElementById('stat-pellets');
       const statEatenEl = document.getElementById('stat-eaten');
@@ -2156,7 +2590,6 @@
         { id: 'cbento', n: '胡萝卜饭团盒', ic: '🥕', color: 0xf08a2a, emissive: 0x8a3e00, size: 1.16, pellets: 10 },
         { id: 'jam', n: '草莓果酱面包', ic: '🍓', color: 0xec6b8a, emissive: 0x8a2040, size: 0.92, pellets: 8 }
       ];
-      const pelletMats = {};
       let selectedFood = null;
       const EMBED = document.documentElement.classList.contains('embed');
       const foodTray = document.getElementById('food-tray');
@@ -2180,17 +2613,6 @@
         if (!stock.length) return null;
         if (!stock.some((f) => f.id === selectedFood)) selectedFood = stock[0].id;
         return stock.find((f) => f.id === selectedFood);
-      }
-      function matFor(food) {
-        if (!pelletMats[food.id]) {
-          pelletMats[food.id] = new THREE.MeshStandardMaterial({
-            color: food.color,
-            roughness: 0.55,
-            emissive: food.emissive,
-            emissiveIntensity: 0.32
-          });
-        }
-        return pelletMats[food.id];
       }
       function consumeFood(id) {
         const save = readGameSave();
@@ -2230,10 +2652,12 @@
         return { x: tx, z: tz };
       }
 
-      // Pellets leave 小团's hand and arc onto the water.
-      function tossFoodPellets(centerX, centerZ, count, food) {
-        const origin = xiaotuanHandPos();
-        const mat = matFor(food);
+      // Spawn the actual food piece models from the hand position at release moment (~45% of tossDur)
+      function spawnQueuedThrowPellets(req, origin) {
+        const { centerX, centerZ, count, food } = req;
+        const foodId = food ? food.id : 'bun';
+        const baseScale = food ? food.size : 1.0;
+        const PIECE_WORLD_SCALE = 2.5;
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
           const spread = Math.sqrt(Math.random()) * (count > 6 ? 1.7 : 1.05);
@@ -2244,14 +2668,18 @@
             px = Math.cos(metrics.theta) * (metrics.maxR * 0.62);
             pz = Math.sin(metrics.theta) * (metrics.maxR * 0.62);
           }
-          const mesh = new THREE.Mesh(pelletGeo, mat);
-          mesh.scale.setScalar(food.size * (0.85 + Math.random() * 0.3));
+          const mesh = createFoodPieceMesh(foodId, i);
+          mesh.scale.setScalar(PIECE_WORLD_SCALE * baseScale * (0.9 + Math.random() * 0.24));
           mesh.position.copy(origin);
-          mesh.position.x += (Math.random() - 0.5) * 0.12;
-          mesh.position.z += (Math.random() - 0.5) * 0.12;
-          mesh.castShadow = true;
+          mesh.position.x += (Math.random() - 0.5) * 0.14;
+          mesh.position.z += (Math.random() - 0.5) * 0.14;
+          mesh.rotation.set(
+            (Math.random() - 0.5) * 1.4,
+            Math.random() * Math.PI * 2,
+            (Math.random() - 0.5) * 1.4
+          );
           scene.add(mesh);
-          const flight = 0.78 + Math.random() * 0.22;
+          const flight = 0.72 + Math.random() * 0.24;
           const g = 9.8;
           pellets.push({
             mesh,
@@ -2260,13 +2688,27 @@
             vx: (px - mesh.position.x) / flight,
             vz: (pz - mesh.position.z) / flight,
             vy: (0.02 - mesh.position.y + 0.5 * g * flight * flight) / flight,
+            rxSpeed: (Math.random() - 0.5) * 9.5,
+            rySpeed: (Math.random() - 0.5) * 7.5,
+            rzSpeed: (Math.random() - 0.5) * 9.5,
+            restRx: (Math.random() - 0.5) * 0.16,
+            restRz: (Math.random() - 0.5) * 0.16,
             landed: false,
             eaten: false,
             bobPhase: Math.random() * Math.PI * 2
           });
         }
-        xiaotuan.toss = xiaotuan.tossDur;
-        updateFeedingHUD();
+      }
+
+      // Queue a pending throw; pellets leave 小团's hand at the release moment in updateXiaotuan.
+      function tossFoodPellets(centerX, centerZ, count, food) {
+        const hadUnspawned = xiaotuan.pendingThrows.length > 0;
+        xiaotuan.pendingThrows.push({ centerX, centerZ, count, food });
+        showHeldFoodInHand(food ? food.id : 'bun');
+        // Start or cleanly restart toss if not already mid-windup
+        if (!hadUnspawned || xiaotuan.toss <= 0) {
+          xiaotuan.toss = xiaotuan.tossDur;
+        }
       }
 
       function beginFeed(tx, tz) {
@@ -2331,76 +2773,184 @@
       // ============================================================================
       // 13. UI CONTROLS: AMBIANCE MODES, CAMERA PRESETS & SOUND
       // ============================================================================
+      // TOD_DEFAULT_V2: Apply lighting mode and sync .mode-btn active state; default from local clock (or ?tod= override)
       const modeButtons = document.querySelectorAll('.mode-btn');
+      function applyAmbianceMode(mode) {
+        const validMode = mode === 'sunset' || mode === 'night' || mode === 'day' ? mode : 'day';
+        modeButtons.forEach((b) => {
+          b.classList.toggle('active', b.getAttribute('data-mode') === validMode);
+        });
+
+        if (validMode === 'day') {
+          scene.background.setHex(0x0d2229);
+          scene.fog.color.setHex(0x0d2229);
+          hemiLight.color.setHex(0xdff4ff);
+          hemiLight.groundColor.setHex(0x1a362b);
+          hemiLight.intensity = 0.75;
+          sunLight.color.setHex(0xfff5e0);
+          sunLight.intensity = 1.35;
+          sunLight.position.set(16, 26, 14);
+          waterUniforms.uSkyColor.value.setHex(0x7dd3fc);
+          waterUniforms.uDeepColor.value.setHex(0x0b3b42);
+          waterUniforms.uSunColor.value.setHex(0xfff6e5);
+          bedUniforms.uCausticIntensity.value = 0.55;
+          bedUniforms.uCausticColor.value.setHex(0x99f6e4);
+          lanternLight.intensity = 0.5;
+          pondGlowLight.intensity = 0.65;
+        } else if (validMode === 'sunset') {
+          scene.background.setHex(0x1f1624);
+          scene.fog.color.setHex(0x1f1624);
+          hemiLight.color.setHex(0xfdba74);
+          hemiLight.groundColor.setHex(0x27171c);
+          hemiLight.intensity = 0.65;
+          sunLight.color.setHex(0xff7e33);
+          sunLight.intensity = 1.55;
+          sunLight.position.set(-22, 11, -14);
+          waterUniforms.uSkyColor.value.setHex(0xfb923c);
+          waterUniforms.uDeepColor.value.setHex(0x1c2838);
+          waterUniforms.uSunColor.value.setHex(0xffedd5);
+          bedUniforms.uCausticIntensity.value = 0.48;
+          bedUniforms.uCausticColor.value.setHex(0xfdba74);
+          lanternLight.intensity = 1.6;
+          pondGlowLight.intensity = 0.75;
+        } else if (validMode === 'night') {
+          scene.background.setHex(0x050d14);
+          scene.fog.color.setHex(0x050d14);
+          hemiLight.color.setHex(0x38bdf8);
+          hemiLight.groundColor.setHex(0x08141c);
+          hemiLight.intensity = 0.32;
+          sunLight.color.setHex(0x93c5fd);
+          sunLight.intensity = 0.45;
+          sunLight.position.set(10, 24, -12);
+          waterUniforms.uSkyColor.value.setHex(0x1e3a8a);
+          waterUniforms.uDeepColor.value.setHex(0x041f26);
+          waterUniforms.uSunColor.value.setHex(0xbae6fd);
+          bedUniforms.uCausticIntensity.value = 0.35;
+          bedUniforms.uCausticColor.value.setHex(0x38bdf8);
+          lanternLight.intensity = 2.8;
+          pondGlowLight.intensity = 1.35;
+        }
+        waterUniforms.uSunDir.value.copy(sunLight.position).normalize();
+      }
+
       modeButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
-          modeButtons.forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-          const mode = btn.getAttribute('data-mode');
-
-          if (mode === 'day') {
-            scene.background.setHex(0x0d2229);
-            scene.fog.color.setHex(0x0d2229);
-            hemiLight.color.setHex(0xdff4ff);
-            hemiLight.groundColor.setHex(0x1a362b);
-            hemiLight.intensity = 0.75;
-            sunLight.color.setHex(0xfff5e0);
-            sunLight.intensity = 1.35;
-            sunLight.position.set(16, 26, 14);
-            waterUniforms.uSkyColor.value.setHex(0x7dd3fc);
-            waterUniforms.uDeepColor.value.setHex(0x0b3b42);
-            waterUniforms.uSunColor.value.setHex(0xfff6e5);
-            bedUniforms.uCausticIntensity.value = 0.55;
-            bedUniforms.uCausticColor.value.setHex(0x99f6e4);
-            lanternLight.intensity = 0.5;
-            pondGlowLight.intensity = 0.65;
-          } else if (mode === 'sunset') {
-            scene.background.setHex(0x1f1624);
-            scene.fog.color.setHex(0x1f1624);
-            hemiLight.color.setHex(0xfdba74);
-            hemiLight.groundColor.setHex(0x27171c);
-            hemiLight.intensity = 0.65;
-            sunLight.color.setHex(0xff7e33);
-            sunLight.intensity = 1.55;
-            sunLight.position.set(-22, 11, -14);
-            waterUniforms.uSkyColor.value.setHex(0xfb923c);
-            waterUniforms.uDeepColor.value.setHex(0x1c2838);
-            waterUniforms.uSunColor.value.setHex(0xffedd5);
-            bedUniforms.uCausticIntensity.value = 0.48;
-            bedUniforms.uCausticColor.value.setHex(0xfdba74);
-            lanternLight.intensity = 1.6;
-            pondGlowLight.intensity = 0.75;
-          } else if (mode === 'night') {
-            scene.background.setHex(0x050d14);
-            scene.fog.color.setHex(0x050d14);
-            hemiLight.color.setHex(0x38bdf8);
-            hemiLight.groundColor.setHex(0x08141c);
-            hemiLight.intensity = 0.32;
-            sunLight.color.setHex(0x93c5fd);
-            sunLight.intensity = 0.45;
-            sunLight.position.set(10, 24, -12);
-            waterUniforms.uSkyColor.value.setHex(0x1e3a8a);
-            waterUniforms.uDeepColor.value.setHex(0x041f26);
-            waterUniforms.uSunColor.value.setHex(0xbae6fd);
-            bedUniforms.uCausticIntensity.value = 0.35;
-            bedUniforms.uCausticColor.value.setHex(0x38bdf8);
-            lanternLight.intensity = 2.8;
-            pondGlowLight.intensity = 1.35;
-          }
-          waterUniforms.uSunDir.value.copy(sunLight.position).normalize();
+          applyAmbianceMode(btn.getAttribute('data-mode'));
         });
       });
 
-      // Camera Viewpoint Preset Buttons
+      (function initDefaultTimeOfDay() {
+        const todParam = new URLSearchParams(location.search).get('tod');
+        if (todParam === 'day' || todParam === 'sunset' || todParam === 'night') {
+          applyAmbianceMode(todParam);
+          return;
+        }
+        const now = new Date();
+        const totalMinutes = now.getHours() * 60 + now.getMinutes();
+        // 05:00–06:59 (300–419) and 17:00–18:59 (1020–1139) -> 'sunset' (Golden)
+        // 07:00–16:59 (420–1019) -> 'day'
+        // 19:00–04:59 (>=1140 or <300) -> 'night' (Lantern)
+        let autoMode = 'night';
+        if ((totalMinutes >= 300 && totalMinutes < 420) || (totalMinutes >= 1020 && totalMinutes < 1140)) {
+          autoMode = 'sunset';
+        } else if (totalMinutes >= 420 && totalMinutes < 1020) {
+          autoMode = 'day';
+        }
+        applyAmbianceMode(autoMode);
+      })();
+
+      // CAM_CYCLE_V2: Compute aspect-aware 小团视角 from xiaotuan.group position P and facing direction F, and wire view cycle button
+      function computeXiaotuanCameraView(aspect = camera.aspect) {
+        xiaotuan.group.updateMatrixWorld(true);
+        const P = xiaotuan.group.position.clone();
+        const up = new THREE.Vector3(0, 1, 0);
+        // Local +Z in world space (horizontal facing direction toward pond/camera)
+        const F = new THREE.Vector3(0, 0, 1).applyQuaternion(xiaotuan.group.quaternion);
+        F.y = 0;
+        if (F.lengthSq() < 1e-6) F.set(0.87, 0, 0.49);
+        else F.normalize();
+        // Horizontal perpendicular vector R = cross(up, F) (points toward local +X / right-arm side)
+        const R = new THREE.Vector3().crossVectors(up, F).normalize();
+
+        // Aspect-aware pullback for portrait screens (aspect < 1): distance *= 1/aspect clamped to 1.9
+        const safeAspect = Math.max(0.35, Number.isFinite(aspect) && aspect > 0 ? aspect : 1.0);
+        const portraitPull = safeAspect < 1 ? Math.min(1.9, 1 / safeAspect) : 1.0;
+        const portraitT = THREE.MathUtils.clamp((portraitPull - 1.0) / 0.44, 0, 1);
+
+        // 3/4 front-side view on the +R (right-arm) side: horizDist = 10.5 * portraitPull, angle +38° (desktop) to +55° (portrait), height cy = 5.2 + (portraitPull - 1) * 3
+        const horizDist = 10.5 * portraitPull;
+        const angleDeg = THREE.MathUtils.lerp(38, 55, portraitT);
+        const angleRad = THREE.MathUtils.degToRad(angleDeg);
+        const cf = Math.cos(angleRad) * horizDist;
+        const cr = Math.sin(angleRad) * horizDist;
+        const cy = 5.2 + (portraitPull - 1.0) * 3.0;
+
+        const camPos = P.clone()
+          .addScaledVector(F, cf)
+          .addScaledVector(R, cr)
+          .addScaledVector(up, cy);
+
+        // Target: P + F*2.4 + R*-0.3 + up*0.7 (desktop) -> P + F*3.0 + R*-0.1 + up*0.8 (portrait)
+        const tf = THREE.MathUtils.lerp(2.4, 3.0, portraitT);
+        const tr = THREE.MathUtils.lerp(-0.3, -0.1, portraitT);
+        const ty = THREE.MathUtils.lerp(0.7, 0.8, portraitT);
+        const camTarget = P.clone()
+          .addScaledVector(F, tf)
+          .addScaledVector(R, tr)
+          .addScaledVector(up, ty);
+
+        // Ensure camera-to-target distance stays within controls.minDistance (3.0) and controls.maxDistance (38)
+        const offset = camPos.clone().sub(camTarget);
+        const dist = offset.length();
+        const clampedDist = THREE.MathUtils.clamp(dist, controls.minDistance + 0.2, controls.maxDistance - 0.5);
+        if (Math.abs(dist - clampedDist) > 1e-4 && dist > 1e-6) {
+          camPos.copy(camTarget).addScaledVector(offset.normalize(), clampedDist);
+        }
+        camPos.y = Math.max(1.2, camPos.y);
+
+        return {
+          pos: [camPos.x, camPos.y, camPos.z],
+          target: [camTarget.x, camTarget.y, camTarget.z]
+        };
+      }
+
+      const initialXiaotuanView = computeXiaotuanCameraView(camera.aspect);
+      const CAM_VIEWS = [
+        { id: 'overview', label: '全景', pos: [7.2, 10.6, 15.4], target: [-4.2, 0.55, 0.4] },
+        { id: 'xiaotuan', label: '小团视角', pos: initialXiaotuanView.pos, target: initialXiaotuanView.target },
+        { id: 'waterfall', label: '瀑布', pos: [4.2, 5.8, 7.5], target: [PLUNGE_X * 0.85, 1.1, PLUNGE_Z * 0.85] },
+        { id: 'surface', label: '水面', pos: [-8.5, 2.3, 11.2], target: [1.5, -0.4, -1.5] }
+      ];
+      let currentCamIndex = 0;
+      const camCycleBtn = document.getElementById('cam-cycle-btn');
+      const camCycleLabel = document.getElementById('cam-cycle-label');
+
+      function applyCameraViewByIndex(idx) {
+        currentCamIndex = ((idx % CAM_VIEWS.length) + CAM_VIEWS.length) % CAM_VIEWS.length;
+        const v = CAM_VIEWS[currentCamIndex];
+        if (v.id === 'xiaotuan') {
+          const fresh = computeXiaotuanCameraView(camera.aspect);
+          v.pos = fresh.pos;
+          v.target = fresh.target;
+        }
+        if (camCycleLabel) camCycleLabel.textContent = v.label;
+        flyCameraTo(v.pos, v.target);
+      }
+
+      if (camCycleBtn) {
+        camCycleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          applyCameraViewByIndex(currentCamIndex + 1);
+        });
+      }
+
+      // Camera Viewpoint Preset Buttons (sync cycle index when clicked)
       document.querySelectorAll('.cam-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
           const preset = btn.getAttribute('data-cam');
-          if (preset === 'overview') {
-            flyCameraTo([7.2, 10.6, 15.4], [-4.2, 0.55, 0.4]);
-          } else if (preset === 'waterfall') {
-            flyCameraTo([4.2, 5.8, 7.5], [PLUNGE_X * 0.85, 1.1, PLUNGE_Z * 0.85]);
-          } else if (preset === 'surface') {
-            flyCameraTo([-8.5, 2.3, 11.2], [1.5, -0.4, -1.5]);
+          const idx = CAM_VIEWS.findIndex((v) => v.id === preset);
+          if (idx !== -1) {
+            applyCameraViewByIndex(idx);
           }
         });
       });
@@ -2542,7 +3092,7 @@
           }
         }
 
-        // 4. Update Food Pellets (Falling Arc, Water Landing Ripples & Bobbing)
+        // 4. Update Food Pellets (Falling Arc, Tumble Spin, Water Landing Ripples & Bobbing)
         for (let i = pellets.length - 1; i >= 0; i--) {
           const p = pellets[i];
           if (p.eaten) {
@@ -2563,17 +3113,32 @@
               p.mesh.position.z = THREE.MathUtils.lerp(p.mesh.position.z, p.targetZ, dt * 4);
             }
 
+            // Tumble / spin while airborne
+            if (p.rxSpeed != null) {
+              p.mesh.rotation.x += p.rxSpeed * dt;
+              p.mesh.rotation.y += p.rySpeed * dt;
+              p.mesh.rotation.z += p.rzSpeed * dt;
+            }
+
             if (p.mesh.position.y <= 0.02 && p.vy < 0) {
               p.mesh.position.y = 0.02;
               p.landed = true;
+              // Wrap x/z rotations into [-PI, PI] so settling flat takes the shortest angular path
+              p.mesh.rotation.x = Math.atan2(Math.sin(p.mesh.rotation.x), Math.cos(p.mesh.rotation.x));
+              p.mesh.rotation.z = Math.atan2(Math.sin(p.mesh.rotation.z), Math.cos(p.mesh.rotation.z));
               spawnWaterRipple(p.mesh.position.x, p.mesh.position.z, 0.9, 2.1);
               sound.playPlop((Math.random() - 0.5) * 0.6);
             }
           } else {
-            // Gently bob and drift on the water surface
+            // Gently bob, drift, and settle flat-ish on the water surface
             p.mesh.position.y = 0.015 + Math.sin(elapsed * 3.8 + p.bobPhase) * 0.018;
             p.mesh.position.x += Math.sin(elapsed * 0.7 + p.bobPhase) * 0.002;
             p.mesh.position.z += Math.cos(elapsed * 0.6 + p.bobPhase) * 0.002;
+            const targetRx = (p.restRx || 0) + Math.sin(elapsed * 2.4 + p.bobPhase) * 0.06;
+            const targetRz = (p.restRz || 0) + Math.cos(elapsed * 2.1 + p.bobPhase) * 0.06;
+            p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, targetRx, dt * 6.5);
+            p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, targetRz, dt * 6.5);
+            p.mesh.rotation.y += dt * 0.18;
           }
         }
 
@@ -2809,6 +3374,20 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        const activeView = CAM_VIEWS[currentCamIndex];
+        if (activeView && activeView.id === 'xiaotuan') {
+          const fresh = computeXiaotuanCameraView(camera.aspect);
+          activeView.pos = fresh.pos;
+          activeView.target = fresh.target;
+          if (camTransition) {
+            camTransition.endPos.set(...fresh.pos);
+            camTransition.endTarget.set(...fresh.target);
+          } else {
+            camera.position.set(...fresh.pos);
+            controls.target.set(...fresh.target);
+            controls.update();
+          }
+        }
       });
 
       // Start the living pond simulation
