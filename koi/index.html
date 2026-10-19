@@ -581,8 +581,8 @@
       // ============================================================================
       const container = document.getElementById('canvas-container');
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xb4d8e9);
-      scene.fog = new THREE.FogExp2(0x8ca162, 0.008);
+      scene.background = new THREE.Color(0xb5d7e8);
+      scene.fog = new THREE.FogExp2(0x59654d, 0.004);
 
       const initW = container.clientWidth || window.innerWidth || 760;
       const initH = container.clientHeight || window.innerHeight || 420;
@@ -700,7 +700,6 @@
       // ============================================================================
       // 5. SCULPTED POND BED WITH ANIMATED UNDERWATER CAUSTICS SHADER & GROUND RING
       // ============================================================================
-      const BACKDROP_R = 70;
       const OUTER_GROUND_Y = 0.15 + Math.sin(0.8 * Math.PI * 0.8) * 0.65; // ~0.7381 flat outer bank height
       let maxPondBoundaryR = 0;
       for (let a = 0; a < 360; a++) {
@@ -772,7 +771,7 @@
         uTime: { value: 0 },
         uCausticIntensity: { value: 0.55 },
         uCausticColor: { value: new THREE.Color(0x99f6e4) },
-        uPlateGrassColor: { value: new THREE.Color(0x8ca162) }
+        uPlateGrassColor: { value: new THREE.Color(0x59654d) }
       };
 
       const bedMat = new THREE.MeshStandardMaterial({
@@ -831,36 +830,6 @@
       const pondBedMesh = new THREE.Mesh(bedGeo, bedMat);
       pondBedMesh.receiveShadow = true;
       scene.add(pondBedMesh);
-
-      // BG_PANO_V4: Flat grass continuation ring (innerRadius ~20.4 outside pond & bank rocks, outerRadius R+2=72) slightly below bed's outer height
-      const groundDiscGeo = new THREE.RingGeometry(GROUND_RING_INNER_R, BACKDROP_R + 2, 96, 2);
-      groundDiscGeo.rotateX(-Math.PI / 2);
-      const groundDiscMat = new THREE.MeshBasicMaterial({
-        color: 0x8ca162,
-        toneMapped: false,
-        fog: true,
-        polygonOffset: true,
-        polygonOffsetFactor: 2,
-        polygonOffsetUnits: 2
-      });
-      const groundDiscMesh = new THREE.Mesh(groundDiscGeo, groundDiscMat);
-      groundDiscMesh.position.y = OUTER_GROUND_Y - 0.02;
-      scene.add(groundDiscMesh);
-
-      function updateGroundGrassColor(plateGrassHex, bedGrassHex) {
-        groundDiscMat.color.setHex(plateGrassHex);
-        bedUniforms.uPlateGrassColor.value.setHex(plateGrassHex);
-        const gc = new THREE.Color(bedGrassHex !== undefined ? bedGrassHex : plateGrassHex);
-        for (let i = 0; i < bedPos.count; i++) {
-          const w = bedGrassWeights[i];
-          if (w <= 0) continue;
-          const idx = i * 3;
-          bedColors[idx] = THREE.MathUtils.lerp(bedBaseColors[idx], gc.r, w);
-          bedColors[idx + 1] = THREE.MathUtils.lerp(bedBaseColors[idx + 1], gc.g, w);
-          bedColors[idx + 2] = THREE.MathUtils.lerp(bedBaseColors[idx + 2], gc.b, w);
-        }
-        bedColorAttr.needsUpdate = true;
-      }
 
       // ============================================================================
       // 6. SUBMERGED RIVER PEBBLES, SHORELINE BOULDERS & WATERFALL CLIFF
@@ -2971,11 +2940,43 @@
       // ============================================================================
       // 13. UI CONTROLS: AMBIANCE MODES, PAINTED BACKDROP, CAMERA PRESETS & SOUND
       // ============================================================================
-      // BG_PANO_V4: Single-wrap 360° panorama cylinder backdrop (4096x1097 aspect ~3.734; per-mode lazy-load of bg_day.jpg, bg_sunset.jpg, bg_night.jpg)
-      const BACKDROP_ASPECT = 4096 / 1097;
-      // Unstretched height 2πR / 3.734 ≈ 117.8 puts the sky far overhead; scale by BG_HEIGHT_SCALE = 0.45 (height ≈ 53.0) so the sun/moon sit at ~30° elevation
-      const BG_HEIGHT_SCALE = 0.45;
-      const BACKDROP_H = ((2 * Math.PI * BACKDROP_R) / BACKDROP_ASPECT) * BG_HEIGHT_SCALE;
+      // BG_PANO_V5: Single-wrap 360° 3-plate panorama cylinder backdrop (6144x1101, 1:1 native pixel aspect; per-mode lazy-load of bg_day.jpg, bg_sunset.jpg, bg_night.jpg)
+      const BACKDROP_ASPECT = 5.380035026269702;
+      const BACKDROP_H = 46;   // sun/moon elevation stays reasonable (~30°)
+      const BACKDROP_R = (BACKDROP_H * BACKDROP_ASPECT) / (2 * Math.PI);  // ≈ 40.85
+      console.assert(Math.abs(((2*Math.PI*BACKDROP_R)/BACKDROP_H) / (6144/1142) - 1) < 0.01, 'backdrop aspect not 1:1');
+      console.info('BG_PANO_V5 backdrop aspect:', (2 * Math.PI * BACKDROP_R) / BACKDROP_H, 6144 / 1142);
+
+      // Flat grass continuation ring (innerRadius ~20.4 outside pond & bank rocks, outerRadius BACKDROP_R + 2 ≈ 42.85) slightly below bed's outer height
+      const groundDiscGeo = new THREE.RingGeometry(GROUND_RING_INNER_R, BACKDROP_R + 2, 96, 2);
+      groundDiscGeo.rotateX(-Math.PI / 2);
+      const groundDiscMat = new THREE.MeshBasicMaterial({
+        color: 0x59654d,
+        toneMapped: false,
+        fog: false,
+        polygonOffset: true,
+        polygonOffsetFactor: 2,
+        polygonOffsetUnits: 2
+      });
+      const groundDiscMesh = new THREE.Mesh(groundDiscGeo, groundDiscMat);
+      groundDiscMesh.position.y = OUTER_GROUND_Y - 0.02;
+      scene.add(groundDiscMesh);
+
+      function updateGroundGrassColor(plateGrassHex, bedGrassHex) {
+        groundDiscMat.color.setHex(plateGrassHex);
+        bedUniforms.uPlateGrassColor.value.setHex(plateGrassHex);
+        const gc = new THREE.Color(bedGrassHex !== undefined ? bedGrassHex : plateGrassHex);
+        for (let i = 0; i < bedPos.count; i++) {
+          const w = bedGrassWeights[i];
+          if (w <= 0) continue;
+          const idx = i * 3;
+          bedColors[idx] = THREE.MathUtils.lerp(bedBaseColors[idx], gc.r, w);
+          bedColors[idx + 1] = THREE.MathUtils.lerp(bedBaseColors[idx + 1], gc.g, w);
+          bedColors[idx + 2] = THREE.MathUtils.lerp(bedBaseColors[idx + 2], gc.b, w);
+        }
+        bedColorAttr.needsUpdate = true;
+      }
+
       // Align front plate centre (u = 0.25) with default overview camera horizontal look direction: (7.2, 10.6, 15.4) -> (-4.2, 0.55, 0.4)
       const BACKDROP_REF_CAM = new THREE.Vector3(7.2, 10.6, 15.4);
       const BACKDROP_REF_TARGET = new THREE.Vector3(-4.2, 0.55, 0.4);
@@ -2988,7 +2989,8 @@
       // Compensating BackSide horizontal flip via tex.repeat.x = -1, tex.offset.x = 1 maps image u to u_geo = 1 - u (local angle -2πu),
       // so after mesh.rotation.y = BACKDROP_ROT_Y a given u has world azimuth θ(u) = BACKDROP_ROT_Y - 2πu (increasing u goes left-to-right from inside).
       const BACKDROP_ROT_Y = Math.atan2(BACKDROP_FRONT_DIR.x, BACKDROP_FRONT_DIR.y) + 2 * Math.PI * BACKDROP_FRONT_U;
-      const BACKDROP_SUN_U = { day: 0.988, sunset: 0.304, night: 0.308 };
+      const BACKDROP_SUN_U = { day: 0.7485, sunset: 0.2505, night: 0.2534 };
+      const BACKDROP_SEAMS_U = { front_back: 0.4167, back_side: 0.7501, side_front: 0.0834 };
       const BACKDROP_URLS = {
         day: 'assets/bg_day.jpg',
         sunset: 'assets/bg_sunset.jpg',
@@ -3013,7 +3015,7 @@
 
       function ensureBackdropMesh() {
         if (backdropState.mesh) return backdropState.mesh;
-        // Open cylinder, radius R=70, height ≈ 53.0, BackSide, opaque, fog:false, toneMapped:false, depthWrite:false, unlit
+        // Open cylinder, radius R≈40.85, height 46, BackSide, opaque, fog:false, toneMapped:false, depthWrite:false, unlit
         const geo = new THREE.CylinderGeometry(BACKDROP_R, BACKDROP_R, BACKDROP_H, 96, 24, true);
         const mat = new THREE.MeshBasicMaterial({
           side: THREE.BackSide,
@@ -3025,8 +3027,8 @@
           color: 0xffffff
         });
         const mesh = new THREE.Mesh(geo, mat);
-        // Bottom edge at outer ground height minus 0.05 so the plate's bottom grass strip meets the 3D ground ring
-        mesh.position.set(0, OUTER_GROUND_Y - 0.05 + BACKDROP_H * 0.5, 0);
+        // Bottom edge at outer ground height minus 0.15 so the plate's bottom grass strip sits deeper into the 3D ground ring
+        mesh.position.set(0, OUTER_GROUND_Y - 0.15 + BACKDROP_H * 0.5, 0);
         mesh.rotation.y = BACKDROP_ROT_Y;
         mesh.renderOrder = -2;
         mesh.visible = false;
@@ -3112,13 +3114,13 @@
 
         let koiEmissive = 0.0;
         let finEmissive = 0.0;
-        let plateGrassHex = 0x8ca162;
+        let plateGrassHex = 0x59654d;
         let bedGrassHex = 0x657d42;
 
         if (validMode === 'day') {
-          scene.background.setHex(0xb4d8e9);
-          scene.fog.color.setHex(0x8ca162);
-          plateGrassHex = 0x8ca162;
+          scene.background.setHex(0xb5d7e8);
+          scene.fog.color.setHex(0x59654d);
+          plateGrassHex = 0x59654d;
           bedGrassHex = 0x657d42;
           hemiLight.color.setHex(0xdff4ff);
           hemiLight.groundColor.setHex(0x2a4834);
@@ -3138,9 +3140,9 @@
           koiEmissive = 0.04;
           finEmissive = 0.02;
         } else if (validMode === 'sunset') {
-          scene.background.setHex(0x624e77);
-          scene.fog.color.setHex(0x76692d);
-          plateGrassHex = 0x76692d;
+          scene.background.setHex(0x664e78);
+          scene.fog.color.setHex(0x473e2e);
+          plateGrassHex = 0x473e2e;
           bedGrassHex = 0x6c683a;
           hemiLight.color.setHex(0xfdba74);
           hemiLight.groundColor.setHex(0x3a2d24);
@@ -3161,10 +3163,10 @@
           finEmissive = 0.06;
         } else if (validMode === 'night') {
           // KOI_VIS_V3: Raised night hemisphere/moonlight + underwater fill + gentle koi emissive so koi stay clearly readable at night
-          scene.background.setHex(0x162644);
-          scene.fog.color.setHex(0x445f3f);
-          plateGrassHex = 0x445f3f;
-          // Warm-olive compensated base grass so cyan night lights (0x7dd3fc / 0xbae6fd) light the bank toward #445f3f instead of teal
+          scene.background.setHex(0x142543);
+          scene.fog.color.setHex(0x363f35);
+          plateGrassHex = 0x363f35;
+          // Warm-olive compensated base grass so cyan night lights (0x7dd3fc / 0xbae6fd) light the bank toward #425c3f instead of teal
           bedGrassHex = 0x465d28;
           hemiLight.color.setHex(0x7dd3fc);
           hemiLight.groundColor.setHex(0x1a332d);
@@ -3552,7 +3554,9 @@
           backdrop: {
             mesh: backdropState.mesh,
             dirForU: backdropDirForU,
-            sun: BACKDROP_SUN_U
+            sun: BACKDROP_SUN_U,
+            seams: BACKDROP_SEAMS_U,
+            aspect: { displayed: (2 * Math.PI * BACKDROP_R) / BACKDROP_H, image: 6144 / 1142 }
           }
         };
       }
