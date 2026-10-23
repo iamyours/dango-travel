@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>小团的池塘</title>
+  <script src="../assets/i18n/i18n.js"></script><script src="../assets/i18n/zh.js"></script><script src="../assets/i18n/en.js"></script>
+  <title data-i18n="koi.title">小团的池塘</title>
   <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
   <!-- KOI_LOADING_V3 -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -139,7 +140,8 @@
         bottom: calc(100% + 6px);
         transform: translateX(-50%);
         max-width: min(92vw, 420px);
-        white-space: nowrap;
+        white-space: normal;
+        text-align: center;
       }
       #food-tray {
         flex: 1 1 auto;
@@ -186,6 +188,23 @@
     @media (max-width: 359px) {
       .cam-cycle-lbl { display: none; }
     }
+    /* i18n: keep the phone top bar on one row (brand + 中/EN switcher + stats) and the dock inside the screen in English */
+    @media (max-width: 760px), (max-height: 520px) {
+      .koi-brand [data-i18n-switch] { display: none; }
+      .koi-lang-m { display: block !important; }
+      html[data-lang="en"] .koi-chrome h1 { font-size: 13px; letter-spacing: 0; }
+      html[data-lang="en"] #feed-count { display: none; }
+      html[data-lang="en"] #no-food-msg:not(.hidden) { font-size: 11px; line-height: 1.25; }
+    }
+    @media (max-width: 400px) {
+      html[data-lang="en"] .cam-cycle-lbl { display: none; }
+    }
+    @media (max-width: 380px) {
+      .cam-cycle-lbl { display: none; }
+    }
+    .koi-lang-m { display: none; position: fixed; z-index: 21; top: calc(max(6px, env(safe-area-inset-top)) + 50px); left: max(6px, env(safe-area-inset-left)); }
+    .koi-lang-m .i18n-switch { padding: 4px 8px; font-size: 12px; }
+    html.embed .koi-lang-m { display: none !important; }
     /* Inside the game scene the iframe is short, so the dock is always a single edge bar. */
     html.embed .koi-dock {
       bottom: 0 !important;
@@ -205,6 +224,8 @@
       bottom: calc(100% + 4px);
       transform: translateX(-50%);
       max-width: 92%;
+      white-space: normal;
+      text-align: center;
     }
     html.embed #food-tray {
       flex: 1 1 auto;
@@ -342,7 +363,7 @@
     <div class="kl-card">
       <div class="kl-clover">🍀</div>
       <div class="kl-blob"></div>
-      <div id="koi-loading-text">池塘加载中…</div>
+      <div id="koi-loading-text" data-i18n="koi.loading.text">池塘加载中…</div>
       <div id="koi-loading-sub"></div>
     </div>
   </div>
@@ -352,9 +373,9 @@
       if (!window.__koiFirstFrame) {
         var t = document.getElementById('koi-loading-text');
         var s = document.getElementById('koi-loading-sub');
-        if (t) t.textContent = (typeof THREE === 'undefined') ? '池塘组件加载失败 (CDN)' : '池塘加载较慢，请稍候…';
+        if (t) t.textContent = (typeof THREE === 'undefined') ? I18N.t('koi.loading.failed') : I18N.t('koi.loading.slow');
         if (s) {
-          s.textContent = '请检查网络连接后刷新页面重试 🍃';
+          s.textContent = I18N.t('koi.loading.hint');
           s.style.display = 'block';
         }
       }
@@ -377,12 +398,13 @@
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="serif-jp font-bold text-base sm:text-lg tracking-wide text-white">小团的池塘</h1>
-          <span id="behavior-badge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-            Tranquil Cruise
+          <h1 class="serif-jp font-bold text-base sm:text-lg tracking-wide text-white" data-i18n="koi.title">小团的池塘</h1>
+          <span id="behavior-badge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30" data-i18n="koi.badge.cruise">
+            悠闲游动
           </span>
+          <span data-i18n-switch="rounded-full px-2 py-0.5 text-[11px] bg-white/15 border border-white/30 text-white"></span>
         </div>
-        <p class="koi-sub text-xs text-slate-300/80 hidden sm:block">
+        <p class="koi-sub text-xs text-slate-300/80 hidden sm:block" data-i18n-html="koi.sub">
           Koi Pond · 拖动环绕 · 滚轮缩放 · <span class="text-amber-300 font-medium">用商店里的食物投喂</span>
         </p>
       </div>
@@ -392,20 +414,20 @@
     <div class="koi-tools flex flex-wrap items-center gap-2 sm:gap-3 pointer-events-auto">
       <!-- Live Counters -->
       <div class="koi-stats glass-panel rounded-2xl px-3.5 py-2 flex items-center gap-4 text-xs sm:text-sm">
-        <div class="flex items-center gap-1.5" title="Living Koi Varieties">
+        <div class="flex items-center gap-1.5" title="池中锦鲤品系" data-i18n-attr="title:koi.stat.koiTitle">
           <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-          <span class="koi-lbl text-slate-400">Koi:</span>
+          <span class="koi-lbl text-slate-400" data-i18n="koi.stat.koi">锦鲤:</span>
           <span id="stat-koi" class="font-semibold text-white">16</span>
         </div>
         <div class="h-3.5 w-px bg-white/15"></div>
-        <div class="flex items-center gap-1.5" title="Floating Food Pellets">
+        <div class="flex items-center gap-1.5" title="水面饵料" data-i18n-attr="title:koi.stat.floatingTitle">
           <span class="w-2 h-2 rounded-full bg-amber-300"></span>
-          <span class="koi-lbl text-slate-400">Floating:</span>
+          <span class="koi-lbl text-slate-400" data-i18n="koi.stat.floating">漂浮:</span>
           <span id="stat-pellets" class="font-semibold text-amber-300">0</span>
         </div>
         <div class="h-3.5 w-px bg-white/15"></div>
-        <div class="flex items-center gap-1.5" title="Total Pellets Eaten">
-          <span class="koi-lbl text-slate-400">Fed:</span>
+        <div class="flex items-center gap-1.5" title="累计吃掉" data-i18n-attr="title:koi.stat.fedTitle">
+          <span class="koi-lbl text-slate-400" data-i18n="koi.stat.fed">已喂:</span>
           <span id="stat-eaten" class="font-semibold text-emerald-300">0</span>
         </div>
       </div>
@@ -413,18 +435,18 @@
       <!-- Lighting / Time of Day Switcher -->
       <div class="koi-modes glass-panel rounded-2xl p-1 flex items-center gap-1 text-xs">
         <button data-mode="day" class="mode-btn active px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
-          <span>☀️</span><span class="hidden sm:inline">Day</span>
+          <span>☀️</span><span class="hidden sm:inline" data-i18n="koi.mode.day">白天</span>
         </button>
         <button data-mode="sunset" class="mode-btn px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
-          <span>🌅</span><span class="hidden sm:inline">Golden</span>
+          <span>🌅</span><span class="hidden sm:inline" data-i18n="koi.mode.sunset">黄昏</span>
         </button>
         <button data-mode="night" class="mode-btn px-2.5 py-1.5 rounded-xl border border-transparent font-medium flex items-center gap-1 text-slate-200 hover:text-white">
-          <span>🏮</span><span class="hidden sm:inline">Lantern</span>
+          <span>🏮</span><span class="hidden sm:inline" data-i18n="koi.mode.night">灯笼</span>
         </button>
       </div>
 
       <!-- Sound Toggle -->
-      <button id="audio-btn" class="glass-panel rounded-2xl p-2.5 text-slate-300 hover:text-white transition" title="Toggle Water & Feeding Chimes">
+      <button id="audio-btn" class="glass-panel rounded-2xl p-2.5 text-slate-300 hover:text-white transition" title="开关流水与投喂音效" data-i18n-attr="title:koi.audio.title;aria-label:koi.audio.title">
         <svg id="icon-sound-on" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
         </svg>
@@ -439,15 +461,15 @@
   <div class="koi-dock fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex flex-col items-center gap-2.5 w-full max-w-xl px-4">
     
     <!-- Toast / Event Feed Notification -->
-    <div id="toast-banner" class="glass-panel rounded-full px-4 py-1.5 text-xs text-amber-200/95 opacity-0 transition-opacity duration-300 pointer-events-none flex items-center gap-2">
-      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-      <span id="toast-text">Tossed floating koi pellets into the pond!</span>
+    <div id="toast-banner" class="glass-panel rounded-full px-4 py-1.5 text-xs text-amber-200/95 opacity-0 transition-opacity duration-300 pointer-events-none flex items-center justify-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping flex-shrink-0"></span>
+      <span id="toast-text" data-i18n="koi.toast.initial">将浮水饲料撒入池塘中！</span>
     </div>
 
     <div id="food-tray" class="glass-panel rounded-2xl px-3 py-2 pointer-events-auto flex flex-wrap gap-1.5 justify-center max-w-xl"></div>
     <p id="no-food-msg" class="hidden glass-panel rounded-full px-4 py-1.5 text-xs text-amber-100 pointer-events-auto">
-      食物不够啦，去商店买一点吧
-      <a id="shop-link" href="../?tab=shop" class="underline decoration-amber-200 font-semibold ml-1">去商店</a>
+      <span id="no-food-text" data-i18n="koi.noFood">食物不够啦，去商店买一点吧</span>
+      <a id="shop-link" href="../?tab=shop" class="underline decoration-amber-200 font-semibold ml-1 whitespace-nowrap" data-i18n="koi.goShop">去商店</a>
     </p>
 
     <!-- Main Interactive Controls -->
@@ -455,49 +477,50 @@
       
       <!-- Camera View Presets -->
       <div class="cam-presets hidden sm:flex items-center gap-1 pr-1 border-r border-white/15">
-        <button data-cam="overview" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
-          Overview
+        <button data-cam="overview" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition" data-i18n="koi.cam.overview">
+          全景
         </button>
-        <button data-cam="waterfall" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
-          Waterfall
+        <button data-cam="waterfall" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition" data-i18n="koi.cam.waterfall">
+          瀑布
         </button>
-        <button data-cam="surface" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition">
-          Waterline
+        <button data-cam="surface" class="cam-btn px-3 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition" data-i18n="koi.cam.waterline">
+          水面
         </button>
       </div>
 
       <!-- Camera View Cycle Toggle Button (visible in desktop, mobile, and embed mode) -->
-      <button id="cam-cycle-btn" type="button" aria-label="切换视角" title="切换视角" class="rounded-full px-3.5 py-2.5 min-h-[44px] min-w-[44px] bg-white/20 hover:bg-white/30 active:scale-95 border border-white/35 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer flex-shrink-0">
+      <button id="cam-cycle-btn" type="button" aria-label="切换视角" title="切换视角" data-i18n-attr="aria-label:koi.cam.cycle;title:koi.cam.cycle" class="rounded-full px-3.5 py-2.5 min-h-[44px] min-w-[44px] bg-white/20 hover:bg-white/30 active:scale-95 border border-white/35 text-xs sm:text-sm font-semibold text-white flex items-center justify-center gap-1.5 transition cursor-pointer flex-shrink-0">
         <span class="cam-cycle-ico text-base leading-none">🎥</span>
-        <span id="cam-cycle-label" class="cam-cycle-lbl whitespace-nowrap">全景</span>
+        <span id="cam-cycle-label" class="cam-cycle-lbl whitespace-nowrap" data-i18n="koi.cam.overview">全景</span>
       </button>
 
       <!-- Primary Action: Feed the Koi Button -->
       <button id="feed-koi-btn" class="feed-btn pulse-ring relative rounded-full px-6 py-3 font-semibold text-sm sm:text-base text-white flex items-center gap-2.5 cursor-pointer flex-shrink-0">
         <span class="text-lg leading-none">🌾</span>
-        <span>喂锦鲤</span>
-        <span id="feed-count" class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100">一把</span>
+        <span data-i18n="koi.feedBtn">喂锦鲤</span>
+        <span id="feed-count" class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100" data-i18n="koi.feedCount.handful">一把</span>
       </button>
     </div>
   </div>
 
   <!-- Subtle Legend Drawer (Bottom Left on Desktop) -->
-  <a href="../" class="koi-back glass-panel fixed left-3 bottom-5 z-20 pointer-events-auto rounded-full px-3.5 py-2 text-sm font-medium text-white/95 hover:text-white"><span class="back-ico">←</span><span class="back-label">回到团子家</span></a>
+  <span class="koi-lang-m" data-i18n-switch="glass-panel rounded-full text-white"></span>
+  <a href="../" class="koi-back glass-panel fixed left-3 bottom-5 z-20 pointer-events-auto rounded-full px-3.5 py-2 text-sm font-medium text-white/95 hover:text-white"><span class="back-ico">←</span><span class="back-label" data-i18n="koi.back">回到团子家</span></a>
 
   <div class="koi-legend fixed bottom-20 left-5 z-10 hidden xl:block pointer-events-auto">
     <div class="glass-panel rounded-2xl p-3.5 w-60 text-xs space-y-2">
       <div class="font-semibold text-slate-200 flex items-center justify-between">
-        <span>Nishikigoi Varieties</span>
-        <span class="text-[10px] text-slate-400">7 Lineages</span>
+        <span data-i18n="koi.legend.title">锦鲤品系</span>
+        <span class="text-[10px] text-slate-400" data-i18n="koi.legend.lineages">7 个品系</span>
       </div>
       <div class="grid grid-cols-2 gap-1.5 text-[11px] text-slate-300">
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-white to-red-500 border border-white/30"></span>Kohaku</div>
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 via-white to-zinc-900 border border-white/30"></span>Taisho Sanke</div>
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-zinc-900 via-red-600 to-white border border-white/30"></span>Showa</div>
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/30"></span>Yamabuki Gold</div>
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-white/30"></span>Purachina</div>
-        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border-2 border-red-500"></span>Tancho</div>
-        <div class="flex items-center gap-1.5 col-span-2"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-sky-700 to-orange-500 border border-white/30"></span>Asagi (Indigo Net & Crimson)</div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-white to-red-500 border border-white/30"></span><span data-i18n="koi.variety.kohaku">红白</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 via-white to-zinc-900 border border-white/30"></span><span data-i18n="koi.variety.sanke">大正三色</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-zinc-900 via-red-600 to-white border border-white/30"></span><span data-i18n="koi.variety.showa">昭和三色</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/30"></span><span data-i18n="koi.variety.yamabuki">山吹黄金</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-white/30"></span><span data-i18n="koi.variety.purachina">白金</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border-2 border-red-500"></span><span data-i18n="koi.variety.tancho">丹顶</span></div>
+        <div class="flex items-center gap-1.5 col-span-2"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-sky-700 to-orange-500 border border-white/30"></span><span data-i18n="koi.variety.asagi">浅黄</span></div>
       </div>
     </div>
   </div>
@@ -512,9 +535,9 @@
       if (typeof THREE === 'undefined') {
         var tEl = document.getElementById('koi-loading-text');
         var sEl = document.getElementById('koi-loading-sub');
-        if (tEl) tEl.textContent = '池塘组件加载失败 (CDN)';
+        if (tEl) tEl.textContent = I18N.t('koi.loading.failed');
         if (sEl) {
-          sEl.textContent = '请检查网络连接后刷新页面重试 🍃';
+          sEl.textContent = I18N.t('koi.loading.hint');
           sEl.style.display = 'block';
         }
         return;
@@ -2709,11 +2732,11 @@
         statEatenEl.textContent = totalPelletsEaten;
 
         if (pellets.length > 0) {
-          behaviorBadgeEl.textContent = '抢食中';
+          behaviorBadgeEl.textContent = I18N.t('koi.badge.feeding');
           behaviorBadgeEl.className =
             'text-[11px] font-medium px-2 py-0.5 rounded-full bg-orange-500/25 text-orange-300 border border-orange-400/40 animate-pulse';
         } else {
-          behaviorBadgeEl.textContent = '悠闲游动';
+          behaviorBadgeEl.textContent = I18N.t('koi.badge.cruise');
           behaviorBadgeEl.className =
             'text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
         }
@@ -2750,12 +2773,12 @@
       // Shop foods share the game's cozy-tabi-v3 inventory. One item = one handful.
       const SAVE_KEY = 'cozy-tabi-v3';
       const SHOP_FOODS = [
-        { id: 'bun', n: '艾草团子', ic: '🍡', color: 0xc5e6a0, emissive: 0x3f6b32, size: 1.05, pellets: 8 },
-        { id: 'onigiri', n: '海苔饭团', ic: '🍙', color: 0xf7f1e3, emissive: 0x6b5b45, size: 1.2, pellets: 9 },
-        { id: 'bento', n: '森林便当', ic: '🍱', color: 0xf3d77a, emissive: 0x8a5a10, size: 1.28, pellets: 12 },
-        { id: 'vbento', n: '番茄罗勒便当', ic: '🍅', color: 0xe85d4c, emissive: 0x7a2218, size: 1.22, pellets: 12 },
-        { id: 'cbento', n: '胡萝卜饭团盒', ic: '🥕', color: 0xf08a2a, emissive: 0x8a3e00, size: 1.16, pellets: 10 },
-        { id: 'jam', n: '草莓果酱面包', ic: '🍓', color: 0xec6b8a, emissive: 0x8a2040, size: 0.92, pellets: 8 }
+        { id: 'bun', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🍡', color: 0xc5e6a0, emissive: 0x3f6b32, size: 1.05, pellets: 8 },
+        { id: 'onigiri', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🍙', color: 0xf7f1e3, emissive: 0x6b5b45, size: 1.2, pellets: 9 },
+        { id: 'bento', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🍱', color: 0xf3d77a, emissive: 0x8a5a10, size: 1.28, pellets: 12 },
+        { id: 'vbento', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🍅', color: 0xe85d4c, emissive: 0x7a2218, size: 1.22, pellets: 12 },
+        { id: 'cbento', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🥕', color: 0xf08a2a, emissive: 0x8a3e00, size: 1.16, pellets: 10 },
+        { id: 'jam', get n() { return I18N.t('food.' + this.id + '.n'); }, ic: '🍓', color: 0xec6b8a, emissive: 0x8a2040, size: 0.92, pellets: 8 }
       ];
       let selectedFood = null;
       const EMBED = document.documentElement.classList.contains('embed');
@@ -2772,7 +2795,7 @@
         const save = readGameSave();
         const inv = save && save.inv && typeof save.inv === 'object' ? save.inv : {};
         return SHOP_FOODS
-          .map((f) => ({ ...f, count: typeof inv[f.id] === 'number' ? inv[f.id] : 0 }))
+          .map((f) => ({ ...f, n: I18N.t('food.' + f.id + '.n'), count: typeof inv[f.id] === 'number' ? inv[f.id] : 0 }))
           .filter((f) => f.count > 0);
       }
       function currentFood() {
@@ -2795,7 +2818,7 @@
         feedBtn.disabled = !food;
         feedBtn.classList.toggle('pulse-ring', !!food);
         noFoodMsg.classList.toggle('hidden', !!food);
-        feedCountEl.textContent = food ? food.pellets + ' 粒' : '没有食物';
+        feedCountEl.textContent = food ? I18N.t('koi.feedCount.pellets', { n: food.pellets }) : I18N.t('koi.feedCount.noFood');
         foodTray.innerHTML = stock.map((f) =>
           `<button type="button" class="food-chip${f.id === selectedFood ? ' on' : ''}" data-food="${f.id}">${f.ic} ${f.n} ×${f.count}</button>`
         ).join('');
@@ -2882,17 +2905,17 @@
         const food = currentFood();
         if (!food) {
           refreshFoodUI();
-          showToast('食物不够啦，去商店买一点吧');
+          showToast(I18N.t('koi.toast.noFood'));
           return false;
         }
         if (!consumeFood(food.id)) {
           refreshFoodUI();
-          showToast('食物不够啦，去商店买一点吧');
+          showToast(I18N.t('koi.toast.noFood'));
           return false;
         }
         tossFoodPellets(tx, tz, food.pellets, food);
         refreshFoodUI();
-        showToast(`小团投下了${food.ic}${food.n}`);
+        showToast(I18N.t('koi.toast.fed', { ic: food.ic, n: food.n }));
         return true;
       }
 
@@ -3535,10 +3558,10 @@
 
       const initialXiaotuanView = computeXiaotuanCameraView(camera.aspect);
       const CAM_VIEWS = [
-        { id: 'overview', label: '全景', pos: [7.2, 10.8, 16.0], target: [-2.6, 0.25, 0.3] },
-        { id: 'xiaotuan', label: '小团视角', pos: initialXiaotuanView.pos, target: initialXiaotuanView.target },
-        { id: 'waterfall', label: '瀑布', pos: [5.4, 7.6, 11.2], target: [PLUNGE_X * 0.45, 0.0, PLUNGE_Z * 0.45] },
-        { id: 'surface', label: '水面', pos: [-8.2, 3.1, 11.0], target: [0.8, -0.35, -0.8] }
+        { id: 'overview', key: 'koi.cam.overview', get label() { return I18N.t(this.key); }, pos: [7.2, 10.8, 16.0], target: [-2.6, 0.25, 0.3] },
+        { id: 'xiaotuan', key: 'koi.cam.xiaotuan', get label() { return I18N.t(this.key); }, pos: initialXiaotuanView.pos, target: initialXiaotuanView.target },
+        { id: 'waterfall', key: 'koi.cam.waterfall', get label() { return I18N.t(this.key); }, pos: [5.4, 7.6, 11.2], target: [PLUNGE_X * 0.45, 0.0, PLUNGE_Z * 0.45] },
+        { id: 'surface', key: 'koi.cam.surface', get label() { return I18N.t(this.key); }, pos: [-8.2, 3.1, 11.0], target: [0.8, -0.35, -0.8] }
       ];
       let currentCamIndex = 0;
       const camCycleBtn = document.getElementById('cam-cycle-btn');
@@ -3599,7 +3622,7 @@
         const isOn = sound.toggle();
         iconSoundOn.classList.toggle('hidden', !isOn);
         iconSoundOff.classList.toggle('hidden', isOn);
-        showToast(isOn ? 'Zen chimes & water plops enabled.' : 'Audio muted.');
+        showToast(I18N.t(isOn ? 'koi.toast.soundOn' : 'koi.toast.soundOff'));
       });
 
       // ============================================================================
@@ -4065,6 +4088,23 @@
       window.addEventListener('storage', (e) => {
         if (!e.key || e.key === SAVE_KEY) refreshFoodUI();
       });
+
+      if (typeof I18N !== 'undefined' && I18N.onChange) {
+        I18N.onChange(function () {
+          updateFeedingHUD();
+          refreshFoodUI();
+          if (camCycleLabel) camCycleLabel.textContent = CAM_VIEWS[currentCamIndex].label;
+          const noFoodTextEl = document.getElementById('no-food-text');
+          if (noFoodTextEl) noFoodTextEl.textContent = I18N.t('koi.noFood');
+          const shopLinkEl = document.getElementById('shop-link');
+          if (shopLinkEl) shopLinkEl.textContent = I18N.t('koi.goShop');
+          document.title = I18N.t('koi.title');
+        });
+      }
+
+      // Initial script-rendered text sync
+      updateFeedingHUD();
+      if (camCycleLabel) camCycleLabel.textContent = CAM_VIEWS[currentCamIndex].label;
 
       // Start the living pond simulation
       animate();
