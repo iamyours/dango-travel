@@ -5,9 +5,11 @@
 <script>window.adsbygoogle = window.adsbygoogle || []; var adBreak = adConfig = function(o) {adsbygoogle.push(o);}</script>
 <script>/* 测试开关就是上面脚本的 data-adbreak-test="on"。删掉该属性即请求正式广告。 */window.AD_TEST=document.querySelector('script[data-ad-client]').getAttribute('data-adbreak-test')==='on';document.querySelector('script[data-ad-client]').onerror=function(){window.__adsFailed=true};</script>
 <link rel="icon" href="data:,"><title data-i18n="app.title">团子去旅行</title>
+<meta name="description" content="《团子去旅行》是一款在浏览器里慢慢过日子的休闲小游戏：陪团子起居、种菜、布置小屋、收拾行囊去旅行，收集明信片与朋友合照，还能在 3D 锦鲤池里喂鱼。" data-i18n-attr="content:meta.description">
+<link rel="canonical" href="https://iamyours.github.io/">
 <style>
 :root{--ink:#3a2e24;--cream:#fbf4e2;--card:#fffaf0;--yel:#f3d77a;--gd:#4f7f3a}
-*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:#dfe8cc;color:var(--ink);display:flex;justify-content:center}
+*{box-sizing:border-box}body{margin:0;font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:#dfe8cc;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center}
 #app{width:min(760px,100vw);min-height:100vh;background:var(--cream);position:relative;overflow:hidden;box-shadow:0 0 0 2px var(--ink)}
 header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;row-gap:6px;padding:8px 12px;background:linear-gradient(#a6cc7a,#8cbc63);border-bottom:2px solid var(--ink);font-weight:700;font-size:18px;gap:6px}header .header-left{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}header .header-left .hb{font-size:13px;padding:2px 8px;box-shadow:0 2px 0 var(--ink)}@media (max-width:400px){header .header-right .pill{padding:3px 8px;font-size:14px}header .header-right .hb{padding:2px 8px!important}header .header-right{gap:3px}}@media (max-width:480px){html[data-lang="en"] header .header-right .pill{padding:3px 8px;font-size:14px}html[data-lang="en"] header .header-right .hb{padding:2px 8px!important}html[data-lang="en"] header .header-right{gap:3px}}header .header-right{display:inline-flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:4px}
 .pill{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:3px 12px;font-size:15px}
@@ -131,11 +133,59 @@ body.pond-full #pond-exit-fs,#scene:fullscreen #pond-exit-fs,#scene:-webkit-full
 #pond-loading .pl-leaf{font-size:18px;line-height:1;margin-bottom:-6px;animation:plspin 2.4s linear infinite}
 @keyframes plhop{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-7px) scale(.96,1.05)}}
 @keyframes plspin{0%{transform:rotate(-10deg)}50%{transform:rotate(12deg)}100%{transform:rotate(-10deg)}}
+/* about & footer: static crawlable content outside #app */
+#about-game{width:min(760px,100vw);background:var(--cream);color:var(--ink);padding:28px 22px 32px;border-top:2px solid var(--ink);box-shadow:0 0 0 2px var(--ink);font-size:16px;line-height:1.85}
+#about-game h2{font-size:23px;line-height:1.35;margin:0 0 12px}
+#about-game h3{font-size:18px;line-height:1.4;margin:22px 0 8px}
+#about-game p{margin:0 0 12px}
+#about-game ul,#about-game ol{margin:8px 0 14px;padding-left:1.4em}
+#about-game li{margin:4px 0}
+#about-game a,.site-footer a{color:var(--gd);text-underline-offset:2px}
+#about-game a:hover,.site-footer a:hover{color:var(--ink)}
+.site-footer{width:min(760px,100vw);background:var(--cream);color:var(--ink);border-top:2px solid var(--ink);box-shadow:0 0 0 2px var(--ink);padding:16px 20px max(20px,env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;font-size:14px;line-height:1.6;text-align:center}
+.site-footer .sep{opacity:.45}
+body.pond-tab #about-game,body.pond-tab .site-footer,body.pond-full #about-game,body.pond-full .site-footer{display:none!important}
+@media (max-width:480px){#about-game{padding:22px 16px 28px;font-size:15px;line-height:1.8}#about-game h2{font-size:21px}#about-game h3{font-size:17px;margin-top:18px}.site-footer{padding:14px 14px max(18px,env(safe-area-inset-bottom));gap:6px 10px;font-size:13px}}
 </style></head><body><div id="app">
 <header><span class="header-left"><span data-i18n="app.heading">🍃 团子去旅行</span> <span data-i18n-switch="hb"></span></span><span class="header-right"><span class="pill" id="clock">--:--</span> <span class="pill">🍀 <b id="cl">0</b></span> <a class="hb" id="open3d" href="/3d/" title="3D 作品" data-i18n-attr="title:header.open3d" style="padding:2px 10px;font-size:14px">3D</a> <button type="button" id="openpond" class="hb" title="小团的池塘" data-i18n-attr="title:header.pond">🐟</button> <button id="snd" class="hb" title="环境音" data-i18n-attr="title:header.snd">🔈</button> <button id="spd" class="hb" title="时间倍速" data-i18n-attr="title:header.spd">×1</button></span></header>
 <div class="scene" id="scene"><canvas id="fx"></canvas><div class="tint" id="tint"></div></div>
 <nav><button data-t="home" data-i18n="nav.home">小屋</button><button data-t="pond" data-i18n="nav.pond">池塘</button><button data-t="garden" data-i18n="nav.garden">庭院</button><button data-t="shop" data-i18n="nav.shop">商店</button><button data-t="bag" data-i18n="nav.bag">行囊</button><button data-t="diary" data-i18n="nav.diary">日记</button><button data-t="album" data-i18n="nav.album">相册</button></nav>
 <div class="panel" id="panel"></div></div>
+<section id="about-game" aria-labelledby="about-title">
+<h2 id="about-title" data-i18n="about.heading">关于《团子去旅行》</h2>
+<p data-i18n="about.intro">《团子去旅行》是一款在浏览器里慢慢过日子的静态小游戏。小团子会按作息睡觉、煮饭、浇花、钓鱼、看书，雨天撑伞；点一点它，它会向你挥手。</p>
+<h3 data-i18n="about.timeTitle">时间、季节与天气</h3>
+<p data-i18n="about.time">时钟采用真实的 Asia/Shanghai 时间，右上角显示时刻、季节与天气；默认 ×1 速度，可切到 ×10、×60。春 3–5 月、夏 6–8 月、秋 9–11 月、冬 12–2 月，晴、雨、雪会改变窗外景色与团子的活动。</p>
+<h3 data-i18n="about.homeTitle">房间、菜园与商店</h3>
+<p data-i18n="about.tabs">下方有七个小标签：小屋、池塘、庭院、商店、行囊、日记、相册。小屋含客厅、读书角、厨房、阳台、池塘、门廊六个房间，可左右切换和拖动家具布置。三叶草是货币：在庭院点击草叶收集，约十分钟长回，偶尔出现幸运四叶草。</p>
+<p data-i18n="about.garden">阳台的四个花盆可种罗勒、番茄、胡萝卜和草莓，作物按真实时间生长。收成能在厨房做成番茄罗勒便当、胡萝卜饭团盒或草莓果酱面包。商店出售食物、种子、护身符和家具，护身符会影响旅行方向或带回的三叶草。</p>
+<h3 data-i18n="about.travelTitle">行囊、旅行与朋友</h3>
+<p data-i18n="about.travel">在行囊选一份食物（必需）和一个护身符（可选），团子会在合适的时候自己出发，旅程约 1–6 小时。不同食物通向森林旧车厢、小镇早市、海边灯塔、蘑菇森林、山顶观测台等地。回家后信箱会出现明信片、纪念品与三叶草；访客朋友不定期来串门，见面三次可留下合照。</p>
+<h3 data-i18n="about.diaryTitle">日记、相册与存档</h3>
+<p data-i18n="about.diary">日记记录每天的小事，相册收藏去过的地点、明信片和合照。进度只保存在当前浏览器的 localStorage 里：刷新不丢，换设备或清除数据会重新开始，也不同步到服务器。</p>
+<h3 data-i18n="about.moreTitle">3D 锦鲤池、广告与本站</h3>
+<p data-i18n="about.koi">点开「池塘」标签，可在画面中看 3D 锦鲤池 /koi/。它由 three.js 构建，有游动的锦鲤、可拖动的视角、白天/黄昏/夜晚光线和投喂互动，手机上也能全屏观看。</p>
+<p data-i18n="about.ads">三叶草不够时，商店会提供自愿观看的奖励广告，每天最多五次；没有横幅广告，也没有自动播放的广告。</p>
+<p data-i18n="about.site">整个游戏是一张静态 HTML 页面，无需安装或构建，美术由手绘与 AI 辅助完成，源码公开在 GitHub 上。</p>
+<p data-i18n-html="about.gallery">另一个 3D 画廊 <a href="/3d/">/3d/</a> 用同一个提示词，比较不同 AI 模型搭建的 three.js 场景。</p>
+<h3 data-i18n="about.howToTitle">怎么玩</h3>
+<ol>
+<li data-i18n="about.howTo1">看看团子此刻在做什么；点它会挥手。</li>
+<li data-i18n="about.howTo2">去庭院收集三叶草，在商店买食物和种子。</li>
+<li data-i18n="about.howTo3">在阳台播种，回来收获；厨房能把收成做成便当。</li>
+<li data-i18n="about.howTo4">去行囊挑食物和护身符，等团子出发。</li>
+<li data-i18n="about.howTo5">回家后读信箱，把明信片收进相册，再去池塘喂锦鲤。</li>
+<li data-i18n="about.howTo6">用日记回看每天的小事；进度只保存在当前浏览器。</li>
+</ol>
+</section>
+<footer class="site-footer">
+<a href="/about/" data-i18n="footer.about">关于</a><span class="sep" aria-hidden="true">·</span>
+<a href="/contact/" data-i18n="footer.contact">联系</a><span class="sep" aria-hidden="true">·</span>
+<a href="/privacy/" data-i18n="footer.privacy">隐私政策</a><span class="sep" aria-hidden="true">·</span>
+<a href="/terms/" data-i18n="footer.terms">使用条款</a><span class="sep" aria-hidden="true">·</span>
+<a href="https://github.com/iamyours" data-i18n="footer.github">GitHub</a><span class="sep" aria-hidden="true">·</span>
+<span data-i18n="footer.copyright">© 2026 iamyours</span>
+</footer>
 <script>const HAVE=new Set(["bg_balcony.jpg", "bg_kitchen.jpg", "bg_living_autumn.jpg", "bg_living_spring.jpg", "bg_living_winter.jpg", "bg_pond.jpg", "bg_rain.jpg", "bg_reading.jpg", "blob_home.png", "blob_walk.png", "c_basil.png", "c_basket.png", "c_bento.png", "c_carrot.png", "c_jam.png", "c_seed.png", "c_sprout.png", "c_strawberry.png", "c_tomato.png", "f_cushion.png", "f_hanging.png", "f_lamp.png", "f_monstera.png", "f_painting.png", "f_radio.png", "f_rocker.png", "f_rug.png", "f_shelf.png", "garden.jpg", "home.jpg", "home_empty.jpg", "p_fish.png", "p_lantern.png", "p_read.png", "p_rest.png", "p_sleep.png", "p_stir.png", "p_stretch.png", "p_tea.png", "p_umbrella.png", "p_walkside.png", "p_water.png", "p_wave.png", "pc_camper.jpg", "pc_dome.jpg", "pc_field.jpg", "pc_lighthouse.jpg", "pc_market.jpg", "pc_pond.jpg", "pc_snow.jpg", "pc_train.jpg", "pc_village.jpg", "v_cat.png", "v_chick.png", "v_fox.png", "v_frog.png", "v_hedgehog.png", "v_rabbit.png"]);
 const K3='cozy-tabi-v3',K2='cozy-tabi-v2',A='assets/',Q=new URLSearchParams(location.search),DEBUG=Q.has('debug');
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;

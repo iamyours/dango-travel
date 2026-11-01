@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <script src="../assets/i18n/i18n.js"></script><script src="../assets/i18n/zh.js"></script><script src="../assets/i18n/en.js"></script>
   <title data-i18n="koi.title">小团的池塘</title>
+  <meta name="description" content="小团的池塘是一个用 three.js 制作的全屏 3D 锦鲤池：拖动环绕、滚轮缩放，用商店里的食物投喂锦鲤，还能切换白天、黄昏与夜晚。" data-i18n-attr="content:meta.description.koi">
+  <link rel="canonical" href="https://iamyours.github.io/koi/">
   <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
   <!-- KOI_LOADING_V3 -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -205,6 +207,13 @@
     .koi-lang-m { display: none; position: fixed; z-index: 21; top: calc(max(6px, env(safe-area-inset-top)) + 50px); left: max(6px, env(safe-area-inset-left)); }
     .koi-lang-m .i18n-switch { padding: 4px 8px; font-size: 12px; }
     html.embed .koi-lang-m { display: none !important; }
+    .koi-legal { margin: 0; font-size: 10px; line-height: 1.4; color: rgba(226, 232, 240, 0.78); white-space: nowrap; pointer-events: auto; text-align: center; }
+    .koi-legal-inner { display: inline-block; padding: 2px 9px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px; background: rgba(12, 25, 30, 0.55); }
+    .koi-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    .koi-legal a:hover { color: #ffffff; }
+    .koi-legal .sep { opacity: 0.5; margin: 0 3px; }
+    @media (max-width: 760px), (max-height: 520px) { .koi-legal { font-size: 9px; flex: 0 0 100%; } .koi-dock { flex-wrap: wrap !important; justify-content: center; } }
+    html.embed .koi-legal { display: none !important; }
     /* Inside the game scene the iframe is short, so the dock is always a single edge bar. */
     html.embed .koi-dock {
       bottom: 0 !important;
@@ -501,6 +510,9 @@
         <span id="feed-count" class="text-xs bg-black/25 px-2 py-0.5 rounded-full font-normal text-orange-100" data-i18n="koi.feedCount.handful">一把</span>
       </button>
     </div>
+    <p class="koi-legal">
+      <span class="koi-legal-inner"><a href="/privacy/" data-i18n="koi.legal.privacy">隐私政策</a><span class="sep" aria-hidden="true">·</span><a href="/about/" data-i18n="koi.legal.about">关于</a></span>
+    </p>
   </div>
 
   <!-- Subtle Legend Drawer (Bottom Left on Desktop) -->
