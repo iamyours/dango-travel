@@ -78,6 +78,21 @@
     return typeof val === 'string' ? interpolate(val, vars) : val;
   }
 
+  function lookup(lang, key, vars) {
+    if (!hasKey(key, lang)) return null;
+    var val = dicts[lang][key];
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      var isOne = Boolean(vars && Number(vars.n) === 1);
+      val = isOne ? (val.one !== undefined ? val.one : val.other)
+                  : (val.other !== undefined ? val.other : val.one);
+      if (val === undefined) return null;
+    }
+    if (Array.isArray(val)) {
+      return val.map(function(item) { return typeof item === 'string' ? interpolate(item, vars) : item; });
+    }
+    return typeof val === 'string' ? interpolate(val, vars) : val;
+  }
+
   function refreshSwitchers() {
     for (var i = 0; i < switchers.length; i++) {
       var spans = switchers[i].querySelectorAll('span[data-l]');
@@ -146,6 +161,11 @@
     },
     has: function(key, lang) { return hasKey(key, lang); },
     t: t,
+    tr: function(lang, key, vars) {
+      var v = lookup(lang, key, vars);
+      if (v == null) v = lookup(FALLBACK_LANG, key, vars);
+      return v == null ? key : v;
+    },
     pick: function(obj, field) {
       if (!obj) return undefined;
       var val = obj[field + '_' + currentLang];
