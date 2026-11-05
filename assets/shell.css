@@ -291,14 +291,16 @@ body.sheet-open #sheet{display:block}
   position:absolute;left:50%;transform:translateX(-50%);
   width:var(--col);
   bottom:calc(var(--nav-h) + var(--safe-b));
-  height:46%;
   background:rgba(255,247,230,.94);
   -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
   border-radius:22px 22px 0 0;
   border:1px solid var(--line);border-bottom:0;
   box-shadow:0 -8px 24px rgba(59,36,18,.2);
-  padding:6px 14px 78px;overflow:auto;
+  height:54%;
+  padding:8px 14px 96px;overflow:auto;
 }
+#sheet .why{margin:6px 2px 8px}
+#sheet .why li{line-height:1.35}
 #sheet .sheet.tall{height:auto;max-height:min(72%,640px)}
 #sheet .grab{width:42px;height:5px;border-radius:99px;background:rgba(90,61,38,.28);margin:4px auto 8px}
 #sheet h3{margin:4px 0 8px;font-size:16px}
@@ -412,4 +414,83 @@ body.pond-full .topbar,body.pond-full .side,body.pond-full .dock,body.pond-full 
 @media (max-width:360px){
   .cta{width:64%}
   .tabbar button .en{font-size:10px}
+}
+
+/* Tactile controls. Core chrome uses the inline SVG set, not emoji. */
+.svgico{display:inline-flex;align-items:center;justify-content:center;flex:none;line-height:0}
+.svgico svg,button .svgico svg{width:22px;height:22px;display:block}
+.clover-pill .svgico svg{width:20px;height:20px}
+#cta .svgico svg{width:26px;height:26px}
+.price .svgico, .ledger .svgico{display:inline-flex}
+.price svg,.ledger svg{width:16px;height:16px;display:block}
+.mark{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(90,61,38,.28);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55);color:#fff}
+.mark svg{width:14px;height:14px}
+.mark.on{background:var(--leaf);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+#app button.round{
+  background:linear-gradient(180deg,rgba(255,252,246,.94),rgba(255,244,226,.8));
+  border:1px solid rgba(90,61,38,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 0 rgba(90,61,38,.08),0 8px 14px rgba(59,36,18,.14);
+  color:var(--ink);
+}
+#app .glass.pill,#app .mini{
+  background:linear-gradient(180deg,rgba(255,252,246,.9),rgba(255,247,230,.78));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 8px rgba(59,36,18,.14);
+}
+.edge-pills{align-items:center;padding:0 12px 8px;gap:8px}
+.mini{flex-direction:row;align-items:center;gap:6px;max-width:46%;font-size:13px;font-weight:800;padding:0 12px;line-height:1}
+#status-pill{margin-left:auto}
+#harvest-all{max-width:none;gap:4px}
+#harvest-all .svgico svg{width:18px;height:18px}
+#app button#cta{
+  background:linear-gradient(180deg,#f4a36f 0%,#e37c48 48%,#d26534 100%);
+  color:#fff7e6;
+  border:0;
+  box-shadow:inset 0 1px 0 rgba(255,248,236,.75),inset 0 -2px 0 rgba(140,62,28,.2),0 8px 16px rgba(176,78,36,.28);
+}
+#app button#cta.travel{
+  background:linear-gradient(180deg,#b7d0b0,#7f9d7c 58%,#6d8b6a);
+  color:#f4f7f1;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 14px rgba(59,36,18,.16);
+}
+#app button#cta.gold{
+  background:linear-gradient(180deg,#f8dc9a,#e7b34a 52%,#d39a30);
+  color:#5A3D26;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 8px 16px rgba(176,120,30,.24);
+}
+#app button.round:active,#app button.mini:active,#app .tcard:active,#app .goals button:active,#app .menu-row:active{
+  transform:translateY(1px);
+  box-shadow:inset 0 2px 4px rgba(90,61,38,.16);
+}
+#app button#cta:active{transform:translateY(1px);box-shadow:inset 0 3px 6px rgba(90,40,18,.28)}
+.tabbar{box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 -8px 18px rgba(59,36,18,.08)}
+.trip-board{
+  background:rgba(255,247,230,.9);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid rgba(90,61,38,.28);
+  border-radius:22px;
+  padding:12px 12px 10px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 10px 24px rgba(59,36,18,.12);
+}
+.trip-board h3{margin:2px 4px 8px;font-size:16px}
+.trip-board h4{margin:10px 4px 6px;font-size:13px;letter-spacing:.02em}
+.trip-board .hscroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;overflow:visible;padding:0}
+.trip-board .tcard{min-width:0;min-height:92px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.trip-board .tname{font-size:14px;line-height:1.25;text-align:left;padding-right:18px}
+.trip-board .price{display:inline-flex;align-items:center;gap:3px;margin-top:auto;font-weight:800;font-size:13px}
+.ledger{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  min-height:48px;margin-top:8px;padding:8px 12px;border-radius:16px;
+  background:rgba(255,250,240,.97);
+  border:1px solid rgba(90,61,38,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.tcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.tcard .tname{display:block;padding-right:26px;line-height:1.25}
+.tcard small{display:block}
+.tcard .price{display:inline-flex;align-items:center;gap:3px;margin-top:2px}
+.ledger span{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:14px;white-space:nowrap}
+.why{background:transparent}
+@media (max-width:360px){
+  .trip-board .hscroll{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mini{font-size:12px;padding:0 10px}
 }
