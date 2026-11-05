@@ -60,3 +60,13 @@
 </td>
 </tr>
 </table>
+
+## 开发计划
+
+迭代按阶段推进。认领任务和同步进度以任务板为准：
+
+- [路线图](docs/ROADMAP.md)：阶段目标、范围、退出标准，以及广告、文案和内容批量的约束
+- [手机端规格](docs/MOBILE_UX.md)：四个底部标签、首页主按钮、出行确认和触控尺寸
+- [任务板](docs/TASKS.md)：可认领的任务和当前状态
+- [协作约定](docs/AGENT_WORKFLOW.md)：先更新 `main`、认领一行、一个任务一条分支
+- 背景材料：[设计分析](docs/research/muse-analysis-2026-11.md)、[现状简报](docs/research/game-brief-2026-11.md)（`main@2cad3db`，2026-11-04）
