@@ -162,9 +162,34 @@
     return { file: source, fallback: source, focus: focus, kind: kind, encoded: 'original' };
   }
 
+  // Pack horizontal targets into as few cover-focus pages as fit in `usable`
+  // (the visible width fraction, already inset). Each page lists ids that
+  // sit fully inside that page before edge clamping; the caller checks the
+  // clamped frame and shortens the page if needed.
+  function packFocusPages(usable, spans) {
+    var items = (spans || []).slice().sort(function (a, b) { return a.x0 - b.x0 || a.x1 - b.x1; });
+    var pages = [];
+    var i = 0;
+    while (i < items.length) {
+      var lo = items[i].x0;
+      var hi = items[i].x1;
+      var ids = [items[i].id];
+      var j = i;
+      while (j + 1 < items.length && items[j + 1].x1 - lo <= usable + 1e-4) {
+        j++;
+        hi = items[j].x1;
+        ids.push(items[j].id);
+      }
+      pages.push({ x: (lo + hi) / 2, ids: ids, lo: lo, hi: hi });
+      i = j + 1;
+    }
+    return pages;
+  }
+
   g.SCENE_FILES = SCENE_FILES;
   g.sceneCoverRect = coverRect;
   g.sceneFocus = sceneFocus;
   g.sceneFrameOf = frameOf;
+  g.packFocusPages = packFocusPages;
   g.chooseSceneFile = chooseSceneFile;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

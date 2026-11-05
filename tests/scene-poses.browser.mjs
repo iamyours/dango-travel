@@ -129,6 +129,14 @@ async function main() {
     });
   }
 
+  async function settled() {
+    await page.waitForFunction(() => {
+      const layer = document.querySelector('#scene .layer.show');
+      const img = layer && layer.querySelector('img.bg');
+      return layer && img && img.complete && img.naturalWidth > 0 && getComputedStyle(layer).opacity === '1';
+    });
+    await new Promise(r => setTimeout(r, 60));
+  }
   async function openPose(width, act, season, tab) {
     await page.setViewport({ width, height: 844, deviceScaleFactor: 1 });
     const tabQ = tab === 'pond' ? '&tab=pond' : '';
@@ -137,6 +145,7 @@ async function main() {
       const img = document.querySelector('#scene .layer.show .actor img');
       return img && img.complete && img.naturalWidth > 0;
     });
+    await settled();
   }
 
   const report = [];
@@ -216,32 +225,38 @@ async function main() {
   await page.screenshot({ path: shots + '/scene-kitchen-empty-390.png' });
 
   await page.goto('http://127.0.0.1:8776/?hour=15&act=sleep&season=autumn&room=garden&lang=zh', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => {
-    const img = document.querySelector('#scene .layer.show img.bg');
-    return img && img.complete && /garden/.test(img.getAttribute('src') || '');
-  });
-  const garden = await page.evaluate(() => {
-    const scene = document.getElementById('scene').getBoundingClientRect();
-    const seen = el => {
-      const b = el.getBoundingClientRect();
-      const cx = b.left + b.width / 2;
-      const cy = b.top + b.height / 2;
-      return cx >= scene.left && cx <= scene.right && cy >= scene.top && cy <= scene.bottom;
-    };
-    const clovers = [...document.querySelectorAll('.clover')];
-    const mail = document.getElementById('mailbox');
-    return {
-      actor: !!document.querySelector('.actor'),
-      clovers: clovers.length,
-      cloversInView: clovers.filter(seen).length,
-      luckyInView: clovers.filter(el => el.classList.contains('lucky') && !el.classList.contains('gone')).every(seen),
-      mailboxInView: !!(mail && seen(mail))
-    };
-  });
+  await settled();
+  const seenIds = new Set();
+  let garden = null;
+  for (let step = 0; step < 6; step++) {
+    garden = await page.evaluate(() => {
+      const scene = document.getElementById('scene').getBoundingClientRect();
+      const hit = el => {
+        const b = el.getBoundingClientRect();
+        const cx = b.left + b.width / 2;
+        const cy = b.top + b.height / 2;
+        const inside = b.left >= scene.left && b.right <= scene.right && b.top >= scene.top && b.bottom <= scene.bottom && b.width >= 48 && b.height >= 48;
+        const node = document.elementFromPoint(cx, cy);
+        return inside && node && node.closest && (node.closest('.clover') === el || node.closest('#mailbox') === el);
+      };
+      return {
+        actor: !!document.querySelector('.actor'),
+        clovers: [...document.querySelectorAll('.clover')].filter(el => !el.classList.contains('gone')).map(el => ({ id: el.dataset.i, ok: hit(el) })),
+        mail: hit(document.getElementById('mailbox')),
+        more: !!document.querySelector('#room-next .more:not([hidden])')
+      };
+    });
+    garden.clovers.filter(c => c.ok).forEach(c => seenIds.add(c.id));
+    if (garden.mail) seenIds.add('mail');
+    if (!garden.more) break;
+    await page.click('#room-next');
+    await page.waitForFunction(step => {
+      const layer = document.querySelector('#scene .layer.show');
+      return layer && layer.dataset.gpage === String(step) && getComputedStyle(layer).opacity === '1';
+    }, {}, step + 1);
+  }
   assert.equal(garden.actor, false);
-  assert.equal(garden.clovers, 8);
-  assert.ok(garden.cloversInView >= 4, JSON.stringify(garden));
-  assert.equal(garden.luckyInView, true, JSON.stringify(garden));
+  assert.equal(seenIds.size, 9, 'garden targets ' + [...seenIds].join(','));
   await page.screenshot({ path: shots + '/scene-garden-390.png' });
 
   await page.goto('http://127.0.0.1:8776/?hour=8&act=stretch&season=autumn&fixture=deco&lang=en', { waitUntil: 'domcontentloaded' });
@@ -286,6 +301,7 @@ async function main() {
     });
   });
   assert.ok(placed.every(Boolean), JSON.stringify(placed));
+  await settled();
   await page.screenshot({ path: shots + '/scene-fixture-deco-390.png' });
 
   await page.setViewport({ width: 390, height: 844 });

@@ -181,6 +181,11 @@ body.night .glass,body.night .tabbar{background:rgba(255,247,230,.92)}
   display:inline-flex;align-items:center;justify-content:center;position:relative;
 }
 .round.on{outline:2px solid var(--terra);outline-offset:2px}
+.round .more{
+  position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;
+  border-radius:999px;background:#E25B4A;color:#fff;font:700 11px/18px Nunito,sans-serif;
+  pointer-events:none;
+}
 
 .side{
   position:absolute;z-index:17;top:38%;transform:translateY(-50%);
