@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2', '.txt': 'text/plain' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.txt': 'text/plain', '.json': 'application/json' };
 
 function startServer(port) {
   const server = createServer((req, res) => {
@@ -77,6 +77,7 @@ async function main() {
   assert.equal(cold.covers, true);
   assert.ok(Math.abs(cold.aspect - 1) < 0.02, 'stretched ' + cold.aspect);
   assert.ok(!cold.fallback);
+  assert.ok(cold.src.includes('assets/opt/bg_living_autumn.webp'), cold.src);
 
   t0 = Date.now();
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -84,8 +85,10 @@ async function main() {
     const img = document.querySelector('#scene .layer.show img.bg');
     return img && img.complete && img.naturalWidth === 1600;
   });
-  const warmMs = Date.now() - t0;
-  console.log(JSON.stringify({ coldMs, warmMs, coldSrc: cold.src }));
+  // This server sends Cache-Control: no-store, so the reload downloads again.
+  // It is not a warm-cache revisit.
+  const noStoreReloadMs = Date.now() - t0;
+  console.log(JSON.stringify({ coldMs, noStoreReloadMs, coldSrc: cold.src, note: 'no-store reload is not a warm-cache test' }));
 
   const sizes = [360, 390, 430];
   for (const w of sizes) {
@@ -128,9 +131,9 @@ async function main() {
     if (hit && typeof hit[1] === 'number') { setTimeout(() => req.continue().catch(() => {}), hit[1]); return; }
     req.continue().catch(() => {});
   });
-  delays.set('bg_kitchen.jpg', 1400);
-  delays.set('bg_balcony.jpg', 70);
-  delays.set('bg_rain.jpg', 'abort');
+  delays.set('bg_kitchen', 1400);
+  delays.set('bg_balcony', 70);
+  delays.set('bg_rain', 'abort');
   const before = await shown();
   assert.ok(before.src.includes('bg_living_autumn'));
   await page.evaluate(() => { goRoom(1); goRoom(1); goRoom(1); });
@@ -140,11 +143,11 @@ async function main() {
     return layer && layer.dataset.src.includes('bg_balcony') && img && img.complete && img.naturalWidth === 1600;
   }, { timeout: 20000 });
   const early = await shown();
-  assert.ok(early.src.includes('bg_balcony.jpg'), early.src);
+  assert.ok(early.src.includes('bg_balcony'), early.src);
   assert.equal(early.complete, true);
   await new Promise(r => setTimeout(r, 1700));
   const afterLate = await shown();
-  assert.ok(afterLate.src.includes('bg_balcony.jpg'), 'stale kitchen image replaced balcony');
+  assert.ok(afterLate.src.includes('bg_balcony'), 'stale kitchen image replaced balcony');
 
   const kept = afterLate.src;
   await page.evaluate(() => { goRoom(1); });
