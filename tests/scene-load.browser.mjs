@@ -4,7 +4,7 @@
  * Needs Google Chrome and a static server. This file starts its own on 8773.
  */
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,7 +40,7 @@ async function main() {
   }
   const server = await startServer(8773);
   const browser = await puppeteer.launch({
-    executablePath: '/usr/local/bin/google-chrome',
+    executablePath: ['/usr/bin/google-chrome', '/usr/local/bin/google-chrome', '/opt/google/chrome/chrome'].find(p => existsSync(p)),
     headless: 'new',
     args: ['--no-sandbox', '--disable-gpu']
   });

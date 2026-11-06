@@ -4,14 +4,14 @@
  */
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const shots = '/opt/cursor/artifacts';
+const shots = process.env.DANGO_ARTIFACTS || fileURLToPath(new URL('../artifacts', import.meta.url));
 mkdirSync(shots, { recursive: true });
 const types = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg',
@@ -64,7 +64,7 @@ async function main() {
   const puppeteer = createRequire(import.meta.url)('/tmp/node_modules/puppeteer-core');
   const server = await startServer(8778);
   const browser = await puppeteer.launch({
-    executablePath: '/usr/local/bin/google-chrome',
+    executablePath: ['/usr/bin/google-chrome', '/usr/local/bin/google-chrome', '/opt/google/chrome/chrome'].find(p => existsSync(p)),
     headless: 'new',
     args: ['--no-sandbox', '--disable-gpu']
   });
