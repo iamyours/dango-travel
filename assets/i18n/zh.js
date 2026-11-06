@@ -251,6 +251,8 @@ I18N.add('zh', {
   "actor.alt": "团子",
   "scene.noteAway": "出门旅行中～",
   "scene.gardenAlt": "庭院",
+  "scene.loadFail": "这幅画没载入。上一张还在，可以再试一次。",
+  "scene.retry": "再试一次",
   "scene.mailboxTitle": "信箱",
   "scene.here": " · 团子在这里",
   "scene.decorating": " · 布置中",

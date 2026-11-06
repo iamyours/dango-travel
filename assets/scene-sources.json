@@ -1,0 +1,26 @@
+{
+  "recipe": {
+    "format": "webp",
+    "quality": 60,
+    "method": 6,
+    "resize": false,
+    "note": "Keep the JPEG. Do not downscale: a 390×844 cover already scales the 893px edge up, so a smaller master would blur the visible strip. Re-run tools/optimize-scenes.py after replacing a source or after a portrait file lands in assets/portrait/."
+  },
+  "portrait": {
+    "status": "not-generated",
+    "note": "assets/portrait/ is reserved for 小红's vertical scenes. Those seven files are not in the tree. HAVE does not list them, so the page does not request them."
+  },
+  "scenes": [
+    {"id": "garden", "source": "garden.jpg", "webp": "opt/garden.webp", "portrait": "portrait/garden.jpg", "served": true},
+    {"id": "home_empty", "source": "home_empty.jpg", "webp": "opt/home_empty.webp", "portrait": "portrait/home_empty.jpg", "served": true},
+    {"id": "home", "source": "home.jpg", "webp": "opt/home.webp", "portrait": null, "served": false, "note": "Baked-in Dango. Summer uses home_empty.jpg."},
+    {"id": "bg_living_spring", "source": "bg_living_spring.jpg", "webp": "opt/bg_living_spring.webp", "portrait": "portrait/bg_living_spring.jpg", "served": true},
+    {"id": "bg_living_autumn", "source": "bg_living_autumn.jpg", "webp": "opt/bg_living_autumn.webp", "portrait": "portrait/bg_living_autumn.jpg", "served": true},
+    {"id": "bg_living_winter", "source": "bg_living_winter.jpg", "webp": "opt/bg_living_winter.webp", "portrait": "portrait/bg_living_winter.jpg", "served": true},
+    {"id": "bg_reading", "source": "bg_reading.jpg", "webp": "opt/bg_reading.webp", "portrait": "portrait/bg_reading.jpg", "served": true},
+    {"id": "bg_kitchen", "source": "bg_kitchen.jpg", "webp": "opt/bg_kitchen.webp", "portrait": "portrait/bg_kitchen.jpg", "served": true},
+    {"id": "bg_balcony", "source": "bg_balcony.jpg", "webp": "opt/bg_balcony.webp", "portrait": "portrait/bg_balcony.jpg", "served": true},
+    {"id": "bg_rain", "source": "bg_rain.jpg", "webp": "opt/bg_rain.webp", "portrait": "portrait/bg_rain.jpg", "served": true},
+    {"id": "bg_pond", "source": "bg_pond.jpg", "webp": "opt/bg_pond.webp", "portrait": "portrait/bg_pond.jpg", "served": true}
+  ]
+}

@@ -96,15 +96,21 @@ body.night #app button.glass{background:rgba(255,247,230,.92)}
 }
 .layer{
   inset:auto;
-  top:0;
   right:auto;
   bottom:auto;
-  left:50%;
-  width:max(100%, calc(86dvh * 1600 / 893));
-  height:86dvh;
-  transform:translateX(-50%);
+  width:auto;
+  height:auto;
+  margin:0;
+  transform:none;
+  transition:opacity .35s ease;
 }
 .layer>img.bg{object-fit:fill;object-position:center}
+.scene-fallback{
+  position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+  z-index:8;max-width:min(320px,86%);padding:16px 18px;border-radius:18px;text-align:center;
+}
+.scene-fallback p{margin:0 0 8px;font-size:14px;line-height:1.4}
+.scene-fallback button{min-height:48px;min-width:48px;padding:8px 16px;border-radius:999px;background:#DE7442;color:#fff7e6;font-weight:800}
 #app [hidden]{display:none!important}
 body.sheet-open #edge-pills{display:none!important}
 .note{left:50%!important;right:auto!important;top:56%!important;transform:translateX(-50%) rotate(-3deg);width:max-content;max-width:78vw;min-width:0;min-height:0;height:auto;padding:8px 12px;white-space:nowrap;font-size:14px;line-height:1.35}
@@ -175,6 +181,11 @@ body.night .glass,body.night .tabbar{background:rgba(255,247,230,.92)}
   display:inline-flex;align-items:center;justify-content:center;position:relative;
 }
 .round.on{outline:2px solid var(--terra);outline-offset:2px}
+.round .more{
+  position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;
+  border-radius:999px;background:#E25B4A;color:#fff;font:700 11px/18px Nunito,sans-serif;
+  pointer-events:none;
+}
 
 .side{
   position:absolute;z-index:17;top:38%;transform:translateY(-50%);

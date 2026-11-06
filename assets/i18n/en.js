@@ -266,6 +266,8 @@ I18N.add('en', {
   "actor.alt": "Dango",
   "scene.noteAway": "Off on a trip~",
   "scene.gardenAlt": "Garden",
+  "scene.loadFail": "This scene didn't load. The previous one is still here. Try again.",
+  "scene.retry": "Try again",
   "scene.mailboxTitle": "Mailbox",
   "scene.here": " · Dango is here",
   "scene.decorating": " · Decorating",
