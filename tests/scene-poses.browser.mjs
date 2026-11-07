@@ -4,7 +4,7 @@
  * Byte timings are measured separately; this file does not throttle the network.
  */
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +16,7 @@ const types = {
   '.webp': 'image/webp', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json'
 };
 const skipSlow = process.env.SKIP_POSES === '1';
-const shots = '/opt/cursor/artifacts';
+const shots = process.env.DANGO_ARTIFACTS || fileURLToPath(new URL('../artifacts', import.meta.url));
 mkdirSync(shots, { recursive: true });
 
 function startServer(port) {
@@ -67,7 +67,7 @@ async function main() {
   catch { console.log('SKIP browser: puppeteer-core is not installed'); return; }
   const server = await startServer(8776);
   const browser = await puppeteer.launch({
-    executablePath: '/usr/local/bin/google-chrome',
+    executablePath: ['/usr/bin/google-chrome', '/usr/local/bin/google-chrome', '/opt/google/chrome/chrome'].find(p => existsSync(p)),
     headless: 'new',
     args: ['--no-sandbox', '--disable-gpu']
   });
